@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="webship_property_action" model="ir.actions.act_window">
+        <field name="name">Properties</field>
+        <field name="res_model">webship.property</field>
+        <field name="view_mode">tree,kanban,form</field>
+        <field name="context">{'search_default_available': 1}</field>
+    </record>
+</odoo>

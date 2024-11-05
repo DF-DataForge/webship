@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+     <record id="product_packaging_tree_view_webship" model="ir.ui.view">
+        <field name="name">product.packaging.tree.inherit.webship</field>
+        <field name="model">product.packaging</field>
+        <field name="inherit_id" ref="product.product_packaging_tree_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//tree[@name='packaging']/field[@name='qty']" position="after">
+                <field name="df_sku_webship" optional="hide"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

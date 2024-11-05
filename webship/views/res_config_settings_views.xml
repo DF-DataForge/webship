@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="res_config_settings_view_form" model="ir.ui.view">
+            <field name="name">res.config.settings.view.form.inherit.hr.fleet</field>
+            <field name="model">res.config.settings</field>
+            <field name="priority" eval="90"/>
+            <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//form" position="inside">
+                    <app data-string="Webship" id="webship" string="Webship" name="webship">
+                        <block title="Login settings" id="ws_login_setting">
+                            <setting string="Login">
+                                <div class="text-muted content-group mt16">
+                                    <span>Key: </span>
+                                    <field name="webship_login" style="width: 320px" />
+                                </div>
+                                <div class="text-muted content-group mt16">
+                                    <span>Secret: </span>
+                                    <field name="webship_password" style="width: 320px" password="True"/>
+                                </div>
+                                <div class="text-muted content-group mt16">
+                                    <span>Base Url: </span>
+                                    <field name="webship_url" style="width: 320px"/>
+                                </div>
+                                <div class="text-muted content-group mt16">
+                                    <span>App Url: </span>
+                                    <field name="webship_app_url" style="width: 320px"/>
+                                </div>
+                                <div class="text-muted content-group mt16">
+                                        <button string="Test verbinding" name="ws_test_verbinding" type="object" />
+                                </div>
+                            </setting>
+                        </block>
+                        <block title="Algemene instellingen" id="ws_algemene_instellingen">
+                            <setting string="Algemene parameters">
+                                <p><field name="webship_modus"></field></p>
+                                <group>
+                                    <field name="webship_sync_order"></field>
+                                    <field name="webship_sync_producten"></field>
+                                    <field name="webship_sync_klanten"></field>
+                                    <field name="webship_sync_leveranciers"></field>
+                                </group>
+                            </setting>
+                        </block>
+                        <block title="Import/export" id="ws_import_export_setting">
+                            <setting string="Exports">
+                                <p><button icon="oi-arrow-right" name="ws_exp_sup_cl" type="object" string="Exporteer leveranciers, klanten" confirm="Export uitvoeren?" class="btn-link"/></p>
+                            </setting>
+                            <setting string="Initiële configuratie">
+                                <p><button icon="oi-arrow-right" name="ws_empty_db" type="object" string="Database Webship resetten" confirm="Database resetten?" class="btn-link"/></p>
+                                <p><button icon="oi-arrow-right" name="ws_import_sup" type="object" string="Export leveranciers en klanten naar Webship"  class="btn-link"/></p>
+                                <p><button icon="oi-arrow-right" name="ws_import_prods" type="object" string="Export alle producten naar Webship" class="btn-link"/></p>
+                                <p><button icon="oi-arrow-right" name="ws_import_orders" type="object" string="Export alle orders naar Webship" class="btn-link"/></p>
+                                <p><button icon="oi-arrow-right" name="ws_fetch_warehouses" type="object" string="Importeer warehouses van Webship in Odoo" class="btn-link"/></p>
+                                <p><button icon="oi-arrow-right" name="ws_fetch_locations" type="object" string="Importeer stock locaties van Webship in Odoo" class="btn-link"/></p>
+                            </setting>
+                        </block>
+                        <block title="Synchronisatie" id="ws_synchr_block_id">
+                            <setting string="Synchronisatie">
+                                 <p><button icon="oi-arrow-right" name="ws_sync_orders" type="object" string="Orders synchroniseren" class="btn-link"/></p>
+                                 <p><button icon="oi-arrow-right" name="ws_reset_codes" type="object" string="Codes herophalen" class="btn-link"/></p>
+                            </setting>
+                        </block>
+                    </app>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="webship_config_settings_action" model="ir.actions.act_window">
+            <field name="name">Settings</field>
+            <field name="res_model">res.config.settings</field>
+            <field name="view_mode">form</field>
+            <field name="target">inline</field>
+            <field name="context">{'module' : 'webship', 'bin_size': False}</field>
+        </record>
+
+        <menuitem id="webship_config_settings_menu" name="Settings"
+            parent="webship.webship_root_menu" sequence="10"
+                  action="webship_config_settings_action"
+            groups="base.group_system"/>
+    </data>
+</odoo>

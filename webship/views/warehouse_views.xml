@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="stock_location_view_inherit_webship" model="ir.ui.view">
+        <field name="name">location.view.inherit.webship</field>
+        <field name="model">stock.warehouse</field>
+        <field name="inherit_id" ref="stock.view_warehouse"/>
+        <field name="arch" type="xml">
+             <xpath expr="//field[@name='code']" position="after">
+                <field name="df_shop_id_webship"></field>
+             </xpath>
+        </field>
+    </record>
+</odoo>
+<!-- NIET MEER NODIG -->
