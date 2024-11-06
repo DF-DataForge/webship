@@ -28,6 +28,8 @@ class ResConfigSettings(models.TransientModel):
 
     webship_locations = fields.One2many('stock.location', 'id', string='Webship stock locaties')
 
+    testSku = fields.Char(string="Voor sku in")
+
     def syncAll(self):
         print('hi')
 
@@ -139,3 +141,6 @@ class ResConfigSettings(models.TransientModel):
                 'message': testRes[1]
             },
         }
+
+    def ws_check_sku(self):
+        print(self.testSku)

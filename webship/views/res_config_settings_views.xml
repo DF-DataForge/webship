@@ -62,6 +62,12 @@
                                  <p><button icon="oi-arrow-right" name="ws_reset_codes" type="object" string="Codes herophalen" class="btn-link"/></p>
                             </setting>
                         </block>
+                        <block title="Tools" id="ws_tools_id">
+                            <setting string="Tools">
+                                <field name="testSku"></field>
+                                <button icon="oi-arrow-right" name="ws_check_sku" type="object" string="Check sku" class="btn-link"/>
+                            </setting>
+                        </block>
                     </app>
                 </xpath>
             </field>

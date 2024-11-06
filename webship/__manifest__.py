@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 {
-    'name': "Koppeling Webship by Data Forge ",
+    'name': "Koppeling Webship by Data Forge",
 
     'summary': "Koppeling met Webship",
 

@@ -487,8 +487,8 @@ class WebShipHandler:
         if items == []:
             sOutput['errors'].append('There are items with zero quantity')
 
-        if clientCode == False:
-            sOutput['errors'].append('Client does not exist in Webship')
+        #if clientCode == False:
+        #    sOutput['errors'].append('Client does not exist in Webship')
 
         for i in sOutput['mainList']:
             if i['default_code'] == False or i['default_code'] == None:
@@ -544,8 +544,8 @@ class WebShipHandler:
             for key in keys_to_remove:
                 clientInfo.pop(key)
 
-            if 'vat' not in clientInfo:
-                sOutput['errors'].append('Vat not present in shipping address')
+            #if 'vat' not in clientInfo:
+            #    sOutput['errors'].append('Vat not present in shipping address')
 
             if 'address_1' not in clientInfo:
                 sOutput['errors'].append('Address not present in shipping address')
