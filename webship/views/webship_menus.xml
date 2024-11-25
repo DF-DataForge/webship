@@ -19,11 +19,10 @@
                         <field name="scheduled_date" optional="show" widget="remaining_days"></field>
                         <field name="name"></field>
                         <field name="partner_id"></field>
-                        <field name="location_id"></field>
-                        <field name="location_dest_id"></field>
                         <field name="df_status_webship" widget="html"></field>
 						<field name="df_picking_syncresult_webship" widget="html"></field>
                         <field name="wsUrlOrder" widget="html"></field>
+                        <field name="sale_id"/>
                         <field name="state" widget="badge" decoration-danger="state=='cancel'" decoration-info="state== 'assigned'" decoration-muted="state == 'draft'" decoration-success="state == 'done'" decoration-warning="state not in ('draft','cancel','done','assigned')"></field>
                 </tree>
             </field>

@@ -16,6 +16,7 @@ class ResConfigSettings(models.TransientModel):
     webship_url = fields.Char(string='Webship base URL', config_parameter='webship.base_url')
     webship_app_url = fields.Char(string='Webship base URL', config_parameter='webship.base_app_url')
     webship_last_tested = fields.Char(string='Webship laatst getest', config_parameter='webship.last_tested')
+    webship_last_check_date_status = fields.Datetime(string="Order status last check date", config_parameter='webship.last_check_date_status')
 
     webship_modus = fields.Selection([('a','Sync nodig'),
                                    ('b','Sync niet nodig')
@@ -81,6 +82,23 @@ class ResConfigSettings(models.TransientModel):
         wsHandler.emptyProducts()
         wsHandler.emptyClients()
         wsHandler.emptySuppliers()
+
+    def ws_sync_statusses_since_last(self):
+        login = self.env['ir.config_parameter'].sudo().get_param('webship.username')
+        pw = self.env['ir.config_parameter'].sudo().get_param('webship.password')
+        base_url = self.env['ir.config_parameter'].sudo().get_param('webship.base_url')
+
+        check_date = self.env['ir.config_parameter'].sudo().get_param('webship.last_check_date_status')
+        #check_date = self.env['ir.config_parameter'].sudo().search([('')])
+        print(check_date)
+
+        wsHandler = ws.WebShipHandler(login, pw, base_url)
+        wsHandler.set_env(self.env)
+
+        lastDate = wsHandler.sync_statusses_since_last(check_date)
+
+        self.env['ir.config_parameter'].sudo().set_param('webship.last_check_date_status', lastDate)
+
     def ws_prod_to_ws(self):
         wsHandler = ws.WebShipHandler(self.webship_login, self.webship_password)
 

@@ -4,7 +4,7 @@ from datetime import datetime
 import requests
 import logging
 from requests.auth import HTTPBasicAuth
-
+import math
 from odoo.fields import Datetime
 
 _logger = logging.getLogger(__name__)
@@ -18,6 +18,9 @@ class WebShipHandler:
         self.sleepTime = 0.5
         self.headers = {'x-addon-public-key':'kRTxA08bKieVQroS'}
         self.auth = HTTPBasicAuth(ws_login, ws_password)
+
+    def set_env(self, env):
+        self.env = env
 
     def test(self):
         response = requests.get(self.baseUrl + 'products', auth=self.auth, headers=self.headers)
@@ -414,6 +417,9 @@ class WebShipHandler:
 
         return errors
 
+    def is_integer_float(self, value):
+        return value % 1 == 0
+
     def picking_get_line_items(self, picking):
         output = []
         print(picking)
@@ -447,6 +453,70 @@ class WebShipHandler:
 
         return output
 
+    def sync_statusses_since_last(self, lastDate):
+        print(lastDate)
+        if lastDate == False or lastDate == None:
+            url = self.baseUrl + 'orders?detail=high'
+        else:
+            dt_object = datetime.strptime(lastDate, "%Y-%m-%d %H:%M:%S")
+            url = self.baseUrl + 'orders?detail=high&edited_after=' + self.convert_datetime(dt_object)
+
+        print(url)
+
+        page = 1
+
+        while True:
+            response = requests.get(url + '&page=' + str(page), auth=self.auth, headers=self.headers)
+
+            responseData = response.json()
+            totalCount = response.headers.get('total-count')
+            totalPages = math.ceil(int(totalCount)/50)
+            #print(responseData)
+
+            maxEdited = None
+            for order in responseData:
+                print(order)
+                print(order['_id'])
+                print(order['status'])
+
+                if order['status'] == 'completed':
+                    pickingId = self.env['stock.picking'].search([('df_picking_id_webship','=',order['_id'])])
+                    print(pickingId)
+                    if pickingId:
+                        if pickingId.state != 'done':
+                            pickingId.state = 'done'
+                            if 'edited' in order:
+                                datum = order['edited']
+                            else:
+                                datum = order['created']
+
+                            date_object = datetime.strptime(datum, "%Y-%m-%dT%H:%M:%S.%fZ")
+                            date_object.replace(microsecond=0)
+                            pickingId.df_last_changedate_webship = date_object
+
+
+                if 'edited' in order:
+                    if order['edited'] != None and maxEdited == None:
+                        maxEdited = order['edited']
+                    elif order['edited'] > maxEdited:
+                        maxEdited = order['edited']
+                else:
+                    if order['created'] != None and maxEdited == None:
+                        maxEdited = order['created']
+                    elif order['created'] > maxEdited:
+                        maxEdited = order['created']
+                print('Max edited:' + maxEdited)
+            self.sleep()
+            page = page + 1
+
+            if page > totalPages:
+                break
+
+        date_object = datetime.strptime(maxEdited, "%Y-%m-%dT%H:%M:%S.%fZ").replace(microsecond=0)
+        dt_for_odoo = date_object.strftime("%Y-%m-%d %H:%M:%S")
+
+        return date_object
+
     def build_order_object(self, picking):
         items = self.picking_get_line_items(picking)
 
@@ -472,7 +542,17 @@ class WebShipHandler:
                 for j in i['divides']:
                     sOutput['mainList'].append({'name':i['productObj'].name, 'detailed_type':i['detailed_type'], 'default_code':j['Sku'], 'product_id':i['product_id'], 'quantity':j['OrderQty'], 'containerQty':j['Qty'],'shopId':self.get_shop_for_product(i['productObj'], allCatsMap), 'WSku':self.get_webship_sku(j['Sku'], skus)})
 
-        clientCode = picking.partner_id.df_client_id_webship
+        clientCode = picking.sale_id.partner_id.df_client_id_webship
+
+        print('Main client: ' + str(picking.sale_id.partner_id.name))
+        print('Shipping client: ' + str(picking.sale_id.partner_shipping_id.name))
+
+        err = []
+        if clientCode == False:
+            err = self.sync_partner(picking.sale_id.partner_id)
+
+        if err == [] and clientCode == False:
+            clientCode = picking.sale_id.partner_id.df_client_id_webship
 
         sOutput['clientCode'] = clientCode
 
@@ -483,6 +563,11 @@ class WebShipHandler:
             sOutput['sendScheduledDate'] = False
 
         sOutput['errors'] = []
+
+        if sOutput['sendScheduledDate'] == True:
+            current_dateTime = datetime.now()
+            if picking.sale_id.commitment_date < current_dateTime:
+                sOutput['errors'].append('Shipping date cannot be in the past')
 
         if items == []:
             sOutput['errors'].append('There are items with zero quantity')
@@ -497,6 +582,10 @@ class WebShipHandler:
         for i in sOutput['mainList']:
             if i['default_code'] != False and i['default_code'] != None and i['WSku'] == None:
                 sOutput['errors'].append('No SKU in Webship for product ' + i['name'] + ' with code ' + i['default_code'])
+
+        for i in sOutput['mainList']:
+            if not self.is_integer_float(i['quantity']):
+                sOutput['errors'].append('Product ' + i['name'] + ' has non integer value')
 
         allShops = set()
         for i in sOutput['mainList']:
@@ -529,16 +618,22 @@ class WebShipHandler:
 
         print('Checking...')
         if picking.sale_id.id != False and picking.sale_id.partner_shipping_id != False:
+            #print(picking.sale_id.partner_shipping_id)
             clientInfo = {
-                'name':picking.sale_id.partner_shipping_id.name,
-                'vat':picking.sale_id.partner_shipping_id.vat,
+                'name':picking.sale_id.partner_id.name,
+                'vat':picking.sale_id.partner_id.vat,
                 'address_1':picking.sale_id.partner_shipping_id.street,
+                'address_2':picking.sale_id.partner_shipping_id.street2 or ' ',
                 'city':picking.sale_id.partner_shipping_id.city,
                 'postal_code':picking.sale_id.partner_shipping_id.zip,
                 'country':picking.sale_id.partner_shipping_id.country_code,
-                'email':picking.sale_id.partner_shipping_id.email,
-                'phone':picking.sale_id.partner_shipping_id.phone,
+                'email':picking.sale_id.partner_id.email,
+                'phone':picking.sale_id.partner_id.phone,
                           }
+            print(clientInfo)
+            #if clientInfo['email'] == False:
+            #    clientInfo['email'] = picking.sale_id.partner_id.email
+
             keys_to_remove = [key for key, value in clientInfo.items() if not value]
 
             for key in keys_to_remove:
@@ -546,6 +641,9 @@ class WebShipHandler:
 
             #if 'vat' not in clientInfo:
             #    sOutput['errors'].append('Vat not present in shipping address')
+
+            if 'email' not in clientInfo and picking.sale_id.partner_id != picking.sale_id.partner_shipping_id:
+                sOutput['errors'].append('E-mail address not present in shipping address. Is mandatory because shipping address is different from bill address')
 
             if 'address_1' not in clientInfo:
                 sOutput['errors'].append('Address not present in shipping address')
@@ -703,17 +801,17 @@ class WebShipHandler:
             bDeliveryMode = True
             pickingUrl = self.baseUrl + 'orders'
 
-            clientCode = picking.partner_id.df_client_id_webship
+            clientCode = picking.sale_id.partner_id.df_client_id_webship
 
             errors = []
 
-            if bDeliveryMode == False:
-                if clientCode == False:
-                    err = self.sync_partner(picking.partner_id)
+            err = []
+            if clientCode == False:
+                err = self.sync_partner(picking.sale_id.partner_id)
 
-                    if err != []:
-                        errors.append('Could not fulfill request because of mandatory fields missing on customer')
-                        errors = errors + err
+            if err != []:
+                errors.append('Could not fulfill request because of mandatory fields missing on customer')
+                errors = errors + err
 
             wsObject = self.build_order_object(picking)
 
@@ -724,10 +822,11 @@ class WebShipHandler:
             if errors != []:
                 return errors
 
-            wsObject['webshipObj'].pop('client_id')
+            #wsObject['webshipObj'].pop('client_id')
 
             sJson = wsObject['webshipObj']
 
+            print(sJson)
 
             _logger.info(str(sJson))
 
@@ -785,12 +884,12 @@ class WebShipHandler:
             pickingUrl = self.baseUrl + 'purchase-orders'
             #errors = ['No implementation for PO']
 
-            supplierCode = picking.partner_id.df_supplier_id_webship
+            supplierCode = picking.sale_id.partner_id.df_supplier_id_webship
 
             errors = []
 
             if supplierCode == False:
-                err = self.sync_supplier(picking.partner_id)
+                err = self.sync_supplier(picking.sale_id.partner_id)
 
                 if err != []:
                     errors.append('Could not fulfill request because of mandatory fields missing on customer')
@@ -860,8 +959,16 @@ class WebShipHandler:
 
                 picking.df_last_changedate_webship = date_object
 
+                #responseData['status'] = 'completed'
                 if responseData['status'] == 'completed':
-                    picking.state = 'done'
+                    try:
+                        picking.state = 'done'
+                    except:
+                        return ['Error while setting state to done on picking order']
+                    #try:
+                    #    picking.sale_id = 'done'
+                    #except:
+                    #    return ['Error while setting state to done on sale order']
 
                 return []
             else:

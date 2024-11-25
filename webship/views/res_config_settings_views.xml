@@ -60,6 +60,8 @@
                             <setting string="Synchronisatie">
                                  <p><button icon="oi-arrow-right" name="ws_sync_orders" type="object" string="Orders synchroniseren" class="btn-link"/></p>
                                  <p><button icon="oi-arrow-right" name="ws_reset_codes" type="object" string="Codes herophalen" class="btn-link"/></p>
+                                 <p><button icon="oi-arrow-right" name="ws_sync_statusses_since_last" type="object" string="Statussen syncen" class="btn-link"/></p>
+                                 <span>Last date check status:</span><field name="webship_last_check_date_status" />
                             </setting>
                         </block>
                         <block title="Tools" id="ws_tools_id">
