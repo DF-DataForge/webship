@@ -484,7 +484,8 @@ class WebShipHandler:
                     print(pickingId)
                     if pickingId:
                         if pickingId.state != 'done':
-                            pickingId.state = 'done'
+                            #pickingId.state = 'done'
+                            pickingId.button_validate()
                             if 'edited' in order:
                                 datum = order['edited']
                             else:
@@ -959,10 +960,9 @@ class WebShipHandler:
 
                 picking.df_last_changedate_webship = date_object
 
-                #responseData['status'] = 'completed'
                 if responseData['status'] == 'completed':
                     try:
-                        picking.state = 'done'
+                        picking.button_validate()
                     except:
                         return ['Error while setting state to done on picking order']
                     #try:
@@ -995,7 +995,8 @@ class WebShipHandler:
                 picking.df_last_changedate_webship = date_object
 
                 if responseData['status'] == 'completed':
-                    picking.state = 'done'
+                    #picking.state = 'done'
+                    picking.button_validate()
 
                 return []
             else:
