@@ -482,10 +482,13 @@ class WebShipHandler:
                 if order['status'] == 'completed':
                     pickingId = self.env['stock.picking'].search([('df_picking_id_webship','=',order['_id'])])
                     print(pickingId)
-                    if pickingId:
+                    if pickingId and len(pickingId) == 1:
+                        print('In if pickinId...')
                         if pickingId.state != 'done':
+                            print('Setting status to done')
                             #pickingId.state = 'done'
                             pickingId.button_validate()
+                            print('Validate pressed')
                             if 'edited' in order:
                                 datum = order['edited']
                             else:
