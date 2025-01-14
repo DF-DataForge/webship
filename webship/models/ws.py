@@ -153,6 +153,8 @@ class WebShipHandler:
 
         totalCount = response.headers.get('total-count')
 
+        print('Total count: ' + str(totalCount))
+
         if int(totalCount) == 0:
             return {'error': 'Nothing is found.'}
         else:
@@ -163,8 +165,16 @@ class WebShipHandler:
                 if j not in items.keys():
                     items[j] = None
 
-            _logger.info('Items sku found: ' + str(items))
-            return {'items': items}
+        if int(totalCount) > 50:
+            response = requests.get(url + '&page=2', auth=self.auth, headers=self.headers)
+            for i in response.json():
+                items[i['sku']] = i['_id']
+            for j in skus:
+                if j not in items.keys():
+                    items[j] = None
+
+        _logger.info('Items sku found: ' + str(items))
+        return {'items': items}
 
     def ws_fetch_warehouses(self, env):
         warehousesUrl =  self.baseUrl + 'warehouses'
@@ -534,6 +544,7 @@ class WebShipHandler:
 
         skus = self.findProductsBySku(picking)
 
+        print('Skus: ')
         print(skus)
 
         sOutput = {}
@@ -584,7 +595,12 @@ class WebShipHandler:
                 sOutput['errors'].append('No SKU in Odoo for product ' + i['name'])
 
         for i in sOutput['mainList']:
+            print('--')
+            print('*' + i['default_code'] + '*')
+            print(i['WSku'])
+            print('--')
             if i['default_code'] != False and i['default_code'] != None and i['WSku'] == None:
+                print('In error: ' + str(i))
                 sOutput['errors'].append('No SKU in Webship for product ' + i['name'] + ' with code ' + i['default_code'])
 
         for i in sOutput['mainList']:
