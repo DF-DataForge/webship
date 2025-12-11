@@ -497,16 +497,19 @@ class WebShipHandler:
                         if pickingId.state != 'done':
                             print('Setting status to done')
                             #pickingId.state = 'done'
-                            pickingId.button_validate()
-                            print('Validate pressed')
-                            if 'edited' in order:
-                                datum = order['edited']
-                            else:
-                                datum = order['created']
+                            try: 
+                                pickingId.button_validate()
+                                print('Validate pressed')
+                                if 'edited' in order:
+                                    datum = order['edited']
+                                else:
+                                    datum = order['created']
 
-                            date_object = datetime.strptime(datum, "%Y-%m-%dT%H:%M:%S.%fZ")
-                            date_object.replace(microsecond=0)
-                            pickingId.df_last_changedate_webship = date_object
+                                date_object = datetime.strptime(datum, "%Y-%m-%dT%H:%M:%S.%fZ")
+                                date_object.replace(microsecond=0)
+                                pickingId.df_last_changedate_webship = date_object
+                            except Exception as e:
+                                    _logger.error(f"Picking {pickingId.id} could not be validated: {e}")
 
 
                 if 'edited' in order:
