@@ -9,7 +9,7 @@
             <field name="arch" type="xml">
                 <xpath expr="//form" position="inside">
                     <app data-string="Webship" id="webship" string="Webship" name="webship">
-                        <block title="Login settings" id="ws_login_setting">
+                        <block title="Login instellingen" id="ws_login_setting">
                             <setting string="Login">
                                 <div class="text-muted content-group mt16">
                                     <span>Key: </span>
@@ -28,46 +28,42 @@
                                     <field name="webship_app_url" style="width: 320px"/>
                                 </div>
                                 <div class="text-muted content-group mt16">
-                                        <button string="Test verbinding" name="ws_test_verbinding" type="object" />
+                                        <button string="Test connection" name="ws_test_verbinding" type="object" />
                                 </div>
                             </setting>
                         </block>
                         <block title="Algemene instellingen" id="ws_algemene_instellingen">
-                            <setting string="Algemene parameters">
-                                <p><field name="webship_modus"></field></p>
+                            <setting string="Algemene instellingen">
                                 <group>
+                                    <field name="webship_order_available_condition"></field>
                                     <field name="webship_sync_order"></field>
-                                    <field name="webship_sync_producten"></field>
-                                    <field name="webship_sync_klanten"></field>
-                                    <field name="webship_sync_leveranciers"></field>
+                                    <field name="webship_auto_create_backorder"></field>
+                                    <field name="webship_default_status"></field>
+                                    <field name="webship_default_po_status"></field>
+                                    <field name="webship_default_brand"></field>
+                                    <field name="webship_default_shop"></field>
+                                    <p><button icon="oi-arrow-right" name="ws_fetch_companies_and_warehouses" type="object" string="Laad companies/brands/warehouses" class="btn-link"/></p>
                                 </group>
-                            </setting>
-                        </block>
-                        <block title="Import/export" id="ws_import_export_setting">
-                            <setting string="Exports">
-                                <p><button icon="oi-arrow-right" name="ws_exp_sup_cl" type="object" string="Exporteer leveranciers, klanten" confirm="Export uitvoeren?" class="btn-link"/></p>
-                            </setting>
-                            <setting string="Initiële configuratie">
-                                <p><button icon="oi-arrow-right" name="ws_empty_db" type="object" string="Database Webship resetten" confirm="Database resetten?" class="btn-link"/></p>
-                                <p><button icon="oi-arrow-right" name="ws_import_sup" type="object" string="Export leveranciers en klanten naar Webship"  class="btn-link"/></p>
-                                <p><button icon="oi-arrow-right" name="ws_import_prods" type="object" string="Export alle producten naar Webship" class="btn-link"/></p>
-                                <p><button icon="oi-arrow-right" name="ws_import_orders" type="object" string="Export alle orders naar Webship" class="btn-link"/></p>
-                                <p><button icon="oi-arrow-right" name="ws_fetch_warehouses" type="object" string="Importeer warehouses van Webship in Odoo" class="btn-link"/></p>
-                                <p><button icon="oi-arrow-right" name="ws_fetch_locations" type="object" string="Importeer stock locaties van Webship in Odoo" class="btn-link"/></p>
+                                <p>Companies, brands, warehouses dienen geladen te worden en zijn nodig voor het verwerken van orders.</p>
                             </setting>
                         </block>
                         <block title="Synchronisatie" id="ws_synchr_block_id">
                             <setting string="Synchronisatie">
-                                 <p><button icon="oi-arrow-right" name="ws_sync_orders" type="object" string="Orders synchroniseren" class="btn-link"/></p>
-                                 <p><button icon="oi-arrow-right" name="ws_reset_codes" type="object" string="Codes herophalen" class="btn-link"/></p>
-                                 <p><button icon="oi-arrow-right" name="ws_sync_statusses_since_last" type="object" string="Statussen syncen" class="btn-link"/></p>
+                                <p><button icon="oi-arrow-right" name="ws_import_stock" type="object" string="Stock opladen" class="btn-link"/></p>
+                                <p><button icon="oi-arrow-right" name="ws_sync_all_pickings_statusP" type="object" string="Manueel openstaande orders processen" class="btn-link"/></p>
+                               <p><button icon="oi-arrow-right" name="ws_sync_statusses_since_last" type="object" string="Order info ophalen" class="btn-link"/></p>
                                  <span>Last date check status:</span><field name="webship_last_check_date_status" />
+                                <br />
+                                 <span>Last date check PO status:</span><field name="webship_last_check_po_date_status" />
                             </setting>
                         </block>
-                        <block title="Tools" id="ws_tools_id">
-                            <setting string="Tools">
-                                <field name="testSku"></field>
-                                <button icon="oi-arrow-right" name="ws_check_sku" type="object" string="Check sku" class="btn-link"/>
+                        <block title="Reporting" is="ws_report">
+                            <setting string="Reporting">
+                            <button name="download_ws_prod_vergelijk"
+                        string="Stock check producten"
+                        type="object"
+                        icon="oi-arrow-right"
+                        class="btn-link"/>
                             </setting>
                         </block>
                     </app>
@@ -79,7 +75,7 @@
             <field name="name">Settings</field>
             <field name="res_model">res.config.settings</field>
             <field name="view_mode">form</field>
-            <field name="target">inline</field>
+            <field name="target">current</field>
             <field name="context">{'module' : 'webship', 'bin_size': False}</field>
         </record>
 

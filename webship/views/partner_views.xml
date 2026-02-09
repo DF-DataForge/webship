@@ -1,26 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-     <record id="partner_form_view_inherit_webship" model="ir.ui.view">
+
+    <record id="partner_form_view_inherit_webship" model="ir.ui.view">
         <field name="name">res.partner.form.inherit.webship</field>
         <field name="model">res.partner</field>
         <field name="inherit_id" ref="base.view_partner_form"/>
         <field name="arch" type="xml">
+
             <xpath expr="//notebook" position="inside">
-                <page string="Webship" name="Webship">
-                    <group string="Velden Webship" name="Webshipgroup">
-                        <field name="df_is_supplier_in_webship"></field>
-                        <field name="df_is_client_in_webship"></field>
+                <page string="Webship" name="webship">
+
+                    <group string="Velden Webship" name="webship_group">
+                        <field name="df_is_supplier_in_webship"/>
+                        <field name="df_is_client_in_webship"/>
                     </group>
+
                     <group string="Sync met Webship">
-                        <field name="df_supplier_id_webship"></field>
-                        <field name="df_client_id_webship"></field>
-                        <field name="wsUrlClient"></field>
-                        <field name="df_last_webship_sync" readonly="1"></field>
-                        <field name="df_partner_syncresult_webship"  readonly="1" widget="html"></field>
-                        <p style="width:320px"><button icon="oi-arrow-right" name="ws_sync_partner" type="object" string="Manueel synchroniseren" class="btn-link"/></p>
+                        <field name="wsUrlSupplier"/>
+                        <field name="wsUrlClient"/>
+                        <field name="df_last_webship_sync" readonly="1"/>
+                        <field name="df_partner_syncresult_webship"
+                               readonly="1"
+                               widget="html"/>
+
+                        <button icon="oi-arrow-right"
+                                name="ws_sync_partner"
+                                type="object"
+                                string="Manueel synchroniseren"
+                                class="btn-link"/>
                     </group>
+
                 </page>
             </xpath>
+
         </field>
     </record>
+
 </odoo>

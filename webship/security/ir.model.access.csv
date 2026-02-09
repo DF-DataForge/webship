@@ -1,3 +1,7 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_webship_property,webship.property,model_webship_property,base.group_user,1,1,1,1
 access_webship_events,webship.events,model_webship_events,base.group_user,1,1,1,1
+access_webship_brand,webship.brand,model_webship_brand,base.group_user,1,1,1,1
+access_webship_shop,webship.shop,model_webship_shop,base.group_user,1,1,1,1
+access_webship_warehouse,webship.warehouse,model_webship_warehouse,base.group_user,1,1,1,1
+access_wslogging,wslogging,model_wslogging,base.group_user,1,1,1,1

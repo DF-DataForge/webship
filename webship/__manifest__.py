@@ -11,6 +11,7 @@
     'category': 'Uncategorized',
     'version': '1.0',
     'license': 'AGPL-3',
+    #'post_init_hook': 'migrate',
 
     'depends': ['base', 'web', 'sale', 'product', 'purchase', 'stock'],
     'data': [
@@ -24,6 +25,8 @@
         'views/product_packaging.xml',
         'views/res_config_settings_views.xml',
         'security/ir.model.access.csv',
+        'views/cron.xml',
+        'views/stock_quant_list.xml'
     ],
 
 'application': True,

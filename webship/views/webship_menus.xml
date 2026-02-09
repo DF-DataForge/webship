@@ -1,68 +1,80 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <record id="wb_webship_action" model="ir.actions.act_window">
-      <field name="name">Webship</field>
-      <field name="res_model">webship.property</field>
-      <field name="view_mode">tree,form</field>
-    </record>
 
+    <!-- Custom Webship Picking Tree View -->
     <record id="df_webship_orders_type_tree_view" model="ir.ui.view">
-            <field name="name">df.webship.orders.type.tree</field>
-            <field name="model">stock.picking</field>
-            <field name="arch" type="xml">
-                <tree string="Webship orders" create="false" edit="false" default_order="write_date desc">
-				<header>
-                        <button name="ws_sync_allpickings" string="Synchronisatie runnen" type="object" invisible="0" class="btn-primary"/>
+        <field name="name">df.webship.orders.type.tree</field>
+        <field name="model">stock.picking</field>
+        <field name="priority">50</field>
+        <field name="arch" type="xml">
+            <tree string="Webship orders"
+                  create="false"
+                  edit="false"
+                  default_order="write_date desc">
+
+                <header>
+                    <button name="ws_sync_allpickings"
+                            string="Synchronisatie runnen"
+                            type="object"
+                            class="btn-primary"/>
+                    <button name="fetchQuantities"
+                            string="Haal hoeveelheden en status op"
+                            type="object"
+                            class="btn-secondary"/>
+                    <button name="make_backorder"
+                            string="Manueel backorder maken"
+                            type="object"
+                            class="btn-secondary"/>
                 </header>
-                        <field name="create_date"></field>
-                        <field name="objectInWebship"></field>
-                        <field name="scheduled_date" optional="show" widget="remaining_days"></field>
-                        <field name="name"></field>
-                        <field name="partner_id"></field>
-                        <field name="df_status_webship" widget="html"></field>
-						<field name="df_picking_syncresult_webship" widget="html"></field>
-                        <field name="wsUrlOrder" widget="html"></field>
-                        <field name="sale_id"/>
-                        <field name="state" widget="badge" decoration-danger="state=='cancel'" decoration-info="state== 'assigned'" decoration-muted="state == 'draft'" decoration-success="state == 'done'" decoration-warning="state not in ('draft','cancel','done','assigned')"></field>
-                </tree>
-            </field>
+
+                <field name="create_date"/>
+                <field name="df_object_in_webship"/>
+                <field name="scheduled_date" widget="remaining_days"/>
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="df_status_webship" widget="html"/>
+                <field name="df_picking_syncresult_webship" widget="html"/>
+                <field name="df_url_order_or_po" widget="html"/>
+                <field name="sale_id"/>
+
+                <field name="state"
+                       widget="badge"
+                       decoration-danger="state == 'cancel'"
+                       decoration-info="state == 'assigned'"
+                       decoration-muted="state == 'draft'"
+                       decoration-success="state == 'done'"
+                       decoration-warning="state not in ('draft','cancel','done','assigned')"/>
+
+            </tree>
+        </field>
     </record>
 
+    <!-- Action -->
     <record id="webship_orders_action" model="ir.actions.act_window">
-      <field name="name">Webship orders</field>
-      <field name="res_model">stock.picking</field>
-      <field name="view_mode">tree,form</field>
-      <field name="view_id" ref="df_webship_orders_type_tree_view"></field>
-      <field name="domain">['|', ('isWebshipSource', '=', True),('isWebshipDestination', '=', True)]</field>
+        <field name="name">Webship orders</field>
+        <field name="res_model">stock.picking</field>
+        <field name="view_mode">tree,form</field>
+        <field name="view_id" ref="df_webship_orders_type_tree_view"/>
+        <field name="domain">
+            [
+                '&amp;',
+                    '|',
+                        ('df_is_webship_source', '=', True),
+                        ('df_is_webship_destination', '=', True),
+                    ('state', 'in', ['confirmed', 'assigned', 'done'])
+            ]
+        </field>
     </record>
 
-      <record id="webship_autosync_action" model="ir.actions.act_window">
-      <field name="name">Webship autosync</field>
-      <field name="res_model">webship.events</field>
-      <field name="view_mode">tree</field>
-          <field name="binding_model_id" ref="model_webship_events"></field>
-    </record>
+    <!-- Menu -->
+    <menuitem id="webship_root_menu"
+              name="Webship"
+              web_icon="webship,static/description/icon.png"/>
 
-    <record id="df_webship_events_type_tree_view" model="ir.ui.view">
-            <field name="name">df.webship.events.type.tree</field>
-            <field name="model">webship.events</field>
-            <field name="arch" type="xml">
-                <tree string="Webship events" create="false" edit="false" default_order="create_date desc">
-                    <header>
-                        <button name="runSync" string="Synchronisatie runnen" type="object" invisible="0" class="btn-primary"/>
-                    </header>
-                        <field name="create_date"></field>
-                        <field name="write_date"></field>
-                        <field name="model_translated"></field>
-                        <field name="status"></field>
-                        <field name="dbAction"></field>
-                </tree>
-            </field>
-    </record>
-
-    <menuitem id="webship_root_menu" name="Webship" web_icon="webship,static/description/icon.png">
-    </menuitem>
-     <menuitem name="Orders" id="webship_order_sub_root" parent="webship_root_menu" action="webship_orders_action" sequence="1"></menuitem>
-     <menuitem name="Autosync" id="webship_autosync_sub_root" parent="webship_root_menu" action="webship_autosync_action" sequence="2"></menuitem>
+    <menuitem id="webship_order_sub_root"
+              name="Orders"
+              parent="webship_root_menu"
+              action="webship_orders_action"
+              sequence="1"/>
 
 </odoo>

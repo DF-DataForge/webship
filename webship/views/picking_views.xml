@@ -6,17 +6,17 @@
         <field name="inherit_id" ref="stock.view_picking_form"/>
         <field name="arch" type="xml">
              <xpath expr="//notebook" position="inside">
-                <page string="Webship" name="Webship" invisible="isWebshipSource==False and isWebshipDestination==False">
+                <page string="Webship" name="Webship" invisible="df_is_webship_source==False and df_is_webship_destination==False" >
                     <group string="Velden Webship" name="Webshipgroup">
-                        <field name="wsUrlOrder"></field>
-                        <field name="wsUrlPo"></field>
+                        <field name="df_url_order"></field>
+                        <field name="df_url_po"></field>
                         <field name="df_picking_lastsync_webship" readonly="1"></field>
                         <field name="df_picking_syncresult_webship"  readonly="1" widget="html"></field>
                         <field name="df_status_webship" readonly="1"></field>
                         <field name="df_last_changedate_webship" readonly="1"></field>
-                        <field name="showWebship" invisible="1"></field>
-                        <field name="isWebshipSource" invisible="1"></field>
-                        <field name="isWebshipDestination" invisible="1"></field>
+                        <field name="df_show_webship_page" invisible="1"></field>
+                        <field name="df_is_webship_source" invisible="1"></field>
+                        <field name="df_is_webship_destination" invisible="1"></field>
                         <p style="width:320px"><button icon="oi-arrow-right" name="ws_sync_picking" type="object" string="Manueel synchroniseren" class="btn-link"/></p>
                     </group>
                 </page>

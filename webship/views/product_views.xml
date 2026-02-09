@@ -1,51 +1,93 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!--
-    <record id="product_template_form_view_inherit_webship" model="ir.ui.view">
-        <field name="name">product.template.form.inherit.webship</field>
-        <field name="model">product.template</field>
-        <field name="inherit_id" ref="sale.product_template_form_view"/>
-        <field name="arch" type="xml">
-            <group name="group_standard_price" position="inside">
-                <field name="brands" />
-            </group>
-        </field>
-    </record>
-    !-->
 
-    <record id="product_templateonly_form_view_inherit_webship" model="ir.ui.view">
-        <field name="name">product.template.form.inherit.webship</field>
-        <field name="model">product.product</field>
-        <field name="inherit_id" ref="product.product_template_form_view"/>
-        <field name="arch" type="xml">
-             <xpath expr="//notebook" position="inside">
-                <page string="Webship" name="Websdddddhip" invisible="product_variant_count &gt; 1">
-                    <group string="Velden Webship" name="Webshipgroup">
-                        <field name="df_productType" ></field>
-                        <field name="df_stock_bio"></field>
-                        <field name="df_stock_foodstuff"></field>
-                        <field name="df_product_id_webship" readonly="1"></field>
-                    </group>
-                </page>
-             </xpath>
-        </field>
-    </record>
-
-     <record id="product_template_form_view_inherit_webship" model="ir.ui.view">
+    <!-- Extend Product Product Form View -->
+    <record id="product_product_form_view_inherit_webship" model="ir.ui.view">
         <field name="name">product.product.form.inherit.webship</field>
         <field name="model">product.product</field>
         <field name="inherit_id" ref="product.product_normal_form_view"/>
         <field name="arch" type="xml">
             <xpath expr="//notebook" position="inside">
-                <page string="Webship" name="Webship">
-                    <group string="Velden Webship" name="Webshipgroup">
-                        <field name="df_productType" ></field>
-                        <field name="df_stock_bio"></field>
-                        <field name="df_stock_foodstuff"></field>
-                        <field name="df_product_id_webship"></field>
+                <page string="Webship" name="webship">
+                    <group string="Webship Fields">
+                        <field name="df_url_prod"/>
+                        <field name="df_product_lastsync_webship" readonly="1"/>
+                        <field name="df_product_syncresult_webship" readonly="1" widget="html"/>
+                        <field name="df_product_do_not_send_webship"/>
+                        <button name="ws_sync_product"
+                                type="object"
+                                string="Manueel synchroniseren"
+                                class="btn-primary"/>
+                        <button name="ws_match_product"
+                                type="object"
+                                string="Manueel matchen"
+                                class="btn-secondary"/>
                     </group>
                 </page>
             </xpath>
         </field>
     </record>
+
+    <!-- Extend Product Template Form View -->
+    <record id="product_template_form_view_inherit_webship" model="ir.ui.view">
+        <field name="name">product.template.form.inherit.webship</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_only_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page string="Webship"
+                      name="webship"
+                      invisible="product_variant_count &gt; 1">
+                    <group string="Webship Fields">
+                        <field name="df_url_prod"/>
+                        <button name="ws_sync_product"
+                                type="object"
+                                string="Manueel synchroniseren"
+                                class="btn-primary"/>
+                        <button name="ws_match_product"
+                                type="object"
+                                string="Manueel matchen"
+                                class="btn-secondary"/>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Extend Product Variant Tree View -->
+    <record id="product_product_tree_view_inherit_webship" model="ir.ui.view">
+        <field name="name">product.product.tree.view.inherit.webship</field>
+        <field name="model">product.product</field>
+        <field name="inherit_id" ref="product.product_product_tree_view"/>
+        <field name="arch" type="xml">
+
+            <!-- Add header with buttons -->
+            <xpath expr="//tree" position="inside">
+                <header>
+                    <button name="ws_sync_product"
+                            type="object"
+                            string="Syncen met Webship"
+                            class="oe_highlight"/>
+                    <button name="ws_match_product"
+                            type="object"
+                            string="Producten matchen met Webship"
+                            class="oe_highlight"/>
+                </header>
+            </xpath>
+
+            <!-- Allow inline editing -->
+            <xpath expr="//tree" position="attributes">
+                <attribute name="editable">bottom</attribute>
+            </xpath>
+
+            <!-- Add extra fields -->
+            <xpath expr="//tree" position="inside">
+                <field name="df_url_prod" widget="html" optional="hide"/>
+                <field name="df_product_lastsync_webship" readonly="1" optional="hide"/>
+                <field name="df_product_syncresult_webship" readonly="1" widget="html" optional="hide"/>
+            </xpath>
+
+        </field>
+    </record>
+
 </odoo>
