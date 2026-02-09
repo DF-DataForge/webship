@@ -1045,7 +1045,7 @@ class WebShipHandler:
         sOutput['mainList'] = []
         for i in items:
             if i['divides'] == []:
-                sOutput['mainList'].append({'name':i['productObj'].name, 'type':i['type'], 'default_code':i['default_code'], 'product_id':i['product_id'], 'quantity':i['quantity'], 'shopId':self.self.get_shop_for_product(i['productObj'], allCatsMap), 'WSku':self.get_webship_sku(i['default_code'], skus)})
+                sOutput['mainList'].append({'name':i['productObj'].name, 'type':i['type'], 'default_code':i['default_code'], 'product_id':i['product_id'], 'quantity':i['quantity'], 'shopId':self.get_shop_for_product(i['productObj'], allCatsMap), 'WSku':self.get_webship_sku(i['default_code'], skus)})
             else:
                 for j in i['divides']:
                     sOutput['mainList'].append({'name':i['productObj'].name, 'type':i['type'], 'default_code':j['Sku'], 'product_id':i['product_id'], 'quantity':j['OrderQty'], 'containerQty':j['Qty'],'shopId':self.get_shop_for_product(i['productObj'], allCatsMap), 'WSku':self.get_webship_sku(j['Sku'], skus)})
