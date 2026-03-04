@@ -1,104 +1,88 @@
-from odoo import models, fields, api
-
-from datetime import datetime
-import pprint
-
+# Contains several small model extensions that add Webship-specific
+# fields to existing Odoo models: properties, product categories,
+# product packaging, and stock warehouses.
 from odoo.addons.webship.models.ws import WebShipHandler
+from odoo import models, fields
+import logging
+
+_logger = logging.getLogger(__name__)
+
 
 class WebshipProperty(models.Model):
+    """Generic key-value property model for storing Webship configuration entries."""
     _name = "webship.property"
-    _description = "Webship properties"
+    _description = "Stoqflow properties"
     _order = "id desc"
 
-    # Basic
+    # Name identifying this property (e.g. a configuration key)
     name = fields.Char("Property name", required=True)
+    # Free-text description of what this property controls
     description = fields.Text("Description")
 
-class WebshipEvents(models.Model):
-    _name = "webship.events"
-    _description = "Webship events"
-    _order = "id desc"
 
-    model = fields.Many2one('ir.model', 'Webshipevent_model')
+class ProductCategory(models.Model):
+    """Extends product.category with a Webship shop ID so products in
+    this category are routed to the correct Webship shop."""
+    _inherit = 'product.category'
 
-    model_translated = fields.Char('Object', compute="_compute_model_translated", store="True")
+    # Webship shop ID assigned to this product category
+    df_cat_shop_id_webship = fields.Char("Shop id Stoqflow", readOnly=True)
 
-    status  = fields.Selection(
-        selection=[
-            ("P", "Pending"),
-            ("E", "Error"),
-            ("F", "Finished"),
-            ("D", "Duplicate")
-        ]
-    )
-    modelTableKey = fields.Integer()
-    processTime = fields.Datetime()
 
-    dbAction = fields.Selection(
-        selection = [
-            ("I", "Insert"),
-            ("U", "Update"),
-            ("D", "Delete"),
-            ("IU", "InsertOrUpdate")
-        ]
-    )
+class ProductPackaging(models.Model):
+    """Extends product.packaging with an alternative Webship SKU.
+    Used when the packaging unit has a different SKU in Webship
+    than the main product (e.g. a box of 12 units)."""
+    _inherit = 'product.packaging'
 
-    @api.depends("model")
-    def _compute_model_translated(self):
-        for r in self:
-            if self.model.model == 'stock.picking':
-                r.model_translated = 'Picking'
+    # Alternative SKU used in Webship for this packaging unit
+    df_sku_webship = fields.Char("SKU Stoqflow")
+    # Webship product ID corresponding to the packaging SKU (auto-populated)
+    df_product_id_webship = fields.Char("Product id Stoqflow")
 
-    def runSync(self):
-        print('hi')
-
-    product_id_webship = fields.Char()
-
-    def webshipHandler(self):
+    def _get_ws_handler(self):
+        """Create and return a WebShipHandler instance using the stored API credentials."""
         login = self.env['ir.config_parameter'].sudo().get_param('webship.username')
         pw = self.env['ir.config_parameter'].sudo().get_param('webship.password')
         base_url = self.env['ir.config_parameter'].sudo().get_param('webship.base_url')
         return WebShipHandler(login, pw, base_url)
 
-    def performSync(self):
-        self.syncPicking()
+    def ws_match_packaging(self):
+        """Fetch the Stoqflow product ID for this packaging record based on its SKU."""
+        handler = self._get_ws_handler()
+        handler.set_env(self.env)
 
-    def syncPicking(self):
-        modl = self.env['ir.model'].search([('model', '=', 'stock.picking')])
+        for pkg in self:
+            sku = pkg.df_sku_webship
+            if not sku:
+                _logger.info("ws_match_packaging: packaging '%s' (id=%s) has no SKU, skipping", pkg.name, pkg.id)
+                continue
 
-        welines = self.env['webship.events'].search([('model', '=', modl.id),('status','=','P')], order='id asc')
+            result = handler.findProductBySku(sku)
+            if isinstance(result, dict) and 'id' in result:
+                pkg.df_product_id_webship = result['id']
+                _logger.info(
+                    "ws_match_packaging: packaging '%s' SKU=%s -> matched Stoqflow ID %s",
+                    pkg.name, sku, result['id'],
+                )
+            elif isinstance(result, dict) and 'error' in result:
+                _logger.warning(
+                    "ws_match_packaging: packaging '%s' SKU=%s -> error: %s",
+                    pkg.name, sku, result['error'],
+                )
+            else:
+                _logger.warning(
+                    "ws_match_packaging: packaging '%s' SKU=%s -> not found in Stoqflow",
+                    pkg.name, sku,
+                )
 
-        ws = self.webshipHandler()
-
-        for w in welines:
-            if w.dbAction == 'D':
-                print('Deleting')
-                w.status = 'F'
-            elif w.dbAction == 'U':
-                pickingObj = self.env['stock.picking'].search([('id','=',w.modelTableKey)])
-                pickingObj.ws_sync_picking()
-
-                if pickingObj.df_picking_syncresult_webship == 'Success':
-                    w.status = 'F'
-                else:
-                    w.status = 'E'
-                    
-class Warehouses(models.Model):
-    _inherit = 'stock.warehouse'
-
-    df_warehouse_id_webship = fields.Char("Warehouse id webship", readOnly=True)
-
-class ProductCategory(models.Model):
-    _inherit = 'product.category'
-
-    df_cat_shop_id_webship = fields.Char("Shop id webship", readOnly=True)
-
-class ProductPackaging(models.Model):
-    _inherit = 'product.packaging'
-
-    df_sku_webship = fields.Char("SKU webship")
 
 class StockWarehouse(models.Model):
+    """Extends stock.warehouse with Webship identifiers so Odoo warehouses
+    can be mapped to their Webship counterparts."""
     _inherit = 'stock.warehouse'
 
-    df_shop_id_webship = fields.Char("Warehouse id webship")
+    # Webship warehouse ID linked to this Odoo warehouse
+    df_warehouse_id_webship = fields.Char("Warehouse id Stoqflow", readOnly=True)
+    # Webship shop ID linked to this Odoo warehouse
+    df_shop_id_webship = fields.Char("Shop id Stoqflow")

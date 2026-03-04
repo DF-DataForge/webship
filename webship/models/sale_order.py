@@ -1,20 +1,18 @@
+# Extends sale.order with a Webship order reference field
+# and adds a helper action to view related stock pickings.
 from odoo import models, fields
 
 class SaleOrder(models.Model):
     _inherit = 'sale.order'
-    df_order_id_webship = fields.Char("Order id webship", readOnly=True)
 
-    def write(self, values):
-        if False:
-            modl = self.env['ir.model'].search([('model','=','sale.order')])
-
-            self.env['webship.events'].create({'modelTableKey':self.id, 'model':modl.id, 'status':'P', 'processTime':datetime.now(), 'dbAction':'U', 'product_id_webship':self.df_order_id_webship})
-
-        result = super(SaleOrder, self).write(values)
-        return result
+    # Webship order ID linked to this sale order (set during sync)
+    df_order_id_webship = fields.Char("Order id Stoqflow", readOnly=True)
 
     def action_view_pickings(self):
+        """Open a list view of all stock pickings related to this sale order.
+        Triggered from a button on the sale order form."""
         self.ensure_one()
+        # Load the stock picking tree action and filter by this sale order
         action = self.env.ref('stock.action_picking_tree_all').read()[0]
         action['domain'] = [('sale_id', '=', self.id)]
         action['context'] = {'default_sale_id': self.id}

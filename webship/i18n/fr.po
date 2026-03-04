@@ -1,0 +1,1471 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* webship
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 17.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-01-01 00:00+0000\n"
+"PO-Revision-Date: 2024-01-01 00:00+0000\n"
+"Last-Translator: \n"
+"Language-Team: French\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: fr\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#. module: webship
+#: model:ir.module.module,name:webship.module_webship
+msgid "Koppeling Stoqflow by Data Forge"
+msgstr "Connexion Stoqflow par Data Forge"
+
+#. module: webship
+#: model:ir.module.module,summary:webship.module_webship
+msgid "Koppeling met Stoqflow"
+msgstr "Connexion avec Stoqflow"
+
+#. module: webship
+#: model:ir.model,name:webship.model_webship_property
+msgid "Stoqflow properties"
+msgstr "Propri\u00e9t\u00e9s Stoqflow"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_webship_property__name
+msgid "Property name"
+msgstr "Nom de la propri\u00e9t\u00e9"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_webship_property__description
+msgid "Description"
+msgstr "Description"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_product_category__df_cat_shop_id_webship
+msgid "Shop id Stoqflow"
+msgstr "ID boutique Stoqflow"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_product_packaging__df_sku_webship
+msgid "SKU Stoqflow"
+msgstr "SKU Stoqflow"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_product_packaging__df_product_id_webship
+msgid "Product id Stoqflow"
+msgstr "ID produit Stoqflow"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_stock_warehouse__df_warehouse_id_webship
+msgid "Warehouse id Stoqflow"
+msgstr "ID entrep\u00f4t Stoqflow"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_stock_warehouse__df_shop_id_webship
+msgid "Shop id Stoqflow"
+msgstr "ID boutique Stoqflow"
+
+#. module: webship
+#: model:ir.model,name:webship.model_webship_brand
+msgid "Stoqflow Brand"
+msgstr "Marque Stoqflow"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_webship_brand__brand_id
+msgid "Brand ID"
+msgstr "ID marque"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_webship_brand__name
+msgid "Brand Name"
+msgstr "Nom de la marque"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_res_partner__df_supplier_id_webship
+msgid "Supplier id Stoqflow"
+msgstr "ID fournisseur Stoqflow"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_res_partner__df_is_supplier_in_webship
+msgid "Supplier in Stoqflow"
+msgstr "Fournisseur dans Stoqflow"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_res_partner__df_client_id_webship
+msgid "Client id Stoqflow"
+msgstr "ID client Stoqflow"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_res_partner__df_is_client_in_webship
+msgid "Client in Stoqflow"
+msgstr "Client dans Stoqflow"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_res_partner__df_last_webship_sync
+msgid "Laatste wijziging gepusht naar Stoqflow op"
+msgstr "Derni\u00e8re modification envoy\u00e9e \u00e0 Stoqflow le"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_res_partner__df_partner_syncresult_webship
+msgid "Resultaat laatste sync"
+msgstr "R\u00e9sultat derni\u00e8re synchronisation"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_res_partner__df_client_code_webship
+msgid "Client code Stoqflow"
+msgstr "Code client Stoqflow"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_res_partner__df_supplier_code_webship
+msgid "Supplier code Stoqflow"
+msgstr "Code fournisseur Stoqflow"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_res_partner__df_url_client
+msgid "Client id Stoqflow"
+msgstr "ID client Stoqflow"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_res_partner__df_url_supplier
+msgid "Supplier id Stoqflow"
+msgstr "ID fournisseur Stoqflow"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_res_partner__df_standard_internal_note
+msgid "Standaard interne notitie voor pakket"
+msgstr "Note interne standard pour le colis"
+
+#. module: webship
+#: model:ir.model.fields,help:webship.field_res_partner__df_standard_internal_note
+msgid "Deze notitie wordt automatisch toegevoegd aan elke zending voor deze klant."
+msgstr "Cette note est automatiquement ajout\u00e9e \u00e0 chaque exp\u00e9dition pour ce client."
+
+#. module: webship
+#: code:addons/webship/models/partner.py:0
+msgid "Please set to client or supplier"
+msgstr "Veuillez d\u00e9finir comme client ou fournisseur"
+
+#. module: webship
+#: code:addons/webship/models/partner.py:0
+#: code:addons/webship/models/picking.py:0
+msgid "Success"
+msgstr "Succ\u00e8s"
+
+#. module: webship
+#: code:addons/webship/models/partner.py:0
+#: code:addons/webship/models/product.py:0
+#: code:addons/webship/models/picking.py:0
+msgid "Errors occured:"
+msgstr "Des erreurs se sont produites :"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_product_product__wsUrlProd
+#: model:ir.model.fields,field_description:webship.field_product_product__df_url_prod
+#: model:ir.model.fields,field_description:webship.field_product_template__wsUrlProd
+#: model:ir.model.fields,field_description:webship.field_product_template__df_url_prod
+msgid "Code Stoqflow"
+msgstr "Code Stoqflow"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_product_product__df_product_id_webship
+msgid "Product id Stoqflow"
+msgstr "ID produit Stoqflow"
+
+#. module: webship
+#: model:ir.model.fields,selection:webship.field_product_product__df_productType__basic
+msgid "Basic product"
+msgstr "Produit de base"
+
+#. module: webship
+#: model:ir.model.fields,selection:webship.field_product_product__df_productType__virtual
+msgid "Virtual product - non pysical, eg. e-book"
+msgstr "Produit virtuel - non physique, ex. e-book"
+
+#. module: webship
+#: model:ir.model.fields,selection:webship.field_product_product__df_productType__compositionAhead
+msgid "Composite product - the composition product is assembled ahead of time and stored in the warehouse on its own warehouse location(s)."
+msgstr "Produit compos\u00e9 - le produit de composition est assembl\u00e9 \u00e0 l'avance et stock\u00e9 dans l'entrep\u00f4t \u00e0 son(ses) propre(s) emplacement(s)."
+
+#. module: webship
+#: model:ir.model.fields,selection:webship.field_product_product__df_productType__compositionPicking
+msgid "Composite product - the underlying products of the composition are picked from their respective warehouse locations during the picking stage."
+msgstr "Produit compos\u00e9 - les produits sous-jacents de la composition sont pr\u00e9lev\u00e9s de leurs emplacements respectifs lors de la phase de pr\u00e9paration."
+
+#. module: webship
+#: model:ir.model.fields,selection:webship.field_product_product__df_productType__derivativeAhead
+msgid "Derivative product - the parent product is broken up ahead of time and stored in the warehouse on its own warehouse location(s)."
+msgstr "Produit d\u00e9riv\u00e9 - le produit parent est d\u00e9compos\u00e9 \u00e0 l'avance et stock\u00e9 dans l'entrep\u00f4t \u00e0 son(ses) propre(s) emplacement(s)."
+
+#. module: webship
+#: model:ir.model.fields,selection:webship.field_product_product__df_productType__derivativePicking
+msgid "Derivative product - the parent product will be broken up during the picking stage leaving a rest/leftover at the parent products warehouse location."
+msgstr "Produit d\u00e9riv\u00e9 - le produit parent sera d\u00e9compos\u00e9 lors de la phase de pr\u00e9paration, laissant un reste \u00e0 l'emplacement du produit parent."
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_product_product__df_productType
+msgid "Product type"
+msgstr "Type de produit"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_product_product__df_stock_bio
+msgid "Biological product"
+msgstr "Produit biologique"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_product_product__df_stock_foodstuff
+msgid "Food product"
+msgstr "Produit alimentaire"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_product_product__df_product_lastsync_webship
+#: model:ir.model.fields,field_description:webship.field_product_template__df_product_lastsync_webship
+#: model:ir.model.fields,field_description:webship.field_stock_picking__df_picking_lastsync_webship
+msgid "Last sync on"
+msgstr "Derni\u00e8re synchronisation le"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_product_product__df_product_syncresult_webship
+#: model:ir.model.fields,field_description:webship.field_product_template__df_product_syncresult_webship
+#: model:ir.model.fields,field_description:webship.field_stock_picking__df_picking_syncresult_webship
+msgid "Result last sync"
+msgstr "R\u00e9sultat derni\u00e8re synchronisation"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_product_product__df_product_do_not_send_webship
+msgid "Never send this product to Stoqflow"
+msgstr "Ne jamais envoyer ce produit vers Stoqflow"
+
+#. module: webship
+#: code:addons/webship/models/product.py:0
+msgid "Please provide an SKU in Odoo"
+msgstr "Veuillez fournir un SKU dans Odoo"
+
+#. module: webship
+#: code:addons/webship/models/product.py:0
+#: code:addons/webship/models/picking.py:0
+msgid "success"
+msgstr "succ\u00e8s"
+
+#. module: webship
+#: code:addons/webship/models/product_template.py:0
+msgid "Cannot sync: Product has multiple variants."
+msgstr "Impossible de synchroniser : le produit a plusieurs variantes."
+
+#. module: webship
+#: code:addons/webship/models/product_template.py:0
+msgid "Cannot match: Product has multiple variants."
+msgstr "Impossible de faire correspondre : le produit a plusieurs variantes."
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_sale_order__df_order_id_webship
+#: model:ir.model.fields,field_description:webship.field_stock_picking__df_picking_id_webship
+#: model:ir.model.fields,field_description:webship.field_stock_picking__df_url_order
+msgid "Order id Stoqflow"
+msgstr "ID commande Stoqflow"
+
+#. module: webship
+#: model:ir.model,name:webship.model_webship_shop
+msgid "Stoqflow Shop"
+msgstr "Boutique Stoqflow"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_webship_shop__shop_id
+msgid "Shop ID"
+msgstr "ID boutique"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_webship_shop__name
+msgid "Shop Name"
+msgstr "Nom de la boutique"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_webship_shop__brand_id
+msgid "Brand"
+msgstr "Marque"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_stock_location__df_warehouse_id_webship
+msgid "Warehouse id Stoqflow"
+msgstr "ID entrep\u00f4t Stoqflow"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_stock_location__df_shop_id_webship
+msgid "Shop id Stoqflow"
+msgstr "ID boutique Stoqflow"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_stock_location__df_is_webship_location
+msgid "Is Stoqflow locatie?"
+msgstr "Est un emplacement Stoqflow ?"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_stock_location__df_warehouse_webship
+#: model:ir.model,name:webship.model_webship_warehouse
+msgid "Stoqflow warehouse"
+msgstr "Entrep\u00f4t Stoqflow"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_stock_quant__df_webship_totalstock
+msgid "Stoqflow Total Stock"
+msgstr "Stock total Stoqflow"
+
+#. module: webship
+#: model:ir.model.fields,help:webship.field_stock_quant__df_webship_totalstock
+msgid "Total stock in Stoqflow locations (filled by Stoqflow API)"
+msgstr "Stock total dans les emplacements Stoqflow (rempli par l'API Stoqflow)"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_stock_quant__df_webship_reserved
+msgid "Stoqflow Reserved Stock"
+msgstr "Stock r\u00e9serv\u00e9 Stoqflow"
+
+#. module: webship
+#: model:ir.model.fields,help:webship.field_stock_quant__df_webship_reserved
+msgid "Reserved stock in Stoqflow locations (filled by Stoqflow API)"
+msgstr "Stock r\u00e9serv\u00e9 dans les emplacements Stoqflow (rempli par l'API Stoqflow)"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_stock_quant__df_webship_available_stock
+msgid "Stoqflow Available Stock"
+msgstr "Stock disponible Stoqflow"
+
+#. module: webship
+#: model:ir.model.fields,help:webship.field_stock_quant__df_webship_available_stock
+msgid "Available stock in Stoqflow locations (filled by Stoqflow API)"
+msgstr "Stock disponible dans les emplacements Stoqflow (rempli par l'API Stoqflow)"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_stock_quant__df_last_check_webship
+msgid "Last Stoqflow Check"
+msgstr "Derni\u00e8re v\u00e9rification Stoqflow"
+
+#. module: webship
+#: model:ir.model.fields,help:webship.field_stock_quant__df_last_check_webship
+msgid "Last datetime when stock was checked or synced with Stoqflow"
+msgstr "Derni\u00e8re date/heure de v\u00e9rification ou synchronisation du stock avec Stoqflow"
+
+#. module: webship
+#: code:addons/webship/models/stock_quant.py:0
+msgid "You can only apply Webship stock on Webship locations."
+msgstr "Vous ne pouvez appliquer le stock Webship que sur les emplacements Webship."
+
+#. module: webship
+#: code:addons/webship/models/stock_quant.py:0
+msgid "Webship total stock is not set for product %s."
+msgstr "Le stock total Webship n'est pas d\u00e9fini pour le produit %s."
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_webship_warehouse__warehouse_id
+msgid "Warehouse ID"
+msgstr "ID entrep\u00f4t"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_webship_warehouse__name
+msgid "Warehouse Name"
+msgstr "Nom de l'entrep\u00f4t"
+
+#. module: webship
+#: model:ir.model,name:webship.model_wslogging
+msgid "WebSocket Logging"
+msgstr "Journalisation WebSocket"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_wslogging__object_id
+msgid "Object ID"
+msgstr "ID objet"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_wslogging__object_name
+msgid "Object Name"
+msgstr "Nom de l'objet"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_wslogging__content
+msgid "Content"
+msgstr "Contenu"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_stock_picking__df_picking_code_webship
+msgid "Order code Stoqflow"
+msgstr "Code commande Stoqflow"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_stock_picking__df_po_id_webship
+#: model:ir.model.fields,field_description:webship.field_stock_picking__df_url_po
+msgid "Purchase order id Stoqflow"
+msgstr "ID bon de commande Stoqflow"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_stock_picking__df_po_code_webship
+msgid "Po code Stoqflow"
+msgstr "Code bon de commande Stoqflow"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_stock_picking__df_status_webship
+msgid "Status in Stoqflow"
+msgstr "Statut dans Stoqflow"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_stock_picking__df_last_changedate_webship
+msgid "Last change in Stoqflow"
+msgstr "Derni\u00e8re modification dans Stoqflow"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_stock_picking__df_url_order_or_po
+msgid "Order or Purchase order id Stoqflow"
+msgstr "ID commande ou bon de commande Stoqflow"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_stock_picking__df_show_webship_page
+msgid "Show Stoqflow page"
+msgstr "Afficher la page Stoqflow"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_stock_picking__df_is_webship_source
+msgid "is Stoqflow source location"
+msgstr "est un emplacement source Stoqflow"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_stock_picking__df_is_webship_destination
+msgid "is Stoqflow destination location"
+msgstr "est un emplacement de destination Stoqflow"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_stock_picking__df_show_parcels_tab
+#: model:ir.model.fields,field_description:webship.field_res_config_settings__webship_show_parcels_tab
+msgid "Show Parcels tab"
+msgstr "Afficher l'onglet Colis"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_stock_picking__df_object_in_webship
+msgid "Object in Stoqflow"
+msgstr "Objet dans Stoqflow"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_stock_picking__df_process_code
+msgid "Process code"
+msgstr "Code processus"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_stock_picking__df_is_from_woocommerce
+msgid "From WooCommerce"
+msgstr "Depuis WooCommerce"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_stock_picking__df_carrier_tracking_urls
+msgid "Tracking Reference URLs"
+msgstr "URL de r\u00e9f\u00e9rence de suivi"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_stock_picking__df_ws_lastChangeDate
+msgid "Last changedate Stoqflow"
+msgstr "Derni\u00e8re date de modification Stoqflow"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_stock_picking__df_parcel_ids
+msgid "Stoqflow Parcels"
+msgstr "Colis Stoqflow"
+
+#. module: webship
+#: code:addons/webship/models/picking.py:0
+msgid "Purchase order"
+msgstr "Bon de commande"
+
+#. module: webship
+#: code:addons/webship/models/picking.py:0
+msgid "Order"
+msgstr "Commande"
+
+#. module: webship
+#: code:addons/webship/models/picking.py:0
+msgid "Mutation"
+msgstr "Mutation"
+
+#. module: webship
+#: code:addons/webship/models/picking.py:0
+msgid "Info"
+msgstr "Info"
+
+#. module: webship
+#: code:addons/webship/models/picking.py:0
+msgid "No Stoqflow order ID or PO ID set on this picking"
+msgstr "Aucun ID de commande ou de bon de commande Stoqflow d\u00e9fini sur ce picking"
+
+#. module: webship
+#: code:addons/webship/models/picking.py:0
+msgid "Merged product"
+msgstr "Produit fusionn\u00e9"
+
+#. module: webship
+#: model:ir.model,name:webship.model_webship_parcel
+msgid "Stoqflow Parcel"
+msgstr "Colis Stoqflow"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_webship_parcel__picking_id
+#: model:ir.model.fields,field_description:webship.field_webship_json_history__picking_id
+msgid "Picking"
+msgstr "Picking"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_webship_parcel__df_stoqflow_id
+msgid "Stoqflow Parcel ID"
+msgstr "ID colis Stoqflow"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_webship_parcel__df_number
+msgid "Parcel #"
+msgstr "Colis n\u00b0"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_webship_parcel__df_tracking_number
+msgid "Tracking Number"
+msgstr "Num\u00e9ro de suivi"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_webship_parcel__df_tracking_url
+msgid "Tracking URL"
+msgstr "URL de suivi"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_webship_parcel__df_label_url
+msgid "Label URL"
+msgstr "URL de l'\u00e9tiquette"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_webship_parcel__df_invoice_url
+msgid "Invoice URL"
+msgstr "URL de la facture"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_webship_parcel__df_provider
+msgid "Provider"
+msgstr "Transporteur"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_webship_parcel__df_provider_id
+msgid "Provider ID"
+msgstr "ID transporteur"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_webship_parcel__df_weight
+#: model:ir.model.fields,field_description:webship.field_webship_parcel_content__df_weight
+msgid "Weight (kg)"
+msgstr "Poids (kg)"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_webship_parcel__df_width
+msgid "Width (cm)"
+msgstr "Largeur (cm)"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_webship_parcel__df_height
+msgid "Height (cm)"
+msgstr "Hauteur (cm)"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_webship_parcel__df_length
+msgid "Length (cm)"
+msgstr "Longueur (cm)"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_webship_parcel__df_shipping_cost
+msgid "Shipping Cost"
+msgstr "Frais d'exp\u00e9dition"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_webship_parcel__df_shipping_name
+msgid "Ship To Name"
+msgstr "Exp\u00e9dier \u00e0 Nom"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_webship_parcel__df_shipping_company
+msgid "Ship To Company"
+msgstr "Exp\u00e9dier \u00e0 Soci\u00e9t\u00e9"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_webship_parcel__df_shipping_address
+msgid "Ship To Address"
+msgstr "Exp\u00e9dier \u00e0 Adresse"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_webship_parcel__df_shipping_postal_code
+msgid "Ship To Postal Code"
+msgstr "Exp\u00e9dier \u00e0 Code postal"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_webship_parcel__df_shipping_city
+msgid "Ship To City"
+msgstr "Exp\u00e9dier \u00e0 Ville"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_webship_parcel__df_shipping_country
+msgid "Ship To Country"
+msgstr "Exp\u00e9dier \u00e0 Pays"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_webship_parcel__df_content_ids
+msgid "Contents"
+msgstr "Contenu"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_webship_parcel__df_resource_ids
+msgid "Resources"
+msgstr "Ressources"
+
+#. module: webship
+#: model:ir.model,name:webship.model_webship_parcel_content
+msgid "Stoqflow Parcel Content Line"
+msgstr "Ligne de contenu colis Stoqflow"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_webship_parcel_content__parcel_id
+#: model:ir.model.fields,field_description:webship.field_webship_parcel_resource__parcel_id
+msgid "Parcel"
+msgstr "Colis"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_webship_parcel_content__df_stoqflow_product_id
+msgid "Stoqflow Product ID"
+msgstr "ID produit Stoqflow"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_webship_parcel_content__df_sku
+msgid "SKU"
+msgstr "SKU"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_webship_parcel_content__df_description
+msgid "Description"
+msgstr "Description"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_webship_parcel_content__df_quantity
+#: model:ir.model.fields,field_description:webship.field_webship_parcel_resource__df_quantity
+msgid "Quantity"
+msgstr "Quantit\u00e9"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_webship_parcel_content__df_hs_code
+msgid "HS Code"
+msgstr "Code SH"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_webship_parcel_content__df_origin_country
+msgid "Origin Country"
+msgstr "Pays d'origine"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_webship_parcel_content__df_value
+msgid "Value"
+msgstr "Valeur"
+
+#. module: webship
+#: model:ir.model,name:webship.model_webship_parcel_resource
+msgid "Stoqflow Parcel Resource"
+msgstr "Ressource colis Stoqflow"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_webship_parcel_resource__df_stoqflow_id
+msgid "Stoqflow Resource ID"
+msgstr "ID ressource Stoqflow"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_webship_parcel_resource__df_name
+msgid "Name"
+msgstr "Nom"
+
+#. module: webship
+#: model:ir.model,name:webship.model_webship_json_history
+msgid "Webship JSON History"
+msgstr "Historique JSON Webship"
+
+#. module: webship
+#: model:ir.model.fields,selection:webship.field_webship_json_history__direction__sent
+msgid "Sent"
+msgstr "Envoy\u00e9"
+
+#. module: webship
+#: model:ir.model.fields,selection:webship.field_webship_json_history__direction__received
+msgid "Received"
+msgstr "Re\u00e7u"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_webship_json_history__direction
+msgid "Direction"
+msgstr "Direction"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_webship_json_history__endpoint
+msgid "Endpoint"
+msgstr "Point d'acc\u00e8s"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_webship_json_history__method
+msgid "HTTP Method"
+msgstr "M\u00e9thode HTTP"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_webship_json_history__json_payload
+msgid "JSON Payload"
+msgstr "Charge utile JSON"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_res_config_settings__webship_login
+msgid "Stoqflow username"
+msgstr "Nom d'utilisateur Stoqflow"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_res_config_settings__webship_password
+msgid "Stoqflow password"
+msgstr "Mot de passe Stoqflow"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_res_config_settings__webship_url
+msgid "Stoqflow API URL"
+msgstr "URL API Stoqflow"
+
+#. module: webship
+#: model:ir.model.fields,help:webship.field_res_config_settings__webship_url
+msgid "Base URL of the Stoqflow REST API, e.g. https://api.stoqflow.com/. All API calls are sent to this address."
+msgstr "URL de base de l'API REST Stoqflow, ex. https://api.stoqflow.com/. Tous les appels API sont envoy\u00e9s \u00e0 cette adresse."
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_res_config_settings__webship_app_url
+msgid "Stoqflow App URL"
+msgstr "URL App Stoqflow"
+
+#. module: webship
+#: model:ir.model.fields,help:webship.field_res_config_settings__webship_app_url
+msgid "Base URL of the Stoqflow web application, e.g. https://app.stoqflow.com/. Used to build clickable links to orders and products in Stoqflow."
+msgstr "URL de base de l'application web Stoqflow, ex. https://app.stoqflow.com/. Utilis\u00e9e pour cr\u00e9er des liens cliquables vers les commandes et produits dans Stoqflow."
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_res_config_settings__webship_last_tested
+msgid "Stoqflow last tested"
+msgstr "Stoqflow derni\u00e8rement test\u00e9"
+
+#. module: webship
+#: model:ir.model.fields,help:webship.field_res_config_settings__webship_login
+msgid "API key used for HTTP Basic Auth when connecting to the Stoqflow REST API."
+msgstr "Cl\u00e9 API utilis\u00e9e pour l'authentification HTTP Basic lors de la connexion \u00e0 l'API REST Stoqflow."
+
+#. module: webship
+#: model:ir.model.fields,help:webship.field_res_config_settings__webship_password
+msgid "API secret used for HTTP Basic Auth when connecting to the Stoqflow REST API."
+msgstr "Secret API utilis\u00e9 pour l'authentification HTTP Basic lors de la connexion \u00e0 l'API REST Stoqflow."
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_res_config_settings__webship_last_check_date_status
+msgid "Order status last check date"
+msgstr "Derni\u00e8re date de v\u00e9rification du statut des commandes"
+
+#. module: webship
+#: model:ir.model.fields,help:webship.field_res_config_settings__webship_last_check_date_status
+msgid "Timestamp of the last time outbound order statuses were fetched from Stoqflow. Used by the cron job to avoid re-processing unchanged orders."
+msgstr "Horodatage de la derni\u00e8re r\u00e9cup\u00e9ration des statuts des commandes sortantes depuis Stoqflow. Utilis\u00e9 par la t\u00e2che cron pour \u00e9viter de retraiter les commandes inchang\u00e9es."
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_res_config_settings__webship_last_check_po_date_status
+msgid "PO status last check date"
+msgstr "Derni\u00e8re date de v\u00e9rification du statut des BC"
+
+#. module: webship
+#: model:ir.model.fields,help:webship.field_res_config_settings__webship_last_check_po_date_status
+msgid "Timestamp of the last time purchase order statuses were fetched from Stoqflow. Used by the cron job to avoid re-processing unchanged purchase orders."
+msgstr "Horodatage de la derni\u00e8re r\u00e9cup\u00e9ration des statuts des bons de commande depuis Stoqflow. Utilis\u00e9 par la t\u00e2che cron pour \u00e9viter de retraiter les bons de commande inchang\u00e9s."
+
+#. module: webship
+#: model:ir.model.fields,selection:webship.field_res_config_settings__webship_modus__a
+msgid "Sync nodig"
+msgstr "Synchronisation n\u00e9cessaire"
+
+#. module: webship
+#: model:ir.model.fields,selection:webship.field_res_config_settings__webship_modus__b
+msgid "Sync niet nodig"
+msgstr "Synchronisation non n\u00e9cessaire"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_res_config_settings__webship_modus
+msgid "Algemene modus"
+msgstr "Mode g\u00e9n\u00e9ral"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_res_config_settings__webship_sync_order
+msgid "Sync orders"
+msgstr "Synchroniser les commandes"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_res_config_settings__webship_sync_producten
+msgid "Sync products"
+msgstr "Synchroniser les produits"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_res_config_settings__webship_sync_klanten
+msgid "Sync clients"
+msgstr "Synchroniser les clients"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_res_config_settings__webship_sync_leveranciers
+msgid "Sync suppliers"
+msgstr "Synchroniser les fournisseurs"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_res_config_settings__webship_do_not_match_client_before_create
+msgid "Do not match client before create"
+msgstr "Ne pas faire correspondre le client avant la cr\u00e9ation"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_res_config_settings__webship_auto_create_backorder
+msgid "Auto create backorder on complete"
+msgstr "Cr\u00e9er automatiquement un reliquat \u00e0 l'ach\u00e8vement"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_res_config_settings__webship_log_json
+msgid "Log JSON payloads"
+msgstr "Journaliser les charges utiles JSON"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_res_config_settings__testSku
+msgid "Enter SKU"
+msgstr "Saisir le SKU"
+
+#. module: webship
+#: model:ir.model.fields,help:webship.field_res_config_settings__testSku
+msgid "Enter a product SKU for testing Stoqflow API calls."
+msgstr "Saisissez un SKU de produit pour tester les appels API Stoqflow."
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_res_config_settings__webship_order_available_condition
+msgid "Full availability required"
+msgstr "Disponibilit\u00e9 compl\u00e8te requise"
+
+#. module: webship
+#: model:ir.model.fields,help:webship.field_res_config_settings__webship_order_available_condition
+msgid "When enabled, orders are only synchronized to Stoqflow when all products have sufficient stock available at the source location. Orders with insufficient stock will remain pending."
+msgstr "Lorsque cette option est activ\u00e9e, les commandes ne sont synchronis\u00e9es avec Stoqflow que lorsque tous les produits disposent d'un stock suffisant \u00e0 l'emplacement source. Les commandes avec un stock insuffisant restent en attente."
+
+#. module: webship
+#: model:ir.model.fields,selection:webship.field_res_config_settings__webship_default_status__concept
+#: model:ir.model.fields,selection:webship.field_res_config_settings__webship_default_po_status__concept
+msgid "Concept"
+msgstr "Brouillon"
+
+#. module: webship
+#: model:ir.model.fields,selection:webship.field_res_config_settings__webship_default_status__ready_to_pick
+msgid "Ready to pick"
+msgstr "Pr\u00eat \u00e0 pr\u00e9parer"
+
+#. module: webship
+#: model:ir.model.fields,selection:webship.field_res_config_settings__webship_default_status__on_hold
+msgid "On hold"
+msgstr "En attente"
+
+#. module: webship
+#: model:ir.model.fields,help:webship.field_res_config_settings__webship_default_status
+msgid "The initial status assigned to outbound orders when they are created in Stoqflow. 'Concept' = draft, 'Ready to pick' = immediately available for warehouse picking, 'On hold' = paused."
+msgstr "Le statut initial attribu\u00e9 aux commandes sortantes lors de leur cr\u00e9ation dans Stoqflow. 'Brouillon' = brouillon, 'Pr\u00eat \u00e0 pr\u00e9parer' = imm\u00e9diatement disponible pour la pr\u00e9paration en entrep\u00f4t, 'En attente' = suspendu."
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_res_config_settings__webship_default_status
+msgid "Default Stoqflow order status"
+msgstr "Statut par d\u00e9faut commande Stoqflow"
+
+#. module: webship
+#: model:ir.model.fields,selection:webship.field_res_config_settings__webship_default_po_status__ordered
+msgid "Ordered"
+msgstr "Command\u00e9"
+
+#. module: webship
+#: model:ir.model.fields,help:webship.field_res_config_settings__webship_default_po_status
+msgid "The initial status assigned to purchase orders (inbound goods) when they are created in Stoqflow. 'Concept' = draft, 'Ordered' = goods expected at the warehouse."
+msgstr "Le statut initial attribu\u00e9 aux bons de commande (marchandises entrantes) lors de leur cr\u00e9ation dans Stoqflow. 'Brouillon' = brouillon, 'Command\u00e9' = marchandises attendues \u00e0 l'entrep\u00f4t."
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_res_config_settings__webship_default_po_status
+msgid "Default Stoqflow PO status"
+msgstr "Statut par d\u00e9faut BC Stoqflow"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_res_config_settings__webship_default_brand
+msgid "Default Stoqflow brand"
+msgstr "Marque Stoqflow par d\u00e9faut"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_res_config_settings__webship_default_shop
+msgid "Default Stoqflow shop"
+msgstr "Boutique Stoqflow par d\u00e9faut"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_res_config_settings__webship_domain
+msgid "Stoqflow domain filter"
+msgstr "Filtre de domaine Stoqflow"
+
+#. module: webship
+#: model:ir.model.fields,help:webship.field_res_config_settings__webship_domain
+msgid "Optional Odoo domain filter to restrict which pickings are automatically synced to Stoqflow. Only pickings matching this filter will be synced. Example: [('mk_instance_id','in',[2,3])] to only sync orders from specific marketplace instances."
+msgstr "Filtre de domaine Odoo optionnel pour restreindre quels pickings sont automatiquement synchronis\u00e9s avec Stoqflow. Seuls les pickings correspondant \u00e0 ce filtre seront synchronis\u00e9s. Exemple : [('mk_instance_id','in',[2,3])] pour ne synchroniser que les commandes de certaines instances de marketplace."
+
+#. module: webship
+#: code:addons/webship/models/res_config_settings.py:0
+msgid "Fout"
+msgstr "Erreur"
+
+#. module: webship
+#: code:addons/webship/models/res_config_settings.py:0
+msgid "Login en wachtwoord zijn nodig om te testen"
+msgstr "L'identifiant et le mot de passe sont n\u00e9cessaires pour tester"
+
+#. module: webship
+#: code:addons/webship/models/res_config_settings.py:0
+msgid "Status webservice"
+msgstr "Statut du service web"
+
+#. module: webship
+#: model:ir.model,name:webship.model_stoqflow_order_report
+msgid "Stoqflow Order Analysis"
+msgstr "Analyse des commandes Stoqflow"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_stoqflow_order_report__name
+msgid "Picking Reference"
+msgstr "R\u00e9f\u00e9rence de picking"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_stoqflow_order_report__create_date
+msgid "Created On"
+msgstr "Cr\u00e9\u00e9 le"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_stoqflow_order_report__partner_id
+msgid "Partner"
+msgstr "Partenaire"
+
+#. module: webship
+#: model:ir.model.fields,selection:webship.field_stoqflow_order_report__state__draft
+msgid "Draft"
+msgstr "Brouillon"
+
+#. module: webship
+#: model:ir.model.fields,selection:webship.field_stoqflow_order_report__state__waiting
+#: model:ir.model.fields,selection:webship.field_stoqflow_order_report__state__confirmed
+msgid "Waiting"
+msgstr "En attente"
+
+#. module: webship
+#: model:ir.model.fields,selection:webship.field_stoqflow_order_report__state__assigned
+msgid "Ready"
+msgstr "Pr\u00eat"
+
+#. module: webship
+#: model:ir.model.fields,selection:webship.field_stoqflow_order_report__state__done
+msgid "Done"
+msgstr "Termin\u00e9"
+
+#. module: webship
+#: model:ir.model.fields,selection:webship.field_stoqflow_order_report__state__cancel
+msgid "Cancelled"
+msgstr "Annul\u00e9"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_stoqflow_order_report__state
+msgid "Odoo Status"
+msgstr "Statut Odoo"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_stoqflow_order_report__stoqflow_status
+msgid "Stoqflow Status"
+msgstr "Statut Stoqflow"
+
+#. module: webship
+#: model:ir.model.fields,selection:webship.field_stoqflow_order_report__sync_state__pending
+msgid "Pending"
+msgstr "En attente"
+
+#. module: webship
+#: model:ir.model.fields,selection:webship.field_stoqflow_order_report__sync_state__synced
+msgid "Synced"
+msgstr "Synchronis\u00e9"
+
+#. module: webship
+#: model:ir.model.fields,selection:webship.field_stoqflow_order_report__sync_state__error
+msgid "Error"
+msgstr "Erreur"
+
+#. module: webship
+#: model:ir.model.fields,selection:webship.field_stoqflow_order_report__sync_state__not_applicable
+msgid "N/A"
+msgstr "N/A"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_stoqflow_order_report__sync_state
+msgid "Sync State"
+msgstr "\u00c9tat de synchronisation"
+
+#. module: webship
+#: model:ir.model.fields,selection:webship.field_stoqflow_order_report__order_type__order
+msgid "Outbound Order"
+msgstr "Commande sortante"
+
+#. module: webship
+#: model:ir.model.fields,selection:webship.field_stoqflow_order_report__order_type__purchase_order
+msgid "Purchase Order"
+msgstr "Bon de commande"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_stoqflow_order_report__order_type
+msgid "Order Type"
+msgstr "Type de commande"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_stoqflow_order_report__last_sync
+msgid "Last Sync"
+msgstr "Derni\u00e8re synchronisation"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_stoqflow_order_report__order_count
+msgid "# Orders"
+msgstr "# Commandes"
+
+#. module: webship
+#: model_terms:ir.ui.view,arch_db:webship.df_webship_orders_type_tree_view
+msgid "Synchronisatie runnen"
+msgstr "Lancer la synchronisation"
+
+#. module: webship
+#: model_terms:ir.ui.view,arch_db:webship.df_webship_orders_type_tree_view
+msgid "Haal hoeveelheden en status op"
+msgstr "R\u00e9cup\u00e9rer les quantit\u00e9s et le statut"
+
+#. module: webship
+#: model_terms:ir.ui.view,arch_db:webship.df_webship_orders_type_tree_view
+msgid "Manueel backorder maken"
+msgstr "Cr\u00e9er un reliquat manuellement"
+
+#. module: webship
+#: model:ir.actions.act_window,name:webship.webship_orders_action
+msgid "Stoqflow orders"
+msgstr "Commandes Stoqflow"
+
+#. module: webship
+#: model:ir.ui.menu,name:webship.webship_root_menu
+msgid "Stoqflow"
+msgstr "Stoqflow"
+
+#. module: webship
+#: model:ir.ui.menu,name:webship.webship_order_sub_root
+msgid "Orders"
+msgstr "Commandes"
+
+#. module: webship
+#: model:ir.ui.menu,name:webship.webship_dashboard_menu
+msgid "Dashboard"
+msgstr "Tableau de bord"
+
+#. module: webship
+#: model:ir.ui.menu,name:webship.webship_dashboard_overview
+msgid "Order Charts"
+msgstr "Graphiques des commandes"
+
+#. module: webship
+#: model:ir.ui.menu,name:webship.webship_dashboard_pivot_analysis
+msgid "Pivot Analysis"
+msgstr "Analyse crois\u00e9e"
+
+#. module: webship
+#: model:ir.ui.menu,name:webship.webship_dashboard_sync_status
+msgid "Sync Status"
+msgstr "\u00c9tat de synchronisation"
+
+#. module: webship
+#: model:ir.actions.act_window,name:webship.stoqflow_order_report_graph_action
+msgid "Orders processed in Stoqflow"
+msgstr "Commandes trait\u00e9es dans Stoqflow"
+
+#. module: webship
+#: model_terms:ir.ui.view,arch_db:webship.stoqflow_order_report_pie_view
+msgid "Orders by Sync State"
+msgstr "Commandes par \u00e9tat de synchronisation"
+
+#. module: webship
+#: model_terms:ir.ui.view,arch_db:webship.stoqflow_order_report_search_view
+msgid "Search Stoqflow Orders"
+msgstr "Rechercher des commandes Stoqflow"
+
+#. module: webship
+#: model_terms:ir.ui.view,arch_db:webship.stoqflow_order_report_search_view
+msgid "Outbound Orders"
+msgstr "Commandes sortantes"
+
+#. module: webship
+#: model_terms:ir.ui.view,arch_db:webship.stoqflow_order_report_search_view
+msgid "Purchase Orders"
+msgstr "Bons de commande"
+
+#. module: webship
+#: model_terms:ir.ui.view,arch_db:webship.stoqflow_order_report_search_view
+msgid "Pending Sync"
+msgstr "Synchronisation en attente"
+
+#. module: webship
+#: model_terms:ir.ui.view,arch_db:webship.stoqflow_order_report_search_view
+msgid "Sync Errors"
+msgstr "Erreurs de synchronisation"
+
+#. module: webship
+#: model_terms:ir.ui.view,arch_db:webship.stoqflow_order_report_search_view
+msgid "Completed"
+msgstr "Termin\u00e9"
+
+#. module: webship
+#: model_terms:ir.ui.view,arch_db:webship.stoqflow_order_report_search_view
+msgid "Ready to Pick"
+msgstr "Pr\u00eat \u00e0 pr\u00e9parer"
+
+#. module: webship
+#: model_terms:ir.ui.view,arch_db:webship.stoqflow_order_report_search_view
+msgid "On Hold"
+msgstr "En attente"
+
+#. module: webship
+#: model_terms:ir.ui.view,arch_db:webship.stoqflow_order_report_search_view
+msgid "Done in Odoo"
+msgstr "Termin\u00e9 dans Odoo"
+
+#. module: webship
+#: model_terms:ir.ui.view,arch_db:webship.stoqflow_order_report_search_view
+msgid "Ready in Odoo"
+msgstr "Pr\u00eat dans Odoo"
+
+#. module: webship
+#: model_terms:ir.ui.view,arch_db:webship.stoqflow_order_report_search_view
+msgid "Group By"
+msgstr "Grouper par"
+
+#. module: webship
+#: model_terms:ir.ui.view,arch_db:webship.stoqflow_order_report_search_view
+msgid "Created (Month)"
+msgstr "Cr\u00e9\u00e9 (Mois)"
+
+#. module: webship
+#: model_terms:ir.ui.view,arch_db:webship.stoqflow_order_report_graph_action
+msgid "No Stoqflow orders to analyze."
+msgstr "Aucune commande Stoqflow \u00e0 analyser."
+
+#. module: webship
+#: model_terms:ir.ui.view,arch_db:webship.stoqflow_order_report_graph_action
+msgid "Sync your orders with Stoqflow to see analytics here."
+msgstr "Synchronisez vos commandes avec Stoqflow pour voir les analyses ici."
+
+#. module: webship
+#: model:ir.actions.act_window,name:webship.stoqflow_order_report_pivot_action
+msgid "Order Pivot Analysis"
+msgstr "Analyse crois\u00e9e des commandes"
+
+#. module: webship
+#: model:ir.actions.act_window,name:webship.stoqflow_order_report_list_action
+msgid "Sync Status Overview"
+msgstr "Aper\u00e7u de l'\u00e9tat de synchronisation"
+
+#. module: webship
+#: model_terms:ir.ui.view,arch_db:webship.stoqflow_order_report_list_action
+msgid "No Stoqflow orders found."
+msgstr "Aucune commande Stoqflow trouv\u00e9e."
+
+#. module: webship
+#: model_terms:ir.ui.view,arch_db:webship.product_product_form_view_inherit_webship
+#: model_terms:ir.ui.view,arch_db:webship.product_template_form_view_inherit_webship
+msgid "Stoqflow Fields"
+msgstr "Champs Stoqflow"
+
+#. module: webship
+#: model_terms:ir.ui.view,arch_db:webship.product_product_form_view_inherit_webship
+#: model_terms:ir.ui.view,arch_db:webship.product_template_form_view_inherit_webship
+#: model_terms:ir.ui.view,arch_db:webship.picking_view_inherit_webship
+#: model_terms:ir.ui.view,arch_db:webship.partner_form_view_inherit_webship
+msgid "Manueel synchroniseren"
+msgstr "Synchroniser manuellement"
+
+#. module: webship
+#: model_terms:ir.ui.view,arch_db:webship.product_product_form_view_inherit_webship
+#: model_terms:ir.ui.view,arch_db:webship.product_template_form_view_inherit_webship
+msgid "Manueel matchen"
+msgstr "Faire correspondre manuellement"
+
+#. module: webship
+#: model_terms:ir.ui.view,arch_db:webship.product_product_tree_view_inherit_webship
+msgid "Syncen met Stoqflow"
+msgstr "Synchroniser avec Stoqflow"
+
+#. module: webship
+#: model_terms:ir.ui.view,arch_db:webship.product_product_tree_view_inherit_webship
+msgid "Producten matchen met Stoqflow"
+msgstr "Faire correspondre les produits avec Stoqflow"
+
+#. module: webship
+#: model_terms:ir.ui.view,arch_db:webship.picking_view_inherit_webship
+msgid "Velden Stoqflow"
+msgstr "Champs Stoqflow"
+
+#. module: webship
+#: model_terms:ir.ui.view,arch_db:webship.picking_view_inherit_webship
+msgid "Stoqflow Parcels"
+msgstr "Colis Stoqflow"
+
+#. module: webship
+#: model_terms:ir.ui.view,arch_db:webship.webship_parcel_view_form
+msgid "Parcel Details"
+msgstr "D\u00e9tails du colis"
+
+#. module: webship
+#: model_terms:ir.ui.view,arch_db:webship.webship_parcel_view_form
+msgid "Parcel Info"
+msgstr "Informations du colis"
+
+#. module: webship
+#: model_terms:ir.ui.view,arch_db:webship.webship_parcel_view_form
+msgid "Dimensions & Cost"
+msgstr "Dimensions & Co\u00fbt"
+
+#. module: webship
+#: model_terms:ir.ui.view,arch_db:webship.webship_parcel_view_form
+msgid "Shipping Address"
+msgstr "Adresse de livraison"
+
+#. module: webship
+#: model_terms:ir.ui.view,arch_db:webship.partner_form_view_inherit_webship
+msgid "Sync met Stoqflow"
+msgstr "Synchronisation avec Stoqflow"
+
+#. module: webship
+#: model_terms:ir.ui.view,arch_db:webship.res_config_settings_view_form
+msgid "API Connection"
+msgstr "Connexion API"
+
+#. module: webship
+#: model_terms:ir.ui.view,arch_db:webship.res_config_settings_view_form
+msgid "API Credentials"
+msgstr "Identifiants API"
+
+#. module: webship
+#: model_terms:ir.ui.view,arch_db:webship.res_config_settings_view_form
+msgid "Enter the API key and secret from your Stoqflow account to authenticate with the Stoqflow REST API."
+msgstr "Saisissez la cl\u00e9 API et le secret de votre compte Stoqflow pour vous authentifier aupr\u00e8s de l'API REST Stoqflow."
+
+#. module: webship
+#: model_terms:ir.ui.view,arch_db:webship.res_config_settings_view_form
+msgid "Base URL of the Stoqflow REST API (e.g. https://api.stoqflow.com/)"
+msgstr "URL de base de l'API REST Stoqflow (ex. https://api.stoqflow.com/)"
+
+#. module: webship
+#: model_terms:ir.ui.view,arch_db:webship.res_config_settings_view_form
+msgid "URL of the Stoqflow web app, used for clickable links to orders and products"
+msgstr "URL de l'application web Stoqflow, utilis\u00e9e pour les liens cliquables vers les commandes et produits"
+
+#. module: webship
+#: model_terms:ir.ui.view,arch_db:webship.res_config_settings_view_form
+msgid "Test connection"
+msgstr "Tester la connexion"
+
+#. module: webship
+#: model_terms:ir.ui.view,arch_db:webship.res_config_settings_view_form
+msgid "General Settings"
+msgstr "Param\u00e8tres g\u00e9n\u00e9raux"
+
+#. module: webship
+#: model_terms:ir.ui.view,arch_db:webship.res_config_settings_view_form
+msgid "Order Sync"
+msgstr "Synchronisation des commandes"
+
+#. module: webship
+#: model_terms:ir.ui.view,arch_db:webship.res_config_settings_view_form
+msgid "Control how delivery orders and purchase orders are synchronized with Stoqflow."
+msgstr "Contr\u00f4lez comment les ordres de livraison et les bons de commande sont synchronis\u00e9s avec Stoqflow."
+
+#. module: webship
+#: model_terms:ir.ui.view,arch_db:webship.res_config_settings_view_form
+msgid "Default Statuses"
+msgstr "Statuts par d\u00e9faut"
+
+#. module: webship
+#: model_terms:ir.ui.view,arch_db:webship.res_config_settings_view_form
+msgid "Choose the initial status for new orders and purchase orders when they are created in Stoqflow."
+msgstr "Choisissez le statut initial des nouvelles commandes et bons de commande lors de leur cr\u00e9ation dans Stoqflow."
+
+#. module: webship
+#: model_terms:ir.ui.view,arch_db:webship.res_config_settings_view_form
+msgid "Brand & Shop"
+msgstr "Marque & Boutique"
+
+#. module: webship
+#: model_terms:ir.ui.view,arch_db:webship.res_config_settings_view_form
+msgid "Select the default brand and shop assigned to orders sent to Stoqflow. These must be loaded first using the button below."
+msgstr "S\u00e9lectionnez la marque et la boutique par d\u00e9faut attribu\u00e9es aux commandes envoy\u00e9es \u00e0 Stoqflow. Elles doivent d'abord \u00eatre charg\u00e9es \u00e0 l'aide du bouton ci-dessous."
+
+#. module: webship
+#: model_terms:ir.ui.view,arch_db:webship.res_config_settings_view_form
+msgid "Load companies / brands / warehouses"
+msgstr "Charger les soci\u00e9t\u00e9s / marques / entrep\u00f4ts"
+
+#. module: webship
+#: model_terms:ir.ui.view,arch_db:webship.res_config_settings_view_form
+msgid "Companies, brands, and warehouses need to be loaded from the Stoqflow API before orders can be processed."
+msgstr "Les soci\u00e9t\u00e9s, marques et entrep\u00f4ts doivent \u00eatre charg\u00e9s depuis l'API Stoqflow avant de pouvoir traiter les commandes."
+
+#. module: webship
+#: model_terms:ir.ui.view,arch_db:webship.res_config_settings_view_form
+msgid "Domain Filter"
+msgstr "Filtre de domaine"
+
+#. module: webship
+#: model_terms:ir.ui.view,arch_db:webship.res_config_settings_view_form
+msgid "Optionally restrict which pickings are automatically synced to Stoqflow using an Odoo domain expression."
+msgstr "Restreignez optionnellement quels pickings sont automatiquement synchronis\u00e9s avec Stoqflow en utilisant une expression de domaine Odoo."
+
+#. module: webship
+#: model_terms:ir.ui.view,arch_db:webship.res_config_settings_view_form
+msgid "Only pickings matching this filter will be synced. Leave empty to sync all Stoqflow pickings."
+msgstr "Seuls les pickings correspondant \u00e0 ce filtre seront synchronis\u00e9s. Laissez vide pour synchroniser tous les pickings Stoqflow."
+
+#. module: webship
+#: model_terms:ir.ui.view,arch_db:webship.res_config_settings_view_form
+msgid "Logging & Display"
+msgstr "Journalisation & Affichage"
+
+#. module: webship
+#: model_terms:ir.ui.view,arch_db:webship.res_config_settings_view_form
+msgid "Configure extra UI elements and API logging for debugging."
+msgstr "Configurez les \u00e9l\u00e9ments d'interface suppl\u00e9mentaires et la journalisation API pour le d\u00e9bogage."
+
+#. module: webship
+#: model_terms:ir.ui.view,arch_db:webship.res_config_settings_view_form
+msgid "Synchronization"
+msgstr "Synchronisation"
+
+#. module: webship
+#: model_terms:ir.ui.view,arch_db:webship.res_config_settings_view_form
+msgid "Manual Actions"
+msgstr "Actions manuelles"
+
+#. module: webship
+#: model_terms:ir.ui.view,arch_db:webship.res_config_settings_view_form
+msgid "Trigger synchronization actions manually. These are also run automatically by the scheduled cron jobs."
+msgstr "D\u00e9clenchez les actions de synchronisation manuellement. Elles sont \u00e9galement ex\u00e9cut\u00e9es automatiquement par les t\u00e2ches cron planifi\u00e9es."
+
+#. module: webship
+#: model_terms:ir.ui.view,arch_db:webship.res_config_settings_view_form
+msgid "Import stock from Stoqflow"
+msgstr "Importer le stock depuis Stoqflow"
+
+#. module: webship
+#: model_terms:ir.ui.view,arch_db:webship.res_config_settings_view_form
+msgid "Fetch current stock levels from the Stoqflow API and update Odoo quants."
+msgstr "R\u00e9cup\u00e9rer les niveaux de stock actuels depuis l'API Stoqflow et mettre \u00e0 jour les quants Odoo."
+
+#. module: webship
+#: model_terms:ir.ui.view,arch_db:webship.res_config_settings_view_form
+msgid "Process pending orders"
+msgstr "Traiter les commandes en attente"
+
+#. module: webship
+#: model_terms:ir.ui.view,arch_db:webship.res_config_settings_view_form
+msgid "Push all pickings with status 'Pending' to the Stoqflow API."
+msgstr "Envoyer tous les pickings avec le statut 'En attente' vers l'API Stoqflow."
+
+#. module: webship
+#: model_terms:ir.ui.view,arch_db:webship.res_config_settings_view_form
+msgid "Fetch order info"
+msgstr "R\u00e9cup\u00e9rer les infos commande"
+
+#. module: webship
+#: model_terms:ir.ui.view,arch_db:webship.res_config_settings_view_form
+msgid "Retrieve the latest quantities and statuses from Stoqflow for all open pickings."
+msgstr "R\u00e9cup\u00e9rer les derni\u00e8res quantit\u00e9s et statuts depuis Stoqflow pour tous les pickings ouverts."
+
+#. module: webship
+#: model_terms:ir.ui.view,arch_db:webship.res_config_settings_view_form
+msgid "Last Check Timestamps"
+msgstr "Horodatages des derni\u00e8res v\u00e9rifications"
+
+#. module: webship
+#: model_terms:ir.ui.view,arch_db:webship.res_config_settings_view_form
+msgid "Shows when the cron jobs last fetched status updates from Stoqflow."
+msgstr "Indique quand les t\u00e2ches cron ont r\u00e9cup\u00e9r\u00e9 pour la derni\u00e8re fois les mises \u00e0 jour de statut depuis Stoqflow."
+
+#. module: webship
+#: model:ir.model.fields,help:webship.field_res_config_settings__webship_sync_order
+msgid "When enabled, new delivery orders are automatically marked for synchronization with Stoqflow (process code 'P'). The cron job will then push them to the Stoqflow API."
+msgstr "Lorsque cette option est activ\u00e9e, les nouveaux ordres de livraison sont automatiquement marqu\u00e9s pour synchronisation avec Stoqflow (code processus 'P'). La t\u00e2che cron les enverra ensuite \u00e0 l'API Stoqflow."
+
+#. module: webship
+#: model:ir.model.fields,help:webship.field_res_config_settings__webship_auto_create_backorder
+msgid "When enabled, a backorder is automatically created in Odoo when Stoqflow reports an order as completed with partial quantities."
+msgstr "Lorsque cette option est activ\u00e9e, un reliquat est automatiquement cr\u00e9\u00e9 dans Odoo lorsque Stoqflow signale une commande comme termin\u00e9e avec des quantit\u00e9s partielles."
+
+#. module: webship
+#: model:ir.model.fields,help:webship.field_res_config_settings__webship_log_json
+msgid "When enabled, every JSON payload sent to and received from the Stoqflow API is saved in the JSON History log. Useful for debugging synchronization issues."
+msgstr "Lorsque cette option est activ\u00e9e, chaque charge utile JSON envoy\u00e9e et re\u00e7ue de l'API Stoqflow est enregistr\u00e9e dans le journal d'historique JSON. Utile pour d\u00e9boguer les probl\u00e8mes de synchronisation."
+
+#. module: webship
+#: model:ir.model.fields,help:webship.field_res_config_settings__webship_show_parcels_tab
+msgid "When enabled, a 'Stoqflow Parcels' tab is shown on the picking form view displaying parcel details (tracking numbers, dimensions, shipping info) fetched from Stoqflow."
+msgstr "Lorsque cette option est activ\u00e9e, un onglet 'Colis Stoqflow' est affich\u00e9 sur la vue formulaire du picking, montrant les d\u00e9tails des colis (num\u00e9ros de suivi, dimensions, informations d'exp\u00e9dition) r\u00e9cup\u00e9r\u00e9s depuis Stoqflow."
+
+#. module: webship
+#: model:ir.model.fields,help:webship.field_res_config_settings__webship_default_brand
+msgid "The brand assigned to orders sent to Stoqflow. Brands are loaded from the Stoqflow API using the 'Load companies/brands/warehouses' button."
+msgstr "La marque attribu\u00e9e aux commandes envoy\u00e9es \u00e0 Stoqflow. Les marques sont charg\u00e9es depuis l'API Stoqflow \u00e0 l'aide du bouton 'Charger les soci\u00e9t\u00e9s / marques / entrep\u00f4ts'."
+
+#. module: webship
+#: model:ir.model.fields,help:webship.field_res_config_settings__webship_default_shop
+msgid "The shop assigned to orders sent to Stoqflow. Shops belong to a brand and are loaded from the Stoqflow API using the 'Load companies/brands/warehouses' button."
+msgstr "La boutique attribu\u00e9e aux commandes envoy\u00e9es \u00e0 Stoqflow. Les boutiques appartiennent \u00e0 une marque et sont charg\u00e9es depuis l'API Stoqflow \u00e0 l'aide du bouton 'Charger les soci\u00e9t\u00e9s / marques / entrep\u00f4ts'."
+
+#. module: webship
+#: model:ir.actions.act_window,name:webship.webship_config_settings_action
+#: model:ir.ui.menu,name:webship.webship_config_settings_menu
+msgid "Settings"
+msgstr "Param\u00e8tres"
+
+#. module: webship
+#: model:ir.actions.act_window,name:webship.webship_stock_action
+msgid "Stoqflow Stock"
+msgstr "Stock Stoqflow"
+
+#. module: webship
+#: model_terms:ir.ui.view,arch_db:webship.df_webship_stock_quant_tree_view
+msgid "Apply Stoqflow Stock to Odoo"
+msgstr "Appliquer le stock Stoqflow \u00e0 Odoo"
+
+#. module: webship
+#: model:ir.ui.menu,name:webship.webship_stock_menu
+msgid "Stock"
+msgstr "Stock"
+
+#. module: webship
+#: model:ir.actions.act_window,name:webship.webship_json_history_action
+#: model:ir.ui.menu,name:webship.webship_json_history_menu
+msgid "JSON History"
+msgstr "Historique JSON"
+
+#. module: webship
+#: model_terms:ir.ui.view,arch_db:webship.webship_json_history_tree
+msgid "Date"
+msgstr "Date"
+
+#. module: webship
+#: model_terms:ir.ui.view,arch_db:webship.view_order_form_inherit_pickings_button
+msgid "Deliveries"
+msgstr "Livraisons"
+
+#. module: webship
+#: model:ir.actions.act_window,name:webship.webship_property_action
+msgid "Properties"
+msgstr "Propri\u00e9t\u00e9s"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_webship_parcel__df_number
+msgid "#"
+msgstr "#"

@@ -8,26 +8,51 @@
         <field name="arch" type="xml">
 
             <xpath expr="//notebook" position="inside">
-                <page string="Webship" name="webship">
+                <page string="Stoqflow" name="webship">
 
-                    <group string="Velden Webship" name="webship_group">
-                        <field name="df_is_supplier_in_webship"/>
-                        <field name="df_is_client_in_webship"/>
+                    <group>
+                        <field name="df_is_supplier_in_webship" string="Sync as supplier" help="Check to create/update this contact as a supplier in Stoqflow"/>
+                        <field name="df_is_client_in_webship" string="Sync as client" help="Check to create/update this contact as a client in Stoqflow"/>
                     </group>
 
-                    <group string="Sync met Webship">
-                        <field name="wsUrlSupplier"/>
-                        <field name="wsUrlClient"/>
-                        <field name="df_last_webship_sync" readonly="1"/>
+                    <separator string="Contact Status" colspan="2"/>
+                    <group>
+                        <field name="df_url_client" colspan="2" nolabel="1"/>
+                        <field name="df_url_supplier" colspan="2" nolabel="1"/>
+                        <field name="df_last_webship_sync" readonly="1" string="Last sync"/>
+                    </group>
+
+                    <group colspan="2">
                         <field name="df_partner_syncresult_webship"
                                readonly="1"
-                               widget="html"/>
+                               widget="html"
+                               string="Sync Status"/>
+                    </group>
 
-                        <button icon="oi-arrow-right"
-                                name="ws_sync_partner"
-                                type="object"
-                                string="Manueel synchroniseren"
-                                class="btn-link"/>
+                    <separator string="Stoqflow Synchronization"/>
+                    <group col="2">
+                        <group>
+                            <h5>🔗 Match Contact</h5>
+                            <p style="font-size: 12px; color: #666; margin-bottom: 12px;">
+                                Search Stoqflow for a contact matching this email address and link it. Use when the contact already exists in Stoqflow.
+                            </p>
+                            <button name="ws_match_partner"
+                                    type="object"
+                                    string="Match with Stoqflow"
+                                    class="btn btn-secondary"
+                                    style="width: 100%; padding: 10px 16px; border-radius: 2px;"/>
+                        </group>
+                        <group>
+                            <h5>➕ Create &amp; Sync</h5>
+                            <p style="font-size: 12px; color: #666; margin-bottom: 12px;">
+                                Push this contact to Stoqflow. Creates new if email doesn't exist, or updates existing. If email already exists, use "Match" instead.
+                            </p>
+                            <button name="ws_sync_partner"
+                                    type="object"
+                                    string="Sync with Stoqflow"
+                                    class="btn btn-primary"
+                                    style="width: 100%; padding: 10px 16px; border-radius: 2px;"/>
+                        </group>
                     </group>
 
                 </page>

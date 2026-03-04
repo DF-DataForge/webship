@@ -8,20 +8,45 @@
         <field name="inherit_id" ref="product.product_normal_form_view"/>
         <field name="arch" type="xml">
             <xpath expr="//notebook" position="inside">
-                <page string="Webship" name="webship">
-                    <group string="Webship Fields">
-                        <field name="df_url_prod"/>
-                        <field name="df_product_lastsync_webship" readonly="1"/>
-                        <field name="df_product_syncresult_webship" readonly="1" widget="html"/>
-                        <field name="df_product_do_not_send_webship"/>
-                        <button name="ws_sync_product"
-                                type="object"
-                                string="Manueel synchroniseren"
-                                class="btn-primary"/>
-                        <button name="ws_match_product"
-                                type="object"
-                                string="Manueel matchen"
-                                class="btn-secondary"/>
+                <page string="Stoqflow" name="webship">
+                    <group>
+                        <field name="df_product_do_not_send_webship" string="Don't sync this product"/>
+                    </group>
+
+                    <separator string="Product Status" colspan="2"/>
+                    <group>
+                        <field name="df_url_prod" colspan="2" nolabel="1"/>
+                        <field name="df_product_lastsync_webship" readonly="1" string="Last sync"/>
+                    </group>
+
+                    <group colspan="2">
+                        <field name="df_product_syncresult_webship" readonly="1" widget="html" string="Sync Status"/>
+                    </group>
+
+                    <separator string="Stoqflow Synchronization"/>
+                    <group col="2">
+                        <group>
+                            <h5>🔗 Match Product</h5>
+                            <p style="font-size: 12px; color: #666; margin-bottom: 12px;">
+                                Search Stoqflow for a product matching this SKU and link it. Use when the product already exists in Stoqflow.
+                            </p>
+                            <button name="ws_match_product"
+                                    type="object"
+                                    string="Match with Stoqflow"
+                                    class="btn btn-secondary"
+                                    style="width: 100%; padding: 10px 16px; border-radius: 2px;"/>
+                        </group>
+                        <group>
+                            <h5>➕ Create &amp; Sync</h5>
+                            <p style="font-size: 12px; color: #666; margin-bottom: 12px;">
+                                Push this product to Stoqflow. Creates new if SKU doesn't exist, or updates existing. If SKU already exists, use "Match" instead.
+                            </p>
+                            <button name="ws_sync_product"
+                                    type="object"
+                                    string="Sync with Stoqflow"
+                                    class="btn btn-primary"
+                                    style="width: 100%; padding: 10px 16px; border-radius: 2px;"/>
+                        </group>
                     </group>
                 </page>
             </xpath>
@@ -35,19 +60,38 @@
         <field name="inherit_id" ref="product.product_template_only_form_view"/>
         <field name="arch" type="xml">
             <xpath expr="//notebook" position="inside">
-                <page string="Webship"
+                <page string="Stoqflow"
                       name="webship"
                       invisible="product_variant_count &gt; 1">
-                    <group string="Webship Fields">
-                        <field name="df_url_prod"/>
-                        <button name="ws_sync_product"
-                                type="object"
-                                string="Manueel synchroniseren"
-                                class="btn-primary"/>
-                        <button name="ws_match_product"
-                                type="object"
-                                string="Manueel matchen"
-                                class="btn-secondary"/>
+                    <separator string="Product Status"/>
+                    <group>
+                        <field name="df_url_prod" colspan="2" nolabel="1"/>
+                    </group>
+
+                    <separator string="Stoqflow Synchronization"/>
+                    <group col="2">
+                        <group>
+                            <h5>🔗 Match Product</h5>
+                            <p style="font-size: 12px; color: #666; margin-bottom: 12px;">
+                                Search Stoqflow for a product matching this SKU and link it. Use when the product already exists in Stoqflow.
+                            </p>
+                            <button name="ws_match_product"
+                                    type="object"
+                                    string="Match with Stoqflow"
+                                    class="btn btn-secondary"
+                                    style="width: 100%; padding: 10px 16px; border-radius: 2px;"/>
+                        </group>
+                        <group>
+                            <h5>➕ Create &amp; Sync</h5>
+                            <p style="font-size: 12px; color: #666; margin-bottom: 12px;">
+                                Push this product to Stoqflow. Creates new if SKU doesn't exist, or updates existing. If SKU already exists, use "Match" instead.
+                            </p>
+                            <button name="ws_sync_product"
+                                    type="object"
+                                    string="Sync with Stoqflow"
+                                    class="btn btn-primary"
+                                    style="width: 100%; padding: 10px 16px; border-radius: 2px;"/>
+                        </group>
                     </group>
                 </page>
             </xpath>
@@ -66,11 +110,11 @@
                 <header>
                     <button name="ws_sync_product"
                             type="object"
-                            string="Syncen met Webship"
+                            string="Syncen met Stoqflow"
                             class="oe_highlight"/>
                     <button name="ws_match_product"
                             type="object"
-                            string="Producten matchen met Webship"
+                            string="Producten matchen met Stoqflow"
                             class="oe_highlight"/>
                 </header>
             </xpath>

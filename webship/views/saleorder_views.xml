@@ -10,7 +10,7 @@
                 type="object"
                 class="oe_stat_button">
           <div class="o_stat_info">
-               <img src="/webship/static/src/img/webship_vk_16px.png" height="16px" width="16px"
+               <img src="/webship/static/src/img/stoqflow_16px.png" height="16px" width="16px"
                 style="vertical-align:middle;margin-right:4px;" />
             <span class="o_stat_text">Deliveries</span>
             <span class="o_stat_value" field="picking_count"/>

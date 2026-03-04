@@ -8,62 +8,207 @@
             <field name="inherit_id" ref="base.res_config_settings_view_form"/>
             <field name="arch" type="xml">
                 <xpath expr="//form" position="inside">
-                    <app data-string="Webship" id="webship" string="Webship" name="webship">
-                        <block title="Login instellingen" id="ws_login_setting">
-                            <setting string="Login">
+                    <app data-string="Stoqflow" id="webship" string="Stoqflow" name="webship">
+                        <!-- API Connection: credentials and endpoints for the Stoqflow REST API -->
+                        <block title="API Connection" id="ws_login_setting">
+                            <setting string="API Credentials" help="Enter the API key and secret from your Stoqflow account to authenticate with the Stoqflow REST API.">
                                 <div class="text-muted content-group mt16">
                                     <span>Key: </span>
-                                    <field name="webship_login" style="width: 320px" />
+                                    <field name="webship_login" style="width: 500px" />
                                 </div>
                                 <div class="text-muted content-group mt16">
                                     <span>Secret: </span>
-                                    <field name="webship_password" style="width: 320px" password="True"/>
+                                    <field name="webship_password" style="width: 500px" password="True"/>
                                 </div>
                                 <div class="text-muted content-group mt16">
-                                    <span>Base Url: </span>
-                                    <field name="webship_url" style="width: 320px"/>
+                                    <span>API URL: </span>
+                                    <field name="webship_url" style="width: 500px"/>
+                                    <div class="text-muted">Base URL of the Stoqflow REST API (e.g. https://api.stoqflow.com/)</div>
                                 </div>
                                 <div class="text-muted content-group mt16">
-                                    <span>App Url: </span>
-                                    <field name="webship_app_url" style="width: 320px"/>
+                                    <span>App URL: </span>
+                                    <field name="webship_app_url" style="width: 500px"/>
+                                    <div class="text-muted">URL of the Stoqflow web app, used for clickable links to orders and products</div>
                                 </div>
                                 <div class="text-muted content-group mt16">
                                         <button string="Test connection" name="ws_test_verbinding" type="object" />
                                 </div>
                             </setting>
                         </block>
-                        <block title="Algemene instellingen" id="ws_algemene_instellingen">
-                            <setting string="Algemene instellingen">
+
+                        <!-- General settings: toggles and defaults that control how the integration behaves -->
+                        <block title="General Settings" id="ws_algemene_instellingen">
+                            <setting string="Order Sync" help="Control how delivery orders and purchase orders are synchronized with Stoqflow.">
                                 <group>
-                                    <field name="webship_order_available_condition"></field>
-                                    <field name="webship_sync_order"></field>
-                                    <field name="webship_auto_create_backorder"></field>
-                                    <field name="webship_default_status"></field>
-                                    <field name="webship_default_po_status"></field>
-                                    <field name="webship_default_brand"></field>
-                                    <field name="webship_default_shop"></field>
-                                    <p><button icon="oi-arrow-right" name="ws_fetch_companies_and_warehouses" type="object" string="Laad companies/brands/warehouses" class="btn-link"/></p>
+                                    <field name="webship_sync_order"/>
+                                    <field name="webship_order_available_condition"/>
+                                    <field name="webship_auto_create_backorder"/>
+                                    <field name="webship_fallback_sale_order_contact"/>
                                 </group>
-                                <p>Companies, brands, warehouses dienen geladen te worden en zijn nodig voor het verwerken van orders.</p>
+                            </setting>
+                            <setting string="Default Statuses" help="Choose the initial status for new orders and purchase orders when they are created in Stoqflow.">
+                                <group>
+                                    <field name="webship_default_status"/>
+                                    <field name="webship_default_po_status"/>
+                                </group>
+                            </setting>
+                            <setting string="Brand &amp; Shop" help="Select the default brand and shop assigned to orders sent to Stoqflow. These must be loaded first using the button below.">
+                                <group>
+                                    <field name="webship_default_brand"/>
+                                    <field name="webship_default_shop"/>
+                                    <p><button icon="oi-arrow-right" name="ws_fetch_companies_and_warehouses" type="object" string="Load companies / brands / warehouses" class="btn-link"/></p>
+                                </group>
+                                <div class="text-muted">Companies, brands, and warehouses need to be loaded from the Stoqflow API before orders can be processed.</div>
+                            </setting>
+                            <setting string="Domain Filter" help="Optionally restrict which pickings are automatically synced to Stoqflow using an Odoo domain expression.">
+                                <group>
+                                    <field name="webship_domain" placeholder="[('mk_instance_id','in',[2,3])]"/>
+                                </group>
+                                <div class="text-muted">Only pickings matching this filter will be synced. Leave empty to sync all Stoqflow pickings.</div>
+                            </setting>
+                            <setting string="Logging &amp; Display" help="Configure extra UI elements and API logging for debugging.">
+                                <group>
+                                    <field name="webship_log_json"/>
+                                    <field name="webship_show_parcels_tab"/>
+                                    <field name="webship_show_pick_analysis_tab"/>
+                                </group>
                             </setting>
                         </block>
-                        <block title="Synchronisatie" id="ws_synchr_block_id">
-                            <setting string="Synchronisatie">
-                                <p><button icon="oi-arrow-right" name="ws_import_stock" type="object" string="Stock opladen" class="btn-link"/></p>
-                                <p><button icon="oi-arrow-right" name="ws_sync_all_pickings_statusP" type="object" string="Manueel openstaande orders processen" class="btn-link"/></p>
-                               <p><button icon="oi-arrow-right" name="ws_sync_statusses_since_last" type="object" string="Order info ophalen" class="btn-link"/></p>
-                                 <span>Last date check status:</span><field name="webship_last_check_date_status" />
-                                <br />
-                                 <span>Last date check PO status:</span><field name="webship_last_check_po_date_status" />
+
+                        <!-- Error notifications: configure who gets emailed when a queue error occurs -->
+                        <block title="Error Notifications" id="ws_error_notifications_block">
+                            <setting string="Notification Recipients" help="These recipients receive an email whenever an error occurs during queue processing (pending orders or status fetch).">
+                                <div class="content-group mt16">
+                                    <div><strong>Users</strong></div>
+                                    <field name="webship_error_notify_user_ids" widget="many2many_tags"/>
+                                </div>
+                                <div class="content-group mt16">
+                                    <div><strong>Additional email addresses</strong></div>
+                                    <field name="webship_error_notify_emails" style="width: 500px" placeholder="email1@example.com, email2@example.com"/>
+                                    <div class="text-muted">Comma-separated list of extra addresses to notify, in addition to the users above.</div>
+                                </div>
                             </setting>
                         </block>
-                        <block title="Reporting" is="ws_report">
-                            <setting string="Reporting">
-                            <button name="download_ws_prod_vergelijk"
-                        string="Stock check producten"
-                        type="object"
-                        icon="oi-arrow-right"
-                        class="btn-link"/>
+
+                        <!-- Daily report: configure who gets the daily processing summary -->
+                        <block title="Daily Report" id="ws_daily_report_block">
+                            <setting string="Report Recipients" help="These recipients receive a daily email summarising all pickings processed in the last 24 hours (successful and errored). The report is also sent automatically by the scheduled cron job.">
+                                <div class="content-group mt16">
+                                    <div><strong>Users</strong></div>
+                                    <field name="webship_report_notify_user_ids" widget="many2many_tags"/>
+                                </div>
+                                <div class="content-group mt16">
+                                    <div><strong>Additional email addresses</strong></div>
+                                    <field name="webship_report_notify_emails" style="width: 500px" placeholder="email1@example.com, email2@example.com"/>
+                                    <div class="text-muted">Comma-separated list of extra addresses, in addition to the users above.</div>
+                                </div>
+                                <div class="content-group mt16">
+                                    <button icon="oi-arrow-right" name="ws_send_daily_report" type="object" string="Send report now" class="btn-link"/>
+                                    <span class="text-muted ms-2">Send the report immediately for the last 24 hours.</span>
+                                </div>
+                            </setting>
+                        </block>
+
+                        <!-- Scheduled tasks: enable/disable each cron job and configure intervals -->
+                        <block title="Scheduled Tasks" id="ws_scheduled_tasks_block">
+                            <setting string="Cron Jobs" help="Enable or disable scheduled tasks and configure how frequently they run. Changes take effect immediately after saving.">
+                                <div class="content-group mt16">
+                                    <div class="row">
+                                        <div class="col-md-6"><strong>Task</strong></div>
+                                        <div class="col-md-2"><strong>Active</strong></div>
+                                        <div class="col-md-4"><strong>Run every</strong></div>
+                                    </div>
+                                    <!-- Process pending orders -->
+                                    <div class="row mt8 align-items-center">
+                                        <div class="col-md-6">
+                                            <span>Process pending orders</span>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <field name="webship_cron_sync_statusP" class="d-inline-block"/>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="d-flex gap-2">
+                                                <field name="webship_cron_sync_statusP_interval_number" style="width: 60px" class="text-center"/>
+                                                <field name="webship_cron_sync_statusP_interval_type" style="width: 100px"/>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Fetch order info -->
+                                    <div class="row mt8 align-items-center">
+                                        <div class="col-md-6">
+                                            <span>Fetch order info &amp; quantities</span>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <field name="webship_cron_sync_statussen" class="d-inline-block"/>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="d-flex gap-2">
+                                                <field name="webship_cron_sync_statussen_interval_number" style="width: 60px" class="text-center"/>
+                                                <field name="webship_cron_sync_statussen_interval_type" style="width: 100px"/>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Import stock -->
+                                    <div class="row mt8 align-items-center">
+                                        <div class="col-md-6">
+                                            <span>Import stock from Stoqflow</span>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <field name="webship_cron_import_stock" class="d-inline-block"/>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="d-flex gap-2">
+                                                <field name="webship_cron_import_stock_interval_number" style="width: 60px" class="text-center"/>
+                                                <field name="webship_cron_import_stock_interval_type" style="width: 100px"/>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Send daily report -->
+                                    <div class="row mt8 align-items-center">
+                                        <div class="col-md-6">
+                                            <span>Send daily report</span>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <field name="webship_cron_daily_report" class="d-inline-block"/>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="d-flex gap-2">
+                                                <field name="webship_cron_daily_report_interval_number" style="width: 60px" class="text-center"/>
+                                                <field name="webship_cron_daily_report_interval_type" style="width: 100px"/>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </setting>
+                        </block>
+
+                        <!-- Stock Management -->
+                        <block title="Stock Management" id="ws_stock_block_id">
+                            <setting string="Load Stock from Stoqflow" help="Fetch current stock levels from Stoqflow and update inventory quantities in Odoo.">
+                                <p>
+                                    <button icon="oi-arrow-right" name="ws_import_stock" type="object" string="Load Stock from Stoqflow" class="btn-primary"/>
+                                    <span class="text-muted ms-2">Manually fetch stock levels from the Stoqflow warehouse. This is also run automatically by the scheduled cron job.</span>
+                                </p>
+                            </setting>
+                        </block>
+
+                        <!-- Manual sync actions and last check timestamps -->
+                        <block title="Synchronization" id="ws_synchr_block_id">
+                            <setting string="Manual Actions" help="Trigger synchronization actions manually. These are also run automatically by the scheduled cron jobs.">
+                                <p>
+                                    <button icon="oi-arrow-right" name="ws_sync_all_pickings_statusP" type="object" string="Process pending orders" class="btn-link"/>
+                                    <span class="text-muted ms-2">Push all pickings with status 'Pending' to the Stoqflow API.</span>
+                                </p>
+                                <p>
+                                    <button icon="oi-arrow-right" name="ws_sync_statusses_since_last" type="object" string="Fetch order info" class="btn-link"/>
+                                    <span class="text-muted ms-2">Retrieve the latest quantities and statuses from Stoqflow for all open pickings.</span>
+                                </p>
+                            </setting>
+                            <setting string="Last Check Timestamps" help="Shows when the cron jobs last fetched status updates from Stoqflow.">
+                                <group>
+                                    <field name="webship_last_check_date_status" string="Last order status check"/>
+                                    <field name="webship_last_check_po_date_status" string="Last PO status check"/>
+                                </group>
                             </setting>
                         </block>
                     </app>

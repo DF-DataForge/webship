@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
-    <!-- Custom Webship Picking Tree View -->
+    <!-- Custom Stoqflow Picking Tree View -->
     <record id="df_webship_orders_type_tree_view" model="ir.ui.view">
         <field name="name">df.webship.orders.type.tree</field>
         <field name="model">stock.picking</field>
         <field name="priority">50</field>
         <field name="arch" type="xml">
-            <tree string="Webship orders"
+            <tree string="Stoqflow orders"
                   create="false"
                   edit="false"
                   default_order="write_date desc">
@@ -51,7 +51,7 @@
 
     <!-- Action -->
     <record id="webship_orders_action" model="ir.actions.act_window">
-        <field name="name">Webship orders</field>
+        <field name="name">Stoqflow orders</field>
         <field name="res_model">stock.picking</field>
         <field name="view_mode">tree,form</field>
         <field name="view_id" ref="df_webship_orders_type_tree_view"/>
@@ -68,13 +68,55 @@
 
     <!-- Menu -->
     <menuitem id="webship_root_menu"
-              name="Webship"
-              web_icon="webship,static/description/icon.png"/>
+              name="Stoqflow"
+              web_icon="webship,static/stoqflowicons/stoqflow-100x100.png"/>
 
     <menuitem id="webship_order_sub_root"
               name="Orders"
               parent="webship_root_menu"
               action="webship_orders_action"
               sequence="1"/>
+
+    <!-- Reports Menu -->
+    <menuitem id="webship_reports_menu"
+              name="Reports"
+              parent="webship_root_menu"
+              sequence="5"/>
+
+    <menuitem id="webship_reports_products"
+              name="Products in Stoqflow"
+              parent="webship_reports_menu"
+              action="stoqflow_product_report_action"
+              sequence="1"/>
+
+    <menuitem id="webship_reports_partners"
+              name="Clients &amp; Suppliers in Stoqflow"
+              parent="webship_reports_menu"
+              action="stoqflow_partner_report_action"
+              sequence="2"/>
+
+    <!-- Dashboard Menu -->
+    <menuitem id="webship_dashboard_menu"
+              name="Dashboard"
+              parent="webship_root_menu"
+              sequence="10"/>
+
+    <menuitem id="webship_dashboard_overview"
+              name="Order Charts"
+              parent="webship_dashboard_menu"
+              action="stoqflow_order_report_graph_action"
+              sequence="1"/>
+
+    <menuitem id="webship_dashboard_pivot_analysis"
+              name="Pivot Analysis"
+              parent="webship_dashboard_menu"
+              action="stoqflow_order_report_pivot_action"
+              sequence="2"/>
+
+    <menuitem id="webship_dashboard_sync_status"
+              name="Sync Status"
+              parent="webship_dashboard_menu"
+              action="stoqflow_order_report_list_action"
+              sequence="3"/>
 
 </odoo>

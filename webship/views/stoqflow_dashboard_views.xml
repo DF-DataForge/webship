@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ============================================================ -->
+    <!--        ORDER ANALYSIS: Graph, Pivot, and List Views           -->
+    <!-- ============================================================ -->
+
+    <!-- Order Report - Graph View (Bar chart: orders vs POs by Stoqflow status) -->
+    <record id="stoqflow_order_report_graph_view" model="ir.ui.view">
+        <field name="name">stoqflow.order.report.graph</field>
+        <field name="model">stoqflow.order.report</field>
+        <field name="arch" type="xml">
+            <graph string="Orders processed in Stoqflow" type="bar" stacked="False">
+                <field name="stoqflow_status" type="row"/>
+                <field name="order_type" type="col"/>
+                <field name="order_count" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <!-- Order Report - Graph View (Pie by sync state) -->
+    <record id="stoqflow_order_report_pie_view" model="ir.ui.view">
+        <field name="name">stoqflow.order.report.pie</field>
+        <field name="model">stoqflow.order.report</field>
+        <field name="priority">20</field>
+        <field name="arch" type="xml">
+            <graph string="Orders by Sync State" type="pie">
+                <field name="sync_state" type="row"/>
+                <field name="order_count" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <!-- Order Report - Pivot View -->
+    <record id="stoqflow_order_report_pivot_view" model="ir.ui.view">
+        <field name="name">stoqflow.order.report.pivot</field>
+        <field name="model">stoqflow.order.report</field>
+        <field name="arch" type="xml">
+            <pivot string="Stoqflow Order Analysis">
+                <field name="order_type" type="col"/>
+                <field name="stoqflow_status" type="row"/>
+                <field name="order_count" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <!-- Order Report - List View -->
+    <record id="stoqflow_order_report_tree_view" model="ir.ui.view">
+        <field name="name">stoqflow.order.report.tree</field>
+        <field name="model">stoqflow.order.report</field>
+        <field name="arch" type="xml">
+            <tree string="Stoqflow Orders" create="false" edit="false"
+                  default_order="create_date desc">
+                <field name="name"/>
+                <field name="create_date"/>
+                <field name="partner_id"/>
+                <field name="order_type"/>
+                <field name="state"
+                       widget="badge"
+                       decoration-danger="state == 'cancel'"
+                       decoration-info="state == 'assigned'"
+                       decoration-muted="state == 'draft'"
+                       decoration-success="state == 'done'"
+                       decoration-warning="state not in ('draft','cancel','done','assigned')"/>
+                <field name="stoqflow_status"
+                       widget="badge"
+                       decoration-success="stoqflow_status == 'completed'"
+                       decoration-info="stoqflow_status == 'ready-to-pick'"
+                       decoration-warning="stoqflow_status == 'on-hold'"
+                       decoration-muted="stoqflow_status == 'not synced'"/>
+                <field name="sync_state"
+                       widget="badge"
+                       decoration-success="sync_state == 'synced'"
+                       decoration-warning="sync_state == 'pending'"
+                       decoration-danger="sync_state == 'error'"
+                       decoration-muted="sync_state == 'not_applicable'"/>
+                <field name="last_sync"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Order Report - Search View -->
+    <record id="stoqflow_order_report_search_view" model="ir.ui.view">
+        <field name="name">stoqflow.order.report.search</field>
+        <field name="model">stoqflow.order.report</field>
+        <field name="arch" type="xml">
+            <search string="Search Stoqflow Orders">
+                <field name="name"/>
+                <field name="partner_id"/>
+                <separator/>
+                <filter string="Outbound Orders" name="outbound"
+                        domain="[('order_type', '=', 'order')]"/>
+                <filter string="Purchase Orders" name="inbound"
+                        domain="[('order_type', '=', 'purchase_order')]"/>
+                <separator/>
+                <filter string="Pending Sync" name="pending"
+                        domain="[('sync_state', '=', 'pending')]"/>
+                <filter string="Synced" name="synced"
+                        domain="[('sync_state', '=', 'synced')]"/>
+                <filter string="Sync Errors" name="errors"
+                        domain="[('sync_state', '=', 'error')]"/>
+                <separator/>
+                <filter string="Completed" name="completed"
+                        domain="[('stoqflow_status', '=', 'completed')]"/>
+                <filter string="Ready to Pick" name="ready_to_pick"
+                        domain="[('stoqflow_status', '=', 'ready-to-pick')]"/>
+                <filter string="On Hold" name="on_hold"
+                        domain="[('stoqflow_status', '=', 'on-hold')]"/>
+                <separator/>
+                <filter string="Done in Odoo" name="done_odoo"
+                        domain="[('state', '=', 'done')]"/>
+                <filter string="Ready in Odoo" name="ready_odoo"
+                        domain="[('state', '=', 'assigned')]"/>
+                <separator/>
+                <group expand="0" string="Group By">
+                    <filter string="Order Type" name="group_order_type"
+                            context="{'group_by': 'order_type'}"/>
+                    <filter string="Stoqflow Status" name="group_stoqflow_status"
+                            context="{'group_by': 'stoqflow_status'}"/>
+                    <filter string="Sync State" name="group_sync_state"
+                            context="{'group_by': 'sync_state'}"/>
+                    <filter string="Odoo Status" name="group_state"
+                            context="{'group_by': 'state'}"/>
+                    <filter string="Partner" name="group_partner"
+                            context="{'group_by': 'partner_id'}"/>
+                    <filter string="Created (Month)" name="group_create_date"
+                            context="{'group_by': 'create_date:month'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Order Analysis Action (Graph default: bar chart of orders/POs by status) -->
+    <record id="stoqflow_order_report_graph_action" model="ir.actions.act_window">
+        <field name="name">Orders processed in Stoqflow</field>
+        <field name="res_model">stoqflow.order.report</field>
+        <field name="view_mode">graph,pivot,list</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No Stoqflow orders to analyze.
+            </p>
+            <p>
+                Sync your orders with Stoqflow to see analytics here.
+            </p>
+        </field>
+    </record>
+
+    <!-- Order Analysis Action (Pivot default) -->
+    <record id="stoqflow_order_report_pivot_action" model="ir.actions.act_window">
+        <field name="name">Order Pivot Analysis</field>
+        <field name="res_model">stoqflow.order.report</field>
+        <field name="view_mode">pivot,graph,list</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No Stoqflow orders to analyze.
+            </p>
+        </field>
+    </record>
+
+    <!-- Sync Status Overview Action (List view of all Stoqflow orders) -->
+    <record id="stoqflow_order_report_list_action" model="ir.actions.act_window">
+        <field name="name">Sync Status Overview</field>
+        <field name="res_model">stoqflow.order.report</field>
+        <field name="view_mode">list,graph,pivot</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No Stoqflow orders found.
+            </p>
+        </field>
+    </record>
+
+</odoo>

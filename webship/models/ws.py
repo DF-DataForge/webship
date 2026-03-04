@@ -1,3 +1,5 @@
+# Core API handler for integrating Odoo with the Webship warehouse management system.
+# Provides methods to sync products, partners, pickings, and orders between Odoo and Webship.
 from urllib.parse import urlencode
 
 from odoo import models
@@ -7,6 +9,7 @@ import requests
 import logging
 from requests.auth import HTTPBasicAuth
 import math
+import json
 
 from odoo import fields
 
@@ -14,32 +17,55 @@ from odoo.exceptions import UserError
 from odoo.fields import Datetime
 
 _logger = logging.getLogger(__name__)
-#test test testr
+
 
 class WebShipHandler:
+    """Central handler for all Webship API communication.
+    Manages authentication, CRUD operations, and data synchronization."""
     def __init__(self, ws_login, ws_password, ws_base_url):
+        """Initialize the handler with Webship API credentials and base URL."""
         self.ws_login = ws_login
         self.ws_password = ws_password
         self.baseUrl = ws_base_url
-        self.sleepTime = 1
+        self.sleepTime = 1  # Rate-limit delay between API calls (seconds)
         self.headers = {'x-addon-public-key':'kRTxA08bKieVQroS'}
         self.auth = HTTPBasicAuth(ws_login, ws_password)
 
     def set_env(self, env):
+        """Inject the Odoo environment so the handler can access ORM models."""
         self.env = env
 
+    def _log_json(self, picking, direction, method, endpoint, payload):
+        """Log a JSON payload to webship.json.history if logging is enabled."""
+        if not hasattr(self, 'env'):
+            return
+        log_enabled = self.env['ir.config_parameter'].sudo().get_param('webship.log_json')
+        if log_enabled != 'True':
+            return
+        try:
+            json_str = json.dumps(payload, indent=2, default=str)
+        except Exception:
+            json_str = str(payload)
+        self.env['webship.json.history'].sudo().create({
+            'picking_id': picking.id if picking else False,
+            'direction': direction,
+            'method': method,
+            'endpoint': endpoint,
+            'json_payload': json_str,
+        })
+
     def removeFalseVals(self, sDict):
+        """Strip keys with False values from a dict before sending to the API."""
         filtered_data = {k: v for k, v in sDict.items() if v is not False}
 
         return filtered_data
 
-    def get_product_stock(self):
-        print('hi')
-
     def get_brand(self):
+        """Return the first configured Webship brand ID."""
         return self.env['webship.brand'].search([], limit=1)[0].brand_id
 
     def get_default_shop(self):
+        """Return the default Webship shop ID, falling back to the first available shop."""
         defaultShop = self.env['ir.config_parameter'].sudo().get_param('webship.default_shop')
 
         sh = self.env['webship.shop'].sudo().search([('shop_id', '=', defaultShop)], limit=1)
@@ -54,22 +80,27 @@ class WebShipHandler:
             return shops[0].shop_id
 
     def get_default_status(self):
+        """Return the configured default status for outbound orders."""
         wObj = self.env['ir.config_parameter'].sudo().get_param('webship.default_status_order')
         return wObj
 
     def get_default_po_status(self):
+        """Return the configured default status for purchase orders."""
         wObj = self.env['ir.config_parameter'].sudo().get_param('webship.default_status_po_order')
         return wObj
 
     def get_need_stock_complete_order(self):
+        """Return whether orders require full stock availability before syncing."""
         wObj = self.env['ir.config_parameter'].sudo().get_param('webship.default_order_available_condition')
         return wObj
 
     def get_default_auto_create_backorder(self):
+        """Return whether backorders should be auto-created on partial fulfillment."""
         wObj = self.env['ir.config_parameter'].sudo().get_param('webship.auto_create_backorder')
         return wObj
 
     def test(self):
+        """Test the API connection and return a (status, message) tuple."""
         response = requests.get(self.baseUrl + 'products', auth=self.auth, headers=self.headers)
 
         if response.status_code != 200:
@@ -82,88 +113,98 @@ class WebShipHandler:
         return (sStatus, sMessage)
 
     def sleep(self):
+        """Rate-limit pause between consecutive API calls."""
         time.sleep(self.sleepTime)
 
+    # ------------------------------------------------------------------
+    # Convenience wrappers around fetchAll for specific resource types
+    # ------------------------------------------------------------------
+
     def fetchCompanies(self):
+        """Fetch all companies from Webship."""
         sResult = self.fetchAll('company')
 
         return sResult
 
     def fetchWarehouses(self):
+        """Fetch all warehouses from Webship."""
         sResult = self.fetchAll('warehouses')
 
         return sResult
 
     def fetchClients(self):
+        """Fetch all clients from Webship (low detail)."""
         sResult = self.fetchAll('clients', 'low')
 
         return sResult
 
     def fetchSuppliers(self):
+        """Fetch all suppliers from Webship (low detail)."""
         sResult = self.fetchAll('suppliers', 'low')
 
         return sResult
 
     def fetchProducts(self):
+        """Fetch all products from Webship (low detail)."""
         sResult = self.fetchAll('products', 'low')
 
         return sResult
 
     def fetchInventory(self):
+        """Fetch full inventory from Webship (low detail)."""
         sResult = self.fetchAll('inventory', 'low')
 
         return sResult
 
     def fetchCode(self, objectname, skey):
+        """Retrieve the human-readable code (client_number / supplier_number) for a record."""
         if objectname == 'clients':
             response = self.fetchByKey('clients', skey)
-            print(response)
+            _logger.debug("fetchCode clients response: %s", response)
             if response['status'] == 'success':
                 return response['data']['client_number']
         if objectname == 'suppliers':
             response = self.fetchByKey('suppliers', skey)
-            print(response)
+            _logger.debug("fetchCode suppliers response: %s", response)
             if response['status'] == 'success':
                 return response['data']['supplier_number']
         return ['Not found']
 
+    # ------------------------------------------------------------------
+    # Low-level API request methods
+    # ------------------------------------------------------------------
 
     def fetchByKey(self, sUrl, skey):
+        """GET a single resource by its Webship ID."""
         url = self.baseUrl + sUrl + '/' + skey
 
         response = requests.get(url, auth=self.auth, headers=self.headers)
         self.sleep()
 
-        print(response.text)
-        print(response.headers)
+        _logger.debug("fetchByKey response: %s", response.text)
+        _logger.debug("fetchByKey headers: %s", response.headers)
 
         if response.status_code != 200:
-            print('Request failed with status code:', response.status_code)
-            print(response)
-            print(response.text)
+            _logger.error('fetchByKey failed with status code %s: %s', response.status_code, response.text)
             return {'status': 'error', 'txt': response.text, 'code': response.status_code}
         else:
             return {'status': 'success', 'data':response.json()}
 
     def fetchByKeyDetail(self, sUrl, skey):
+        """GET a single resource by ID with high detail level."""
         url = self.baseUrl + sUrl + '/' + skey + '?detail=high'
 
         response = requests.get(url, auth=self.auth, headers=self.headers)
         self.sleep()
 
-        print(response.text)
-        print(response.headers)
+        _logger.debug("fetchByKeyDetail response: %s", response.text)
+        _logger.debug("fetchByKeyDetail headers: %s", response.headers)
 
         if response.status_code != 200:
-            print('Request failed with status code:', response.status_code)
-            print(response)
-            print(response.text)
+            _logger.error('fetchByKeyDetail failed with status code %s: %s', response.status_code, response.text)
             return {'status': 'error', 'txt': response.text, 'code': response.status_code}
         else:
             return {'status': 'success', 'data':response.json()}
-
-    import requests
-    from urllib.parse import urlencode
 
     def fetchAll(self, sUrl, sDetail=None, sEditedAfter=None, sCreatedAfter=None):
         """
@@ -185,16 +226,14 @@ class WebShipHandler:
 
         # Construct URL for first request
         url = f"{base_url}?{urlencode(params)}" if params else base_url
-        print(url)
+        _logger.debug("fetchAll URL: %s", url)
 
         # First page request
         response = requests.get(url, auth=self.auth, headers=self.headers)
         self.sleep()
 
         if response.status_code != 200:
-            print('Request failed with status code:', response.status_code)
-            print(response)
-            print(response.text)
+            _logger.error('fetchAll failed with status code %s: %s', response.status_code, response.text)
             return {
                 'status': 'error',
                 'txt': response.text,
@@ -220,9 +259,7 @@ class WebShipHandler:
                 self.sleep()
 
                 if response.status_code != 200:
-                    print('Request failed with status code:', response.status_code)
-                    print(response)
-                    print(response.text)
+                    _logger.error('fetchAll page %s failed with status code %s: %s', pageNumber, response.status_code, response.text)
                     return {
                         'status': 'error',
                         'txt': response.text,
@@ -241,8 +278,12 @@ class WebShipHandler:
             'totalCount': totalCount
         }
 
-    def findClientByVat(self, vatNr):
+    # ------------------------------------------------------------------
+    # Lookup methods: find records by VAT or SKU
+    # ------------------------------------------------------------------
 
+    def findClientByVat(self, vatNr):
+        """Search for a client in Webship by VAT number. Returns {'id': ...} or error."""
         if vatNr == False:
             return {'error': 'no vat number given'}
 
@@ -250,18 +291,18 @@ class WebShipHandler:
 
         url = self.baseUrl + 'clients?vat=' + vatNr
 
-        print(url)
+        _logger.debug("findClientByVat URL: %s", url)
 
         response = requests.get(url, auth=self.auth, headers=self.headers)
 
         totalCount = response.headers.get('total-count')
-        
+
         if totalCount == None:
             return []
 
         if int(totalCount) == 1:
             rJson = response.json()
-            print(rJson)
+            _logger.debug("findClientByVat result: %s", rJson)
             return {'id': rJson[0]['_id']}
 
         if int(totalCount) > 1:
@@ -270,7 +311,7 @@ class WebShipHandler:
         return []
 
     def findSupplierByVat(self, vatNr):
-
+        """Search for a supplier in Webship by VAT number."""
         if vatNr == False:
             return {'error': 'no vat number given'}
 
@@ -278,7 +319,7 @@ class WebShipHandler:
 
         url = self.baseUrl + 'suppliers?vat=' + vatNr
 
-        print(url)
+        _logger.debug("findSupplierByVat URL: %s", url)
 
         response = requests.get(url, auth=self.auth, headers=self.headers)
 
@@ -286,7 +327,7 @@ class WebShipHandler:
 
         if int(totalCount) == 1:
             rJson = response.json()
-            print(rJson)
+            _logger.debug("findSupplierByVat result: %s", rJson)
             return {'id': rJson[0]['_id']}
 
         if int(totalCount) > 1:
@@ -295,7 +336,7 @@ class WebShipHandler:
         return []
 
     def findProductBySku(self, skuNr):
-
+        """Search for a single product in Webship by SKU."""
         if skuNr == False:
             return {'error': 'no sku given'}
 
@@ -303,7 +344,7 @@ class WebShipHandler:
 
         url = self.baseUrl + 'products?sku=' + skuNr
 
-        print(url)
+        _logger.debug("findProductBySku URL: %s", url)
 
         response = requests.get(url, auth=self.auth, headers=self.headers)
 
@@ -314,7 +355,7 @@ class WebShipHandler:
 
         if int(totalCount) == 1:
             rJson = response.json()
-            print(rJson)
+            _logger.debug("findProductBySku result: %s", rJson)
             return {'id': rJson[0]['_id']}
 
         if int(totalCount) > 1:
@@ -323,6 +364,8 @@ class WebShipHandler:
         return []
        
     def findProductsBySku(self, picking):
+        """Batch-lookup all SKUs from a picking's move lines in Webship.
+        Returns {'items': {sku: webship_id}} or an error dict."""
         skus = []
         for p in picking.move_ids:
             if p.product_id.df_product_do_not_send_webship == True or p.product_id.default_code == False:
@@ -334,10 +377,7 @@ class WebShipHandler:
                     if i.df_sku_webship != False:
                         skus.append(i.df_sku_webship)
 
-        print('Looking for SKUS:')
-        print(skus)
-
-        _logger.info('Searching SKUS: ' + str(skus))
+        _logger.info('Searching SKUS: %s', skus)
 
         if skus == []:
             return {'error': 'No codes given'}
@@ -349,13 +389,10 @@ class WebShipHandler:
             else:
                 sQuery = sQuery + ','+str(s)
 
-        print(sQuery)
-
-        _logger.info('Query for skus: ' + sQuery)
-
+        _logger.info('Query for skus: %s', sQuery)
 
         allRecords = self.fetchAll('products?' + sQuery, 'low', None)
-        print(allRecords)
+        _logger.debug("findProductsBySku allRecords: %s", allRecords)
         items = {}
 
         totalCount = allRecords['totalCount']
@@ -363,51 +400,75 @@ class WebShipHandler:
             return {'error': 'Nothing is found.'}
 
         for page in allRecords['data'].values():
-            print(page)
+            _logger.debug("findProductsBySku page: %s", page)
             for it in page:
                 items[it['sku']] = it['_id']
 
+        # Store Webship product IDs on packaging records for quantity resolution
+        for p in picking.move_ids:
+            if hasattr(p.product_id, "packaging_ids") and p.product_id.packaging_ids:
+                for pkg in p.product_id.packaging_ids:
+                    if pkg.df_sku_webship and pkg.df_sku_webship in items:
+                        pkg.df_product_id_webship = items[pkg.df_sku_webship]
+                        _logger.info(
+                            "findProductsBySku: stored Webship ID %s on packaging '%s' (SKU: %s) of product %s",
+                            items[pkg.df_sku_webship], pkg.name, pkg.df_sku_webship, p.product_id.default_code
+                        )
+
         return {'items': items}
 
-    def ws_fetch_warehouses(self, env):
-        warehousesUrl =  self.baseUrl + 'warehouses'
-
-        response = requests.get(warehousesUrl, auth=(self.ws_login, self.ws_password))
-
-        if response.status_code != 200:
-            print('Request failed with status code:', response.status_code)
-            print(response)
-            print(response.text)
-            exit(0)
-        else:
-            responseData = response.json()
-
-            for warehouse in responseData:
-                print(warehouse)
-
-                wh = env['stock.warehouse'].search([('warehouse_id_webship', '=', warehouse['_id'])])
-
-                if wh.id == False:
-                    env['stock.warehouse'].create({'name':warehouse['name'], 'warehouse_id_webship':warehouse['_id'], 'code':warehouse['name']})
+    # ------------------------------------------------------------------
+    # Partner / supplier sync methods
+    # ------------------------------------------------------------------
 
     def match_partner(self, partner):
+        """Match an Odoo partner to a Webship client by email address.
+        Requires exactly one match to succeed, returns error if zero or multiple found."""
         if partner.email == False:
             return ['No e-mail address specified']
-
-        clientsUrl = self.baseUrl + 'clients'
 
         sReq = self.performGet('clients', "?email=" + partner.email)
 
         if sReq['status'] == 'success':
-            print(sReq)
-            partner.df_client_id_webship = sReq['data'][0]['_id']
+            _logger.debug("match_partner result: %s", sReq)
 
-        return []
+            # Check if exactly one client was found
+            if len(sReq['data']) == 0:
+                return ['No client found with this email in Stoqflow']
+            elif len(sReq['data']) == 1:
+                partner.df_client_id_webship = sReq['data'][0]['_id']
+                return []
+            else:
+                return ['Multiple clients found with this email (' + str(len(sReq['data'])) + '). Cannot auto-link.']
+
+        return ['Error searching for client: ' + sReq.get('errorText', 'Unknown error')]
+
+    def match_supplier(self, partner):
+        """Match an Odoo partner to a Webship supplier by email address.
+        Requires exactly one match to succeed, returns error if zero or multiple found."""
+        if partner.email == False:
+            return ['No e-mail address specified']
+
+        sReq = self.performGet('suppliers', "?email=" + partner.email)
+
+        if sReq['status'] == 'success':
+            _logger.debug("match_supplier result: %s", sReq)
+
+            # Check if exactly one supplier was found
+            if len(sReq['data']) == 0:
+                return ['No supplier found with this email in Stoqflow']
+            elif len(sReq['data']) == 1:
+                partner.df_supplier_id_webship = sReq['data'][0]['_id']
+                return []
+            else:
+                return ['Multiple suppliers found with this email (' + str(len(sReq['data'])) + '). Cannot auto-link.']
+
+        return ['Error searching for supplier: ' + sReq.get('errorText', 'Unknown error')]
 
     def sync_supplier(self, partner):
-
-        clientsUrl = self.baseUrl + 'suppliers'
-
+        """Create or update a supplier in Webship from an Odoo partner.
+        Validates required address fields before sending.
+        If creating new, checks that the email isn't already in use."""
         errors = []
 
         if partner.name == False:
@@ -440,25 +501,30 @@ class WebShipHandler:
                 del sObject[key]
 
         if partner.df_supplier_id_webship == False:
-            if True:
-                del sObject['supplier_number']
-                sRes = self.performPost('suppliers', sObject)
-                if sRes['status'] == 'success':
-                    partner.df_supplier_id_webship = sRes['data']['_id']
-            else:
-                sRes = self.performPost('suppliers', sObject)
-                if sRes['status'] == 'error' and sRes['errorText'] == '[{"error":"suppliers.add.no-unique-number","message":"supplier number must be unique"}]':
-                    sObject['supplier_number'] = sObject['supplier_number'] + 'B'
-                    sRes = self.performPost('suppliers', sObject)
+            # Before creating, check if this email already exists in Webship
+            if partner.email and partner.email != '':
+                existing = self.performGet('suppliers', "?email=" + partner.email)
+                if existing['status'] == 'success' and len(existing.get('data', [])) > 0:
+                    return ['Email already exists in Stoqflow. Use the "Match" button to link this supplier.']
+
+            del sObject['supplier_number']
+            sRes = self.performPost('suppliers', sObject)
+            if sRes['status'] == 'success':
+                partner.df_supplier_id_webship = sRes['data']['_id']
         else:
             sRes = self.performPut('suppliers', sObject, partner.df_supplier_id_webship)
 
         if sRes['status'] == 'error':
-            return ['Error while creating suppier: ' + sRes['errorText']]
+            return ['Error while creating supplier: ' + sRes['errorText']]
 
         return []
 
+    # ------------------------------------------------------------------
+    # Generic HTTP helpers (POST / PUT / GET)
+    # ------------------------------------------------------------------
+
     def performPost(self, url, sObject):
+        """POST a JSON payload to the Webship API. Returns status + data or error."""
         url = self.baseUrl + url
         self.showDebugInfo('Url called: ' + url)
 
@@ -477,6 +543,7 @@ class WebShipHandler:
             return {'status':'success', 'data':responseData}
 
     def performPut(self, url, sObject, sId):
+        """PUT (update) a JSON payload for a specific resource by ID."""
         url = self.baseUrl + url + '/' + sId
         self.showDebugInfo('Url called: ' + url)
 
@@ -495,6 +562,7 @@ class WebShipHandler:
             return {'status':'success', 'data':responseData}
 
     def performGet(self, url, sParams):
+        """GET a resource with query parameters appended."""
         url = self.baseUrl + url + sParams
 
         self.sleep()
@@ -512,9 +580,9 @@ class WebShipHandler:
             return {'status':'success', 'data':responseData}
 
     def sync_partner(self, partner):
-
-        clientsUrl = self.baseUrl + 'clients'
-
+        """Create or update a client in Webship from an Odoo partner.
+        Uses billing address and, if present, a child delivery address.
+        If creating new, checks that the email isn't already in use."""
         errors = []
 
         if partner.name == False:
@@ -582,21 +650,16 @@ class WebShipHandler:
                     del sJson[key]
 
             if partner.df_client_id_webship == False:
-                if True:
-                    del sJson['client_number']
-                    result = self.performPost('clients', sJson)
-                    if result['status'] == 'success':
-                        partner.df_client_id_webship = result['data']['_id']
-                else:
-                    result = self.performPost('clients', sJson)
-                    #print(result)
-                    if result['status'] == 'success':
-                        partner.df_client_id_webship = result['data']['_id']
-                    elif result['status'] == 'error' and result['errorText'] == '[{"error":"clients.add.no-unique-number","message":"client number must be unique"}]':
-                        sJson['client_number'] = sJson['client_number'] + 'B'
-                        result = self.performPost('clients', sJson)
-                        if result['status'] == 'success':
-                            partner.df_client_id_webship = result['data']['_id']
+                # Before creating, check if this email already exists in Webship
+                if partner.email and partner.email != '':
+                    existing = self.performGet('clients', "?email=" + partner.email)
+                    if existing['status'] == 'success' and len(existing.get('data', [])) > 0:
+                        return ['Email already exists in Stoqflow. Use the "Match" button to link this client.']
+
+                del sJson['client_number']
+                result = self.performPost('clients', sJson)
+                if result['status'] == 'success':
+                    partner.df_client_id_webship = result['data']['_id']
             else:
                 result = self.performPut('clients', sJson, partner.df_client_id_webship)
 
@@ -607,14 +670,20 @@ class WebShipHandler:
         else:
             return errors
 
+    # ------------------------------------------------------------------
+    # Picking / order building and sync
+    # ------------------------------------------------------------------
+
     def is_integer_float(self, value):
+        """Check whether a float value is effectively a whole number."""
         return value % 1 == 0
 
     def picking_get_line_items(self, picking):
+        """Extract line items from a picking, splitting by packaging SKUs when applicable."""
         output = []
-        print(picking)
+        _logger.debug("picking_get_line_items picking: %s", picking)
         for i in picking.move_ids:
-            print(i.product_id.default_code)
+            _logger.debug("Processing move product: %s", i.product_id.default_code)
             if i.product_id.df_product_do_not_send_webship == True or i.product_id.default_code == False:
                 continue
             sOutput = {'productObj': i.product_id, 'type':i.product_id.type, 'default_code':i.product_id.default_code, 'product_id':i.product_id.id, 'quantity':i.product_uom_qty}
@@ -640,7 +709,7 @@ class WebShipHandler:
 
             sOutput['divides'] = sorted_skuList
 
-            print('Divides: ' + str(sOutput))
+            _logger.debug('Divides: %s', sOutput)
 
             output.append(sOutput)
 
@@ -663,6 +732,7 @@ class WebShipHandler:
         return fields.Datetime.to_string(dt)
 
     def sync_statusses_since_last(self, lastDate):
+        """Poll Webship for orders edited/created since lastDate and update Odoo pickings accordingly."""
         maxEdited = None
 
         if lastDate:
@@ -674,7 +744,7 @@ class WebShipHandler:
 
         allPickingsWS = set()
 
-        print(orders)
+        _logger.debug("sync_statusses_since_last orders: %s", orders)
 
         if orders['status'] == 'success' and orders['totalCount'] == None:
             orders = self.fetchAll('orders', 'high', None, lastDate)
@@ -688,9 +758,9 @@ class WebShipHandler:
                 for order in page:
                     allPickingsWS.add(order['_id'])
                     pickingId = self.env['stock.picking'].search([('df_picking_id_webship', '=', order['_id'])])
-                    print('Picking got: ' + str(pickingId))
+                    _logger.debug('Picking got: %s', pickingId)
                     if pickingId and len(pickingId) == 1  and pickingId.state!='cancel':
-                        print('Setting quantities')
+                        _logger.debug('Setting quantities for picking %s', pickingId)
                         self.setPickingQuantities(pickingId, order)
 
                         if 'edited' in order:
@@ -715,73 +785,31 @@ class WebShipHandler:
         date_object = datetime.strptime(maxEdited, "%Y-%m-%dT%H:%M:%S.%fZ").replace(microsecond=0)
         dt_for_odoo = date_object.strftime("%Y-%m-%d %H:%M:%S")
 
-        print(allPickingsWS)
+        _logger.debug("All pickings from Webship: %s", allPickingsWS)
 
         return date_object
 
     def sync_po_statusses_since_last(self, lastDate):
-        
-        maxEdited = None
-        if lastDate:
-            orders = self.fetchAll('purchase-orders', 'high', self.add_seconds_to_odoo_datetime(lastDate))
-        else:
-            orders = self.fetchAll('purchase-orders', 'high', lastDate)
-
-        allChangeDates = []
-
-        if orders['status'] == 'success':
-            for page in orders['data'].values():
-                for order in page:
-                    pickingId = self.env['stock.picking'].search([('df_picking_id_webship', '=', order['_id'])])
-                    if pickingId and len(pickingId) == 1:
-                        self.setPickingQuantities(pickingId, order)
-
-                        if 'edited' in order:
-                            datum = order['edited']
-                        else:
-                            datum = order['created']
-
-                        date_object = datetime.strptime(datum, "%Y-%m-%dT%H:%M:%S.%fZ")
-                        date_object.replace(microsecond=0)
-                        pickingId.df_last_changedate_webship = date_object
-
-                    #print(order)
-
-                    if 'edited' in order:
-                        allChangeDates.append(order['edited'])
-                    else:
-                        allChangeDates.append(order['created'])
-
-        if maxEdited:
-            maxEdited = max(allChangeDates)
-
-            date_object = datetime.strptime(maxEdited, "%Y-%m-%dT%H:%M:%S.%fZ").replace(microsecond=0)
-            dt_for_odoo = date_object.strftime("%Y-%m-%d %H:%M:%S")
-
-            return date_object
-        else:
-            return None
-
-    def sync_po_statusses_since_last(self, lastDate):
+        """Poll Webship for purchase orders changed since lastDate and validate completed ones in Odoo."""
         maxEdited = None
         orders = self.fetchAll('purchase-orders', 'high', lastDate)
 
         if orders['status'] == 'success':
             for page in orders['data'].values():
                 for po_order in page:
-                    print(po_order)
+                    _logger.debug("Processing PO order: %s", po_order)
                     if po_order['status'] == 'completed':
                         pickingId = self.env['stock.picking'].search([('df_po_id_webship', '=', po_order['_id'])])
-                        print(pickingId)
+                        _logger.debug("PO picking found: %s", pickingId)
                         if pickingId and len(pickingId) == 1:
                             if pickingId.state != 'done':
-                                print('Setting status to done')
+                                _logger.info('Setting PO picking %s status to done', pickingId.name)
                                 # pickingId.state = 'done'
 
                                 self.setPickingQuantities(pickingId, po_order)
 
                                 pickingId.button_validate()
-                                print('Validate pressed')
+                                _logger.info('Validate pressed for picking %s', pickingId.name)
                                 if 'edited' in po_order:
                                     datum = po_order['edited']
                                 else:
@@ -801,7 +829,7 @@ class WebShipHandler:
                             maxEdited = po_order['created']
                         elif po_order['created'] > maxEdited:
                             maxEdited = po_order['created']
-                    print('Max edited:' + maxEdited)
+                    _logger.debug('Max edited: %s', maxEdited)
         
         if maxEdited:
             date_object = datetime.strptime(maxEdited, "%Y-%m-%dT%H:%M:%S.%fZ").replace(microsecond=0)
@@ -845,20 +873,30 @@ class WebShipHandler:
         return move.product_uom_qty or 0.0
 
     def setPickingQuantities(self, sPicking, order):
-
+        """Apply picked/received quantities from a Webship order onto an Odoo picking.
+        Handles move lines first, then falls back to moves for any remainder."""
         self.showDebugInfo('In picking quantites')
+        warnings = []
 
-        if sPicking.state == 'done':
-            return
-
-        print('Picking got: ' + str(sPicking.read()))
-        print('Order got: ' + str(order))
+        _logger.debug('Picking got: %s', sPicking.read())
+        _logger.debug('Order got: %s', order)
 
         self.showDebugInfo(sPicking.read())
 
-        tracking = order.get('tracking_numbers')
-        if tracking and hasattr(sPicking, 'carrier_tracking_ref'):
-            sPicking.carrier_tracking_ref = order['tracking_numbers']
+        parcels = order.get('parcels', [])
+        if parcels:
+            tracking_numbers = ','.join(
+                p['tracking_number'] for p in parcels if p.get('tracking_number')
+            )
+            tracking_urls = ','.join(
+                p['tracking_url'] for p in parcels if p.get('tracking_url')
+            )
+            if tracking_numbers and hasattr(sPicking, 'carrier_tracking_ref'):
+                sPicking.carrier_tracking_ref = tracking_numbers
+            if tracking_urls and hasattr(sPicking, 'df_carrier_tracking_urls'):
+                sPicking.df_carrier_tracking_urls = tracking_urls
+
+            self._sync_parcels(sPicking, parcels)
 
         if order.get('status') == 'completed':
             # ------------------------------------------------------------
@@ -867,9 +905,35 @@ class WebShipHandler:
             for m in sPicking.move_ids.filtered(lambda m: m.state not in ('cancel', 'done')):
                 self.showDebugInfo('Reading move: ' + str(m.read()))
                 if m.product_id.df_product_id_webship == False:
-                    pId = self.findProductBySku(m.product_id.default_code)
-                    if 'error' not in pId:
+                    sku = m.product_id.default_code
+                    pId = self.findProductBySku(sku)
+                    if isinstance(pId, dict) and 'id' in pId:
                         m.product_id.df_product_id_webship = pId['id']
+                    elif isinstance(pId, dict) and 'error' in pId:
+                        msg = "Product '%s' (SKU: %s): %s" % (m.product_id.name, sku or 'N/A', pId['error'])
+                        warnings.append(msg)
+                        _logger.warning("setPickingQuantities: %s", msg)
+                    else:
+                        msg = "Product '%s' (SKU: %s): not found in Stoqflow" % (m.product_id.name, sku or 'N/A')
+                        warnings.append(msg)
+                        _logger.warning("setPickingQuantities: %s", msg)
+
+                # Ensure packaging records have their Webship product IDs
+                if hasattr(m.product_id, 'packaging_ids') and m.product_id.packaging_ids:
+                    for pkg in m.product_id.packaging_ids:
+                        if pkg.df_sku_webship and not pkg.df_product_id_webship:
+                            pkgId = self.findProductBySku(pkg.df_sku_webship)
+                            if isinstance(pkgId, dict) and 'id' in pkgId:
+                                pkg.df_product_id_webship = pkgId['id']
+                                _logger.info(
+                                    "setPickingQuantities: resolved packaging SKU %s -> Webship ID %s",
+                                    pkg.df_sku_webship, pkgId['id']
+                                )
+                            else:
+                                _logger.warning(
+                                    "setPickingQuantities: could not resolve packaging SKU %s for product %s: %s",
+                                    pkg.df_sku_webship, m.product_id.default_code, pkgId
+                                )
                 m.write({'quantity': 0.0})
 
             for pl in sPicking.move_line_ids.filtered(lambda pl: pl.state not in ('cancel', 'done')):
@@ -885,24 +949,89 @@ class WebShipHandler:
             batchMap = {}
 
             # Normal outbound orders: use "picks"
+            # Use parent_product_id when present (pick substitution via packaging/build order),
+            # otherwise fall back to product_id (direct pick).
+            _logger.info("setPickingQuantities: building pMap from %s picks", len(order.get('picks') or []))
             for o in order.get('picks') or []:
-                if o['product_id'] not in pMap:
-                    pMap[o['product_id']] = o['quantity']
-                    if o.get('batch'):
-                        batchMap[o['product_id']] = o['batch']
+                ws_pid = o.get('parent_product_id') or o['product_id']
+                if o.get('parent_product_id') and o['parent_product_id'] != o['product_id']:
+                    _logger.info(
+                        "setPickingQuantities: pick substitution - picked %s (qty %s, fraction %s) for ordered product %s",
+                        o['product_id'], o['quantity'], o.get('fraction', 'N/A'), ws_pid
+                    )
                 else:
-                    pMap[o['product_id']] = pMap[o['product_id']] + o['quantity']
+                    _logger.info(
+                        "setPickingQuantities: direct pick - product %s qty %s",
+                        ws_pid, o['quantity']
+                    )
+                if ws_pid not in pMap:
+                    pMap[ws_pid] = o['quantity']
+                    if o.get('batch'):
+                        batchMap[ws_pid] = o['batch']
+                else:
+                    pMap[ws_pid] += o['quantity']
 
             # Purchase order / inbound style: use received from order_items
             if not order.get('picks'):
+                _logger.info("setPickingQuantities: no picks found, using received from order_items")
                 for o in order.get('order_items') or []:
                     if o.get('received'):
+                        _logger.info(
+                            "setPickingQuantities: order_item %s received %s",
+                            o['product_id'], o['received']
+                        )
                         if o['product_id'] not in pMap:
                             pMap[o['product_id']] = o['received']
                         else:
                             pMap[o['product_id']] = pMap[o['product_id']] + o['received']
 
-            self.showDebugInfo('pMap obtained: ' + str(pMap))
+            _logger.info('setPickingQuantities: pMap built: %s', pMap)
+
+            # ------------------------------------------------------------
+            # Resolve packaging Webship IDs → base product quantities
+            # e.g. 4 boxes (ornpHrRxnHGTqkuYS, pkg qty 12) → 48 individual units
+            # merged into the main product's pMap entry.
+            # ------------------------------------------------------------
+            packaging_map = {}  # packaging webship_pid -> (main product webship_pid, packaging qty, odoo product id)
+            # Include ALL moves (even done/cancel) so the lookup table is
+            # complete – this is read-only and does not modify any records.
+            for m in sPicking.move_ids:
+                if hasattr(m.product_id, 'packaging_ids') and m.product_id.packaging_ids:
+                    for pkg in m.product_id.packaging_ids:
+                        if pkg.df_product_id_webship:
+                            packaging_map[pkg.df_product_id_webship] = (
+                                m.product_id.df_product_id_webship,
+                                pkg.qty if pkg.qty > 0 else 1,
+                                m.product_id.id
+                            )
+            _logger.info(
+                "setPickingQuantities: packaging_map built with %d entries from %d moves",
+                len(packaging_map), len(sPicking.move_ids),
+            )
+
+            for ws_pid in list(pMap.keys()):
+                if ws_pid in packaging_map:
+                    main_ws_pid, pkg_qty, odoo_pid = packaging_map[ws_pid]
+                    converted_qty = pMap[ws_pid] * pkg_qty
+                    if main_ws_pid:
+                        _logger.info(
+                            "setPickingQuantities: packaging conversion - %s x '%s' (pkg qty %s) -> %s units of '%s'",
+                            pMap[ws_pid], ws_pid, pkg_qty, converted_qty, main_ws_pid
+                        )
+                        if main_ws_pid in pMap:
+                            pMap[main_ws_pid] += converted_qty
+                        else:
+                            pMap[main_ws_pid] = converted_qty
+                        del pMap[ws_pid]
+                    else:
+                        # Product has no Stoqflow ID - convert qty in place, match via packaging later
+                        _logger.info(
+                            "setPickingQuantities: packaging qty conversion (no product Stoqflow ID) - %s x '%s' (pkg qty %s) -> %s units for Odoo product %s",
+                            pMap[ws_pid], ws_pid, pkg_qty, converted_qty, odoo_pid
+                        )
+                        pMap[ws_pid] = converted_qty
+
+            self.showDebugInfo('pMap after packaging resolution: ' + str(pMap))
 
             # ------------------------------------------------------------
             # 1) Allocate quantities across MOVE LINES (best practice)
@@ -910,9 +1039,12 @@ class WebShipHandler:
             for webship_pid, total_qty in list(pMap.items()):
 
                 # Only not done/cancel lines for this product
+                # Match by product Stoqflow ID, or by packaging Stoqflow ID (fallback)
+                _pkg_odoo_pid = packaging_map[webship_pid][2] if webship_pid in packaging_map else None
                 lines = sPicking.move_line_ids.filtered(lambda l:
                                                         l.state not in ('cancel', 'done')
-                                                        and l.product_id.df_product_id_webship == webship_pid
+                                                        and (l.product_id.df_product_id_webship == webship_pid
+                                                             or (_pkg_odoo_pid and l.product_id.id == _pkg_odoo_pid))
                                                         )
 
                 if not lines:
@@ -953,9 +1085,11 @@ class WebShipHandler:
             # ------------------------------------------------------------
             for webship_pid, total_qty in list(pMap.items()):
 
+                _pkg_odoo_pid = packaging_map[webship_pid][2] if webship_pid in packaging_map else None
                 moves = sPicking.move_ids.filtered(lambda m:
                                                    m.state not in ('cancel', 'done')
-                                                   and m.product_id.df_product_id_webship == webship_pid
+                                                   and (m.product_id.df_product_id_webship == webship_pid
+                                                        or (_pkg_odoo_pid and m.product_id.id == _pkg_odoo_pid))
                                                    )
 
                 if not moves:
@@ -979,6 +1113,24 @@ class WebShipHandler:
                     del pMap[webship_pid]
                 else:
                     pMap[webship_pid] = remaining
+
+            # Report any Webship product IDs that could not be matched to Odoo moves
+            if pMap:
+                for webship_pid, remaining_qty in pMap.items():
+                    # Check if the product exists on done/cancel moves (already processed)
+                    _pkg_odoo_pid = packaging_map[webship_pid][2] if webship_pid in packaging_map else None
+                    done_moves = sPicking.move_ids.filtered(lambda m:
+                        m.state in ('cancel', 'done')
+                        and (m.product_id.df_product_id_webship == webship_pid
+                             or (_pkg_odoo_pid and m.product_id.id == _pkg_odoo_pid))
+                    )
+                    if done_moves:
+                        msg = "Stoqflow product_id '%s' (qty %s): product found on picking but move(s) already in '%s' state" % (
+                            webship_pid, remaining_qty, done_moves[0].state)
+                    else:
+                        msg = "Stoqflow product_id '%s' (qty %s): no matching product found on picking" % (webship_pid, remaining_qty)
+                    warnings.append(msg)
+                    _logger.warning("setPickingQuantities: %s on %s", msg, sPicking.name)
         #END if new status = 'completed'
 
         # ------------------------------------------------------------
@@ -993,15 +1145,17 @@ class WebShipHandler:
             try:
                 if self.get_default_auto_create_backorder() == 'True':
                     sPicking.make_backorder()
+                else:
+                    sPicking = sPicking.with_context(skip_backorder=True)
 
-                print('_action_done')
+                _logger.info('Calling _action_done for picking %s', sPicking.name)
 
                 sPicking.button_validate()
 
                 if sPicking.state != 'done':
                     sPicking._action_done()
 
-                print('done pressed')
+                _logger.info('Picking %s validated successfully', sPicking.name)
 
             except Exception as e:
                 error_msg = str(e)
@@ -1011,7 +1165,7 @@ class WebShipHandler:
                     sPicking.name
                 )
 
-                sPicking.df_picking_syncresult_webship = error_msg
+                warnings.append("Validation error: %s" % error_msg)
 
         if oldStatus != newStatus:
             sPicking.df_status_webship = newStatus
@@ -1022,12 +1176,93 @@ class WebShipHandler:
 
             self.showDebugInfo('Status changed from ' + oldStatus + ' to ' + newStatus)
 
-        sPicking.df_picking_syncresult_webship = 'success'
+        if warnings:
+            # Group warnings by type for a cleaner display
+            done_warnings = [w for w in warnings if 'already in' in w]
+            not_found_warnings = [w for w in warnings if 'no matching product' in w]
+            other_warnings = [w for w in warnings if w not in done_warnings and w not in not_found_warnings]
+
+            # If the only warnings are about done-state moves, treat as success
+            if done_warnings and not not_found_warnings and not other_warnings:
+                sPicking.df_picking_syncresult_webship = 'success'
+            else:
+                parts = []
+                if not_found_warnings:
+                    parts.append(
+                        '<b>%d product(s) not found</b> on picking:<br/>%s'
+                        % (len(not_found_warnings), '<br/>'.join(not_found_warnings))
+                    )
+                if other_warnings:
+                    parts.append('<br/>'.join(other_warnings))
+
+                warning_html = '<br/>'.join(parts)
+                sPicking.df_picking_syncresult_webship = '<span style="color:orange;">\u26A0 Completed with warnings:</span><br/>' + warning_html
+
+            _logger.info("setPickingQuantities warnings for %s: %s", sPicking.name, '; '.join(warnings))
+        else:
+            sPicking.df_picking_syncresult_webship = 'success'
+
+    def _sync_parcels(self, picking, parcels):
+        """Store Stoqflow parcel data on the picking as webship.parcel records.
+        Existing parcels are deleted and recreated from the latest API response."""
+        if not hasattr(self, 'env'):
+            return
+        Parcel = self.env['webship.parcel'].sudo()
+        # Remove existing parcels for this picking to avoid duplicates
+        Parcel.search([('picking_id', '=', picking.id)]).unlink()
+
+        for p in parcels:
+            addr = p.get('shipping_address', {})
+            content_vals = []
+            for c in p.get('contents', []):
+                content_vals.append((0, 0, {
+                    'df_stoqflow_product_id': c.get('product_id', ''),
+                    'df_sku': c.get('sku', ''),
+                    'df_description': c.get('description', ''),
+                    'df_quantity': c.get('quantity', 0),
+                    'df_weight': c.get('weight', 0),
+                    'df_hs_code': c.get('hs_code', ''),
+                    'df_origin_country': c.get('origin_country', ''),
+                    'df_value': c.get('value', 0),
+                }))
+            resource_vals = []
+            for r in p.get('resources', []):
+                resource_vals.append((0, 0, {
+                    'df_stoqflow_id': r.get('_id', ''),
+                    'df_name': r.get('name', ''),
+                    'df_quantity': r.get('quantity', 0),
+                }))
+            Parcel.create({
+                'picking_id': picking.id,
+                'df_stoqflow_id': p.get('_id', ''),
+                'df_number': p.get('number', 0),
+                'df_tracking_number': p.get('tracking_number', ''),
+                'df_tracking_url': p.get('tracking_url', ''),
+                'df_label_url': p.get('label_url', ''),
+                'df_invoice_url': p.get('invoice_url', ''),
+                'df_provider': p.get('provider', ''),
+                'df_provider_id': p.get('provider_id', ''),
+                'df_weight': p.get('weight', 0),
+                'df_width': p.get('width', 0),
+                'df_height': p.get('height', 0),
+                'df_length': p.get('length', 0),
+                'df_shipping_cost': p.get('shipping_cost', 0),
+                'df_shipping_name': addr.get('name', ''),
+                'df_shipping_company': addr.get('company', ''),
+                'df_shipping_address': addr.get('address_1', ''),
+                'df_shipping_postal_code': addr.get('postal_code', ''),
+                'df_shipping_city': addr.get('city', ''),
+                'df_shipping_country': addr.get('country', ''),
+                'df_content_ids': content_vals,
+                'df_resource_ids': resource_vals,
+            })
 
     def build_order_object(self, picking):
+        """Build the full Webship order payload from an outbound Odoo picking.
+        Validates SKUs, client data, stock availability, and scheduled dates."""
         items = self.picking_get_line_items(picking)
 
-        print(items)
+        _logger.debug("build_order_object items: %s", items)
 
         allCatShops = picking.env['product.category'].sudo().search([('df_cat_shop_id_webship', '!=', False)])
 
@@ -1037,8 +1272,7 @@ class WebShipHandler:
 
         skus = self.findProductsBySku(picking)
 
-        print('Skus: ')
-        print(skus)
+        _logger.debug('SKUs found: %s', skus)
 
         sOutput = {}
 
@@ -1087,12 +1321,9 @@ class WebShipHandler:
                 sOutput['errors'].append('No SKU in Odoo for product ' + i['name'])
 
         for i in sOutput['mainList']:
-            print('--')
-            print('*' + i['default_code'] + '*')
-            print(i['WSku'])
-            print('--')
+            _logger.debug('Product code: %s, WSku: %s', i['default_code'], i['WSku'])
             if i['default_code'] != False and i['default_code'] != None and i['WSku'] == None:
-                print('In error: ' + str(i))
+                _logger.warning('No Webship SKU for product: %s', i)
                 sOutput['errors'].append('No SKU in Webship for product ' + i['name'] + ' with code ' + i['default_code'])
 
         for i in sOutput['mainList']:
@@ -1101,18 +1332,16 @@ class WebShipHandler:
 
         allShops = set()
         for i in sOutput['mainList']:
-            if i['shopId'] == None:
-                sOutput['errors'].append('No shop Id for product ' + i['name'])
-            else:
+            if i['shopId'] is not None:
                 allShops.add(i['shopId'])
 
-        if len(list(allShops)) > 1:
-            sOutput['errors'].append('More than one shop found in Order (' + str(allShops) + ')')
+        if len(allShops) > 1:
+            sOutput['errors'].append('Different shop ids found in order (' + str(allShops) + ')')
 
-        shopId = None
-
-        if allShops != set():
+        if len(allShops) == 1:
             shopId = list(allShops)[0]
+        else:
+            shopId = self.get_default_shop()
 
         origin_number = (
             picking.sale_id.name[:50]
@@ -1122,7 +1351,7 @@ class WebShipHandler:
 
         sOutput['webshipObj'] = {'shop_id': shopId, 'client_id': clientCode, 'origin': {'id':picking.id, 'number':origin_number}}
 
-        print(sOutput)
+        _logger.debug("build_order_object output: %s", sOutput)
 
         if picking.note != False:
             sOutput['webshipObj']['notes'] = picking.note
@@ -1142,13 +1371,25 @@ class WebShipHandler:
             if i['default_code'] != False and i['default_code'] != None and i['WSku'] != None and i['type'] != 'service' and i['quantity'] != 0.0:
                 sOutput['webshipObj']['order_items'].append({'product_id':i['WSku'], 'quantity':i['quantity']})
 
-        print('Checking...')
+        _logger.debug('Checking client info...')
         if True:
             #print(picking.sale_id.partner_shipping_id)
 
             sCountrCode = picking.partner_id.country_code
             if sCountrCode == False:
                 sCountrCode = 'BE'
+
+            sEmail = picking.partner_id.email
+            sPhone = picking.partner_id.phone
+
+            fallback_enabled = self.env['ir.config_parameter'].sudo().get_param('webship.fallback_sale_order_contact') == 'True'
+            if fallback_enabled and picking.sale_id and picking.sale_id.partner_id:
+                if not sEmail:
+                    sEmail = picking.sale_id.partner_id.email
+                    _logger.info("build_order_object: falling back to sale order contact email for picking %s", picking.name)
+                if not sPhone:
+                    sPhone = picking.sale_id.partner_id.phone
+                    _logger.info("build_order_object: falling back to sale order contact phone for picking %s", picking.name)
 
             clientInfo = {
                 'name':picking.partner_id.name,
@@ -1158,12 +1399,10 @@ class WebShipHandler:
                 'city':picking.partner_id.city,
                 'postal_code':picking.partner_id.zip,
                 'country':sCountrCode,
-                'email':picking.partner_id.email,
-                'phone':picking.partner_id.phone,
+                'email':sEmail,
+                'phone':sPhone,
                           }
-            print(clientInfo)
-            #if clientInfo['email'] == False:
-            #    clientInfo['email'] = picking.sale_id.partner_id.email
+            _logger.debug("Client info: %s", clientInfo)
 
             keys_to_remove = [key for key, value in clientInfo.items() if not value]
 
@@ -1191,15 +1430,15 @@ class WebShipHandler:
             if clientInfo != {}:
                 sOutput['webshipObj']['client_info'] = clientInfo
         
-        _logger.info('Builded object: ' + str(sOutput))
-        print('Builded object: ' + str(sOutput))
+        _logger.info('Built object: %s', sOutput)
 
         return sOutput
 
     def build_po_object(self, picking):
+        """Build the Webship purchase order payload from an inbound Odoo picking."""
         items = self.picking_get_line_items(picking)
 
-        print(items)
+        _logger.debug("build_po_object items: %s", items)
 
         allCatShops = picking.env['product.category'].sudo().search([('df_cat_shop_id_webship', '!=', False)])
 
@@ -1213,7 +1452,7 @@ class WebShipHandler:
 
         sOutput['mainList'] = []
         for i in items:
-            sOutput['mainList'].append({'name':i['productObj'].name, 'type':i['type'], 'default_code':i['default_code'], 'product_id':i['product_id'], 'quantity':i['quantity'], 'shopId':self.get_shop_for_product(i['productObj'], allCatsMap), 'WSku':self.get_webship_sku(i['default_code'], skus)})
+            sOutput['mainList'].append({'name':i['productObj'].name, 'type':i['type'], 'default_code':i['default_code'], 'product_id':i['product_id'], 'quantity':i['quantity'], 'shopId':self.get_default_shop(), 'WSku':self.get_webship_sku(i['default_code'], skus)})
 
         supplierCode = picking.partner_id.df_supplier_id_webship
 
@@ -1260,6 +1499,7 @@ class WebShipHandler:
         return sOutput
 
     def get_webship_sku(self, code, webshipskus):
+        """Resolve an Odoo SKU to its Webship product ID using the pre-fetched SKU map."""
         _logger.info('Looking for ' + str(code) + ' in SKUS: ' + str(webshipskus))
         
         if code != False and code != None and 'items' in webshipskus and code in webshipskus['items'].keys():
@@ -1269,12 +1509,14 @@ class WebShipHandler:
             return None
 
     def convert_datetime(self, date_time_object):
+        """Convert an Odoo datetime to the ISO format expected by Webship."""
         if date_time_object == None or date_time_object == False:
             return None
         else:
             return date_time_object.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
 
     def get_shop_for_product(self, productObj, allCatsMap):
+        """Determine the Webship shop ID for a product based on its category hierarchy."""
         foundShop = None
         for a, b in allCatsMap.items():
             if productObj.categ_id.parent_path.startswith(a):
@@ -1282,15 +1524,14 @@ class WebShipHandler:
         return foundShop
 
     def get_picking_code(self, pickingId):
+        """Fetch the human-readable order_number from Webship for an outbound order."""
         url = self.baseUrl + 'orders/' + pickingId
 
         self.sleep()
         response = requests.get(url, auth=self.auth, headers=self.headers)
 
         if response.status_code != 200:
-            print('Request failed with status code: ' + str(response.status_code))
-            print(response)
-            print(response.text)
+            _logger.error('get_picking_code failed with status code %s: %s', response.status_code, response.text)
         else:
             responseData = response.json()
             _logger.info(responseData)
@@ -1300,15 +1541,14 @@ class WebShipHandler:
         return None
 
     def get_po_code(self, pickingId):
+        """Fetch the human-readable order_number from Webship for a purchase order."""
         url = self.baseUrl + 'purchase-orders/' + pickingId
 
         self.sleep()
         response = requests.get(url, auth=self.auth, headers=self.headers)
 
         if response.status_code != 200:
-            print('Request failed with status code: ' + str(response.status_code))
-            print(response)
-            print(response.text)
+            _logger.error('get_po_code failed with status code %s: %s', response.status_code, response.text)
         else:
             responseData = response.json()
             _logger.info(responseData)
@@ -1318,6 +1558,7 @@ class WebShipHandler:
         return None
 
     def setStatusOrder(self, orderId, sStatus):
+        """Update the status of an outbound order in Webship."""
         url = self.baseUrl + 'orders/' + orderId + '/status'
 
         sPayload = {'status':sStatus}
@@ -1326,14 +1567,17 @@ class WebShipHandler:
         response = requests.put(url, json=sPayload, auth=self.auth, headers=self.headers)
 
         if response.status_code != 200:
-            print('Request failed with status code: ' + str(response.status_code))
-            print(response)
-            print(response.text)
+            _logger.error('setStatusOrder failed with status code %s: %s', response.status_code, response.text)
+
+    # ------------------------------------------------------------------
+    # Product sync
+    # ------------------------------------------------------------------
 
     def match_product(self, product):
+        """Link an Odoo product to its Webship counterpart by SKU."""
         foundProduct = self.findProductBySku(product.default_code)
 
-        print(foundProduct)
+        _logger.debug("match_product result: %s", foundProduct)
 
         if foundProduct == []:
             return ['Sku not found in Webship']
@@ -1343,6 +1587,8 @@ class WebShipHandler:
         return []
 
     def sync_product(self, product):
+        """Create or update a product in Webship from an Odoo product record.
+        If the product doesn't exist, checks that the SKU isn't already in use."""
         errors = []
 
         if product.default_code == False or product.default_code == '':
@@ -1356,6 +1602,18 @@ class WebShipHandler:
 
 
         if product.df_product_id_webship == False:
+            # Before creating, check if this SKU already exists in Webship
+            existing_product = self.findProductBySku(product.default_code)
+
+            # If a product with this SKU exists, return an error asking to use Match
+            if isinstance(existing_product, dict) and 'id' in existing_product:
+                return ['SKU already exists in Stoqflow. Use the "Match" button to link this product.']
+
+            # If there was an error during lookup, return it
+            if isinstance(existing_product, dict) and 'error' in existing_product:
+                return ['Error checking if product exists: ' + existing_product['error']]
+
+            # SKU doesn't exist, safe to create
             result = self.performPost('products', productObj)
             if result['status'] == 'success':
                 product.df_product_id_webship = result['data']['_id']
@@ -1372,7 +1630,8 @@ class WebShipHandler:
         return errors
 
     def sync_picking(self, picking):
-
+        """Sync a picking (outbound order or purchase order) to Webship.
+        Handles partner/supplier sync, validation, and POST/PUT as needed."""
         if picking.state in ['draft', 'cancel']:
             return ['Draft or cancelled orders cannot by synced']
 
@@ -1395,7 +1654,7 @@ class WebShipHandler:
             err = []
 
             err = self.sync_partner(picking.partner_id)
-            print(err)
+            _logger.debug("sync_partner errors: %s", err)
 
             if err != []:
                 errors.append('Could not fulfill request because of mandatory fields missing on customer')
@@ -1407,7 +1666,7 @@ class WebShipHandler:
             if picking.products_availability_state != 'available' and str(self.get_need_stock_complete_order()) == 'True':
                 errors.append('Not all items are in stock')
 
-            print(errors)
+            _logger.debug("sync_picking errors so far: %s", errors)
 
             wsObject = self.build_order_object(picking)
 
@@ -1426,6 +1685,7 @@ class WebShipHandler:
                 #perform post
 
                 sResult = self.performPost('orders', sJson)
+                self._log_json(picking, 'sent', 'POST', 'orders', sJson)
 
                 if sResult['status'] == 'error':
                     errors.append('Error while performing post request: ' + sResult['errorText'])
@@ -1443,6 +1703,7 @@ class WebShipHandler:
                     sJson.pop('status')
 
                 sResult = self.performPut('orders', sJson, picking.df_picking_id_webship)
+                self._log_json(picking, 'sent', 'PUT', 'orders/' + picking.df_picking_id_webship, sJson)
 
                 if sResult['status'] == 'error':
                     errors.append('Error while performing put request: ' + sResult['errorText'])
@@ -1480,6 +1741,7 @@ class WebShipHandler:
 
             if picking.df_po_id_webship == False:
                 sResult = self.performPost('purchase-orders', sJson)
+                self._log_json(picking, 'sent', 'POST', 'purchase-orders', sJson)
 
                 if sResult['status'] == 'error':
                     errors.append('Error while performing post request: ' + sResult['errorText'])
@@ -1497,9 +1759,10 @@ class WebShipHandler:
         return errors
     
     def statusWsToOdoo(self, picking):
+        """Fetch the current status of an order/PO from Webship and apply it to the Odoo picking."""
         if picking.df_object_in_webship == 'Order':
             errors = []
-            orderUrl = self.baseUrl + 'orders/' + picking.df_picking_id_webship + '&detail=high'
+            orderUrl = self.baseUrl + 'orders/' + picking.df_picking_id_webship + '?detail=high'
 
             response = requests.get(orderUrl, auth=self.auth, headers=self.headers)
 
@@ -1533,7 +1796,7 @@ class WebShipHandler:
                 return errors
         elif picking.df_object_in_webship == 'Purchase order':
             errors = []
-            orderUrl = self.baseUrl + 'purchase-orders/' + picking.df_po_id_webship + '&detail=high'
+            orderUrl = self.baseUrl + 'purchase-orders/' + picking.df_po_id_webship + '?detail=high'
 
             response = requests.get(orderUrl, auth=self.auth, headers=self.headers)
 
@@ -1561,10 +1824,15 @@ class WebShipHandler:
                 return errors
     
 
+    # ------------------------------------------------------------------
+    # Legacy / bulk sync helpers
+    # ------------------------------------------------------------------
+
     def sync_prod(self, prodInfo):
+        """Legacy product sync: create or update a product in Webship (uses direct auth)."""
         produrl = self.baseUrl + 'products'
 
-        print(produrl)
+        _logger.debug("sync_prod URL: %s", produrl)
 
         sWJson = {'brand_id': self.get_brand(), 'type': 'basic', 'name': prodInfo.name, 'sku': prodInfo.default_code,
                   'description': prodInfo.description, 'barcodes': [{'type': 'ean13', 'code': prodInfo.default_code}],
@@ -1578,33 +1846,29 @@ class WebShipHandler:
 
         if prodInfo.product_id_webship == False:
             time.sleep(self.sleepTime)
-            print(sWJson)
+            _logger.debug("sync_prod POST payload: %s", sWJson)
             response = requests.post(produrl, json=sWJson, auth=(self.ws_login, self.ws_password))
 
             if response.status_code != 200:
-                print('Request failed with status code:', response.status_code)
-                print(response)
-                print(response.text)
+                _logger.error('sync_prod POST failed with status code %s: %s', response.status_code, response.text)
                 exit(0)
             else:
                 responseData = response.json()
-                print(responseData)
+                _logger.debug("sync_prod POST response: %s", responseData)
                 id = responseData['_id']
 
                 prodInfo.write({'product_id_webship':id})
         else:
             time.sleep(self.sleepTime)
-            print(sWJson)
-            print(produrl)
+            _logger.debug("sync_prod PUT payload: %s, URL: %s", sWJson, produrl)
             response = requests.put(produrl + '/' + prodInfo.product_id_webship, json=sWJson, auth=(self.ws_login, self.ws_password))
 
             if response.status_code != 200:
-                print('Request failed with status code:', response.status_code)
-                print(response)
-                print(response.text)
+                _logger.error('sync_prod PUT failed with status code %s: %s', response.status_code, response.text)
 
 
     def sync_sup(self, supInfo):
+        """Legacy supplier sync: create/update both supplier and client records in Webship."""
         sup_url = self.baseUrl + 'suppliers'
         client_url = self.baseUrl + 'clients'
 
@@ -1632,29 +1896,25 @@ class WebShipHandler:
 
         if supInfo.supplier_id_webship == False:
             time.sleep(self.sleepTime)
-            print(sWJson)
+            _logger.debug("sync_sup POST supplier payload: %s", sWJson)
             response = requests.post(sup_url, json=sWJson, auth=(self.ws_login, self.ws_password))
 
             if response.status_code != 200:
-                print('Request failed with status code:', response.status_code)
-                print(response)
-                print(response.text)
+                _logger.error('sync_sup POST supplier failed with status code %s: %s', response.status_code, response.text)
                 exit(0)
             else:
                 responseData = response.json()
-                print(responseData)
+                _logger.debug("sync_sup POST supplier response: %s", responseData)
                 id = responseData['_id']
 
                 supInfo.write({'supplier_id_webship':id})
         else:
             time.sleep(self.sleepTime)
-            print(sWJson)
+            _logger.debug("sync_sup PUT supplier payload: %s", sWJson)
             response = requests.put(sup_url + '/' + supInfo.supplier_id_webship, json=sWJson, auth=(self.ws_login, self.ws_password))
 
             if response.status_code != 200:
-                print('Request failed with status code:', response.status_code)
-                print(response)
-                print(response.text)
+                _logger.error('sync_sup PUT supplier failed with status code %s: %s', response.status_code, response.text)
                 exit(0)
 
         if supInfo.client_id_webship == False:
@@ -1665,30 +1925,26 @@ class WebShipHandler:
             sWJson['addresses'] = {}
             sWJson['addresses']['billing'] = addressInfo
             sWJson['addresses']['shipping'] = addressInfo
-            print(sWJson)
+            _logger.debug("sync_sup POST client payload: %s", sWJson)
             response = requests.post(client_url, json=sWJson, auth=(self.ws_login, self.ws_password))
 
             if response.status_code != 200:
-                print('Request failed with status code:', response.status_code)
-                print(response)
-                print(response.text)
+                _logger.error('sync_sup POST client failed with status code %s: %s', response.status_code, response.text)
                 exit(0)
             else:
                 responseData = response.json()
-                print(responseData)
+                _logger.debug("sync_sup POST client response: %s", responseData)
                 id = responseData['_id']
 
                 supInfo.write({'client_id_webship':id})
         else:
             time.sleep(self.sleepTime)
-            print(sWJson)
+            _logger.debug("sync_sup PUT client payload: %s", sWJson)
             response = requests.put(client_url + '/' + supInfo.client_id_webship, json=sWJson,
                                     auth=(self.ws_login, self.ws_password))
 
             if response.status_code != 200:
-                print('Request failed with status code:', response.status_code)
-                print(response)
-                print(response.text)
+                _logger.error('sync_sup PUT client failed with status code %s: %s', response.status_code, response.text)
                 exit(0)
 
 
@@ -1700,18 +1956,19 @@ class WebShipHandler:
         #print(supInfo.client_id_webship)
 
 
-    def import_sup(self):
-        print('hi')
+    # ------------------------------------------------------------------
+    # Destructive helpers (development / testing only)
+    # ------------------------------------------------------------------
+
     def emptyOrders(self):
+        """Delete all orders from Webship. USE WITH CAUTION."""
         url = self.baseUrl + 'orders'
 
         time.sleep(self.sleepTime)
         response = requests.get(url, auth=(self.ws_login, self.ws_password))
 
         if response.status_code != 200:
-            print('Request failed with status code:', response.status_code)
-            print(response)
-            print(response.text)
+            _logger.error('emptyOrders failed with status code %s: %s', response.status_code, response.text)
             exit(0)
         else:
             for item in response.json():
@@ -1720,17 +1977,14 @@ class WebShipHandler:
                 response = requests.delete(deleteUrl, auth=(self.ws_login, self.ws_password))
 
     def emptyProducts(self):
+        """Delete all products from Webship. USE WITH CAUTION."""
         time.sleep(self.sleepTime)
         url = self.baseUrl + 'products'
 
         response = requests.get(url, auth=(self.ws_login, self.ws_password))
 
-        #print(response)
-
         if response.status_code != 200:
-            print('Request failed with status code:', response.status_code)
-            print(response)
-            print(response.text)
+            _logger.error('emptyProducts failed with status code %s: %s', response.status_code, response.text)
             exit(0)
         else:
             for item in response.json():
@@ -1739,17 +1993,14 @@ class WebShipHandler:
                 response = requests.delete(deleteUrl, auth=(self.ws_login, self.ws_password))
 
     def emptyClients(self):
+        """Delete all clients from Webship. USE WITH CAUTION."""
         url = self.baseUrl + 'clients'
 
         time.sleep(self.sleepTime)
         response = requests.get(url, auth=(self.ws_login, self.ws_password))
 
-        # print(response)
-
         if response.status_code != 200:
-            print('Request failed with status code:', response.status_code)
-            print(response)
-            print(response.text)
+            _logger.error('emptyClients failed with status code %s: %s', response.status_code, response.text)
             exit(0)
         else:
             for item in response.json():
@@ -1758,17 +2009,14 @@ class WebShipHandler:
                 response = requests.delete(deleteUrl, auth=(self.ws_login, self.ws_password))
 
     def emptySuppliers(self):
+        """Delete all suppliers from Webship. USE WITH CAUTION."""
         url = self.baseUrl + 'suppliers'
 
         time.sleep(self.sleepTime)
         response = requests.get(url, auth=(self.ws_login, self.ws_password))
 
-        # print(response)
-
         if response.status_code != 200:
-            print('Request failed with status code:', response.status_code)
-            print(response)
-            print(response.text)
+            _logger.error('emptySuppliers failed with status code %s: %s', response.status_code, response.text)
             exit(0)
         else:
             for item in response.json():
@@ -1777,58 +2025,57 @@ class WebShipHandler:
                 response = requests.delete(deleteUrl, auth=(self.ws_login, self.ws_password))
 
     def updateProduct(self, velden):
+        """Legacy: insert or update a single product using a raw field dict."""
         url = self.baseUrl + 'products'
 
         sWJson = {'brand_id': 'stnj67jy9WZgETbak', 'type': 'basic', 'name': velden['name'],
                   'sku': velden['default_code']}
 
         if velden['product_id_webship'] == False:
-            print('Inserting...')
+            _logger.info('Inserting product...')
             time.sleep(1)
             response = requests.post(url, json=sWJson, auth=(self.ws_login, self.ws_password))
 
             if response.status_code == 403:
-                #sku non unique
-                print('sku non uniue')
+                _logger.warning('SKU non-unique for product %s', velden.get('default_code'))
             elif response.status_code != 200:
-                print('Request failed with status code:', response.status_code)
-                print(response)
-                print(response.text)
+                _logger.error('updateProduct POST failed with status code %s: %s', response.status_code, response.text)
                 exit(0)
             else:
                 responseData = response.json()
-                print(responseData)
-                print(responseData['_id'])
+                _logger.debug("updateProduct response: %s, id: %s", responseData, responseData['_id'])
 
                 #self.odooDb.updateRecord('product.product', velden['id'], {'product_id_webship': responseData['_id']})
         else:
-            print('Updating...')
+            _logger.info('Updating product...')
             time.sleep(1)
             response = requests.put(url + '/' + str(velden['product_id_webship']), json=sWJson,
                                     auth=(self.Wsusername, self.Wspassword))
 
             if response.status_code != 200:
-                print('Request failed with status code:', response.status_code)
-                print(response)
-                print(response.text)
+                _logger.error('updateProduct PUT failed with status code %s: %s', response.status_code, response.text)
                 exit(0)
 
+    # ------------------------------------------------------------------
+    # Export / import helpers
+    # ------------------------------------------------------------------
+
     def exportSups(self):
+        """Export all suppliers from Webship as a JSON list."""
         response = requests.get(self.baseUrl + 'suppliers', auth=self.auth, headers=self.headers)
 
         if response.status_code != 200:
-            print('Request failed with status code:', response.status_code)
-            print(response)
-            print(response.text)
+            _logger.error('exportSups failed with status code %s: %s', response.status_code, response.text)
             exit(0)
 
         return response.json()
 
     def showDebugInfo(self, sstr):
-        #print(sstr)
+        """Log debug information (replaces former print statements)."""
         _logger.info(str(sstr))
 
     def exportClients(self):
+        """Export all clients from Webship, paginating through 50-record pages."""
         output = []
         i = 50
         page = 1
@@ -1843,9 +2090,7 @@ class WebShipHandler:
             #print(response.json())
 
             if response.status_code != 200:
-                print('Request failed with status code:', response.status_code)
-                print(response)
-                print(response.text)
+                _logger.error('exportClients failed with status code %s: %s', response.status_code, response.text)
                 exit(0)
 
             for c in response.json():
@@ -1863,6 +2108,8 @@ class WebShipHandler:
         return output
 
     def importStock(self):
+        """Import inventory levels from Webship and write them to Odoo stock quants
+        at locations flagged as Webship locations."""
         result = self.fetchInventory()
 
         if result.get("status") != "success":
@@ -1874,11 +2121,19 @@ class WebShipHandler:
         StockQuant = self.env["stock.quant"]
         Product = self.env["product.product"]
 
-        for company_id, items in inventory_data.items():
-            for item in items:
+        # fetchAll returns paginated data: {page_nr: page_json, ...}
+        # Each page is a list of inventory items.
+        for page in inventory_data.values():
+            for item in page:
                 sku = item.get("sku")
                 if not sku:
                     continue
+
+                # Skip composed products — only basic products carry physical stock
+                if item.get("type") == "composed":
+                    continue
+
+                company_id = item.get("company_id")
 
                 # Find product by SKU
                 product = Product.search(
@@ -1892,7 +2147,7 @@ class WebShipHandler:
                 reserved = item.get("reserved", 0.0)
                 available = item.get("available", total - reserved)
 
-                # Find all Webship quants for this product
+                # Find existing Webship quants for this product
                 quants = StockQuant.search([
                     ("product_id", "=", product.id),
                     ("location_id.df_is_webship_location", "=", True),
@@ -1900,7 +2155,37 @@ class WebShipHandler:
                 ])
 
                 if not quants:
-                    continue
+                    # Only storable products can have stock.quant lines
+                    if product.type != 'product':
+                        continue
+
+                    # Try to find a Webship location matching this company_id
+                    domain = [
+                        ("df_is_webship_location", "=", True),
+                        ("usage", "=", "internal"),
+                    ]
+                    if company_id:
+                        webship_location = self.env["stock.location"].search(
+                            domain + [("df_warehouse_id_webship", "=", company_id)],
+                            limit=1
+                        )
+                    else:
+                        webship_location = None
+
+                    # Fallback: any Webship internal location
+                    if not webship_location:
+                        webship_location = self.env["stock.location"].search(
+                            domain, limit=1
+                        )
+
+                    if not webship_location:
+                        continue
+
+                    quants = StockQuant.create({
+                        "product_id": product.id,
+                        "location_id": webship_location.id,
+                        "quantity": 0.0,
+                    })
 
                 quants.write({
                     "df_webship_totalstock": total,

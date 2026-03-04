@@ -7,6 +7,13 @@
         <field name="arch" type="xml">
             <xpath expr="//tree[@name='packaging']/field[@name='qty']" position="after">
                 <field name="df_sku_webship" optional="hide"/>
+                <field name="df_product_id_webship" optional="hide"/>
+                <button name="ws_match_packaging"
+                        type="object"
+                        icon="fa-refresh"
+                        title="Fetch Product ID from Stoqflow by SKU"
+                        class="btn-link"
+                        invisible="not df_sku_webship"/>
             </xpath>
         </field>
     </record>

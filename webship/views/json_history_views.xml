@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="webship_json_history_tree" model="ir.ui.view">
+        <field name="name">webship.json.history.tree</field>
+        <field name="model">webship.json.history</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="create_date" string="Date"/>
+                <field name="direction"/>
+                <field name="method"/>
+                <field name="endpoint"/>
+                <field name="picking_id"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="webship_json_history_form" model="ir.ui.view">
+        <field name="name">webship.json.history.form</field>
+        <field name="model">webship.json.history</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="picking_id"/>
+                        <field name="direction"/>
+                        <field name="method"/>
+                        <field name="endpoint"/>
+                    </group>
+                    <notebook>
+                        <page string="JSON Payload">
+                            <field name="json_payload" readonly="1"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="webship_json_history_action" model="ir.actions.act_window">
+        <field name="name">JSON History</field>
+        <field name="res_model">webship.json.history</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <menuitem id="webship_json_history_menu" name="JSON History"
+        parent="webship.webship_root_menu" sequence="20"
+        action="webship_json_history_action"/>
+</odoo>

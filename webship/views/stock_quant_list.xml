@@ -2,7 +2,7 @@
 <odoo>
 
     <!-- ========================================================= -->
-    <!-- Webship Stock Quant Tree View                             -->
+    <!-- Stoqflow Stock Quant Tree View                             -->
     <!-- ========================================================= -->
     <record id="df_webship_stock_quant_tree_view" model="ir.ui.view">
         <field name="name">df.webship.stock.quant.tree</field>
@@ -10,7 +10,7 @@
         <field name="priority">50</field>
         <field name="arch" type="xml">
 
-            <tree string="Webship Stock"
+            <tree string="Stoqflow Stock"
                   create="false"
                   edit="false"
                   default_order="product_id">
@@ -19,7 +19,7 @@
                 <header>
                     <button name="action_apply_webship_stock"
                             type="object"
-                            string="Apply Webship Stock to Odoo"
+                            string="Apply Stoqflow Stock to Odoo"
                             class="btn-primary"/>
                 </header>
 
@@ -32,13 +32,13 @@
                 <field name="reserved_quantity"/>
                 <field name="available_quantity"/>
 
-                <!-- Webship stock (API filled, optional) -->
-                <field name="df_webship_totalstock" optional="hide"/>
-                <field name="df_webship_reserved" optional="hide"/>
-                <field name="df_webship_available_stock" optional="hide"/>
+                <!-- Stoqflow stock (API filled) -->
+                <field name="df_webship_totalstock" optional="show"/>
+                <field name="df_webship_reserved" optional="show"/>
+                <field name="df_webship_available_stock" optional="show"/>
 
-                <!-- Webship sync info -->
-                <field name="df_last_check_webship" optional="hide"/>
+                <!-- Stoqflow sync info -->
+                <field name="df_last_check_webship" optional="show"/>
 
                 <field name="company_id" optional="hide"/>
 
@@ -48,10 +48,10 @@
     </record>
 
     <!-- ========================================================= -->
-    <!-- Webship Stock Action                                      -->
+    <!-- Stoqflow Stock Action                                      -->
     <!-- ========================================================= -->
     <record id="webship_stock_action" model="ir.actions.act_window">
-        <field name="name">Webship Stock</field>
+        <field name="name">Stoqflow Stock</field>
         <field name="res_model">stock.quant</field>
         <field name="view_mode">tree,form</field>
         <field name="view_id" ref="df_webship_stock_quant_tree_view"/>
@@ -64,7 +64,7 @@
     </record>
 
     <!-- ========================================================= -->
-    <!-- Webship Stock Menu                                        -->
+    <!-- Stoqflow Stock Menu                                        -->
     <!-- ========================================================= -->
     <menuitem
         id="webship_stock_menu"

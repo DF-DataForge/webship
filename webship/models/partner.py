@@ -1,37 +1,45 @@
+# Extends res.partner with Webship client and supplier synchronization fields.
+# Partners can be flagged as Webship clients, suppliers, or both,
+# and synced/matched against the Webship API.
 from odoo.addons.webship.models.ws import WebShipHandler
 from odoo import models, fields, api
 
 from datetime import datetime
-import pprint
 
 class Partner(models.Model):
     _inherit = 'res.partner'
-    #vat_label = fields.Char("VAT label",  store=True)
-    #company_registry_label = fields.Char("Company registry label",  store=True)
-    #is_coa_installed = fields.Boolean("Is COA installed",  store=True)
 
-    df_supplier_id_webship = fields.Char("Supplier id webship", readOnly=True)
-    df_is_supplier_in_webship = fields.Boolean("Supplier in Webship", default=False)
-    df_client_id_webship = fields.Char("Client id webship", readOnly=True)
-    df_is_client_in_webship = fields.Boolean("Client in Webship", default=True)
-    df_last_webship_sync = fields.Datetime("Laatste wijziging gepusht naar webship op")
+    # Webship supplier ID (set when the partner is synced as a supplier)
+    df_supplier_id_webship = fields.Char("Supplier id Stoqflow", readOnly=True)
+    # Whether this partner should be treated as a supplier in Stoqflow
+    df_is_supplier_in_webship = fields.Boolean("Supplier in Stoqflow", default=False)
+    # Stoqflow client ID (set when the partner is synced as a client)
+    df_client_id_webship = fields.Char("Client id Stoqflow", readOnly=True)
+    # Whether this partner should be treated as a client in Stoqflow
+    df_is_client_in_webship = fields.Boolean("Client in Stoqflow", default=True)
+    # Timestamp of the last push to Stoqflow
+    df_last_webship_sync = fields.Datetime("Laatste wijziging gepusht naar Stoqflow op")
+    # HTML result message of the last sync attempt
     df_partner_syncresult_webship = fields.Html("Resultaat laatste sync")
 
-    df_client_code_webship = fields.Char("Client code webship", compute="_compute_code_client", store=True)
+    # Client code fetched from the Webship API (e.g. "CO0000123")
+    df_client_code_webship = fields.Char("Client code Stoqflow", compute="_compute_code_client", store=True)
 
-    df_supplier_code_webship = fields.Char("Supplier code webship", compute="_compute_code_supplier", store=True)
+    # Supplier code fetched from the Webship API (e.g. "SO0000456")
+    df_supplier_code_webship = fields.Char("Supplier code Stoqflow", compute="_compute_code_supplier", store=True)
 
+    # Clickable HTML link to open the client in the Webship web app
+    df_url_client = fields.Html("Client id Stoqflow", compute="_compute_html_client", sanitize=False)
+    # Clickable HTML link to open the supplier in the Stoqflow web app
+    df_url_supplier  = fields.Html('Supplier id Stoqflow', compute="_compute_html_supplier", sanitize=False)
 
-    df_url_client = fields.Html("Client id Webship", compute="_compute_html_client")
-    df_url_supplier  = fields.Html('Supplier id Webship', compute="_compute_html_supplier")
-
+    # Default internal note automatically added to every shipment for this partner
     df_standard_internal_note = fields.Text("Standaard interne notitie voor pakket", help="Deze notitie wordt automatisch toegevoegd aan elke zending voor deze klant.")
-
-    wsUrlClient = fields.Html("Client id Webship")
-    wsUrlSupplier = fields.Html('Supplier id Webship')
 
     @api.depends("df_client_id_webship")
     def _compute_code_client(self):
+        """Fetch the human-readable client code from the Webship API
+        whenever the Webship client ID changes."""
         wsHandler = self.getHandler()
         for record in self:
             if record.df_client_id_webship != False:
@@ -41,6 +49,8 @@ class Partner(models.Model):
 
     @api.depends("df_supplier_id_webship")
     def _compute_code_supplier(self):
+        """Fetch the human-readable supplier code from the Webship API
+        whenever the Webship supplier ID changes."""
         wsHandler = self.getHandler()
         for record in self:
             if record.df_supplier_id_webship != False:
@@ -50,24 +60,29 @@ class Partner(models.Model):
 
     @api.depends("df_client_id_webship")
     def _compute_html_client(self):
+        """Build an HTML snippet with the client code and a clickable icon
+        linking to the client page in the Webship web application."""
         for record in self:
             if record.df_client_id_webship != False:
                 url = self.env['ir.config_parameter'].sudo().get_param('webship.base_app_url') + 'clients/' + record.df_client_id_webship
-                record.df_url_client = record.df_client_code_webship +' <a href="' + url + '" target="_blank"><img style="height:16px; width:16px" src="/webship/static/src/img/webship_vk_16px.png"/></a>'
+                record.df_url_client = record.df_client_code_webship +' <a href="' + url + '" target="_blank"><img style="height:16px; width:16px" src="/webship/static/src/img/stoqflow_16px.png"/></a>'
             else:
                 record.df_url_client = ''
 
     @api.depends("df_supplier_id_webship")
     def _compute_html_supplier(self):
+        """Build an HTML snippet with the supplier code and a clickable icon
+        linking to the supplier page in the Webship web application."""
         for record in self:
             if record.df_supplier_id_webship != False:
                 url = self.env['ir.config_parameter'].sudo().get_param(
                     'webship.base_app_url') + 'suppliers/' + record.df_supplier_id_webship
-                record.df_url_supplier = record.df_supplier_code_webship + ' <a href="' + url + '" target="_blank"><img style="height:16px; width:16px" src="/webship/static/src/img/webship_vk_16px.png"/></a>'
+                record.df_url_supplier = record.df_supplier_code_webship + ' <a href="' + url + '" target="_blank"><img style="height:16px; width:16px" src="/webship/static/src/img/stoqflow_16px.png"/></a>'
             else:
                 record.df_url_supplier = ''
 
     def getHandler(self):
+        """Create and return a WebShipHandler instance using the stored API credentials."""
         login = self.env['ir.config_parameter'].sudo().get_param('webship.username')
         pw = self.env['ir.config_parameter'].sudo().get_param('webship.password')
         base_url = self.env['ir.config_parameter'].sudo().get_param('webship.base_url')
@@ -77,17 +92,24 @@ class Partner(models.Model):
         return wsHandler
 
     def ws_match_partner(self):
+        """Attempt to find this partner in Webship by email and link the IDs.
+        Searches as client, supplier, or both depending on the partner flags.
+        Displays the result (success or errors) in the sync result field."""
         wsHandler = self.getHandler()
 
         for record in self:
+            # Try matching as client if flagged
             if record.df_is_client_in_webship:
                 sResult = wsHandler.match_partner(record)
+            # Try matching as supplier if flagged
             if record.df_is_supplier_in_webship:
                 sResult = wsHandler.match_supplier(record)
 
+            # If neither flag is set, inform the user
             if record.df_is_client_in_webship == False and record.df_is_supplier_in_webship == False:
                 sResult = ['Please set to client or supplier']
 
+            # Display success or format errors as an HTML list
             if sResult == []:
                 self.df_partner_syncresult_webship = 'Success'
             else:
@@ -100,17 +122,24 @@ class Partner(models.Model):
                 self.df_partner_syncresult_webship = sOutput
 
     def ws_sync_partner(self):
+        """Push this partner's data to Webship (create or update).
+        Syncs as client, supplier, or both depending on the partner flags.
+        Displays the result (success or errors) in the sync result field."""
         wsHandler = self.getHandler()
 
         for record in self:
+            # Sync as client to Webship if flagged
             if record.df_is_client_in_webship:
                 sResult = wsHandler.sync_partner(record)
+            # Sync as supplier to Webship if flagged
             if record.df_is_supplier_in_webship:
                 sResult = wsHandler.sync_supplier(record)
 
+            # If neither flag is set, inform the user
             if record.df_is_client_in_webship == False and record.df_is_supplier_in_webship == False:
                 sResult = ['Please set to client or supplier']
 
+            # Display success or format errors as an HTML list
             if sResult == []:
                 self.df_partner_syncresult_webship = 'Success'
             else:
