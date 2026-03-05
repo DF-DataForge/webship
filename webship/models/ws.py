@@ -225,7 +225,11 @@ class WebShipHandler:
             params['created_after'] = sCreatedAfter
 
         # Construct URL for first request
-        url = f"{base_url}?{urlencode(params)}" if params else base_url
+        if params:
+            separator = '&' if '?' in base_url else '?'
+            url = f"{base_url}{separator}{urlencode(params)}"
+        else:
+            url = base_url
         _logger.debug("fetchAll URL: %s", url)
 
         # First page request
