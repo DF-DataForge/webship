@@ -447,6 +447,132 @@ class WebShipHandler:
 
         return ['Error searching for client: ' + sReq.get('errorText', 'Unknown error')]
 
+    def _match_client_by_vat(self, partner):
+        """Try to match a partner to a Stoqflow client by VAT number.
+        Returns (matched: bool, errors: list, data: list or None).
+        When multiple matches are found, data contains the Stoqflow client dicts."""
+        if not partner.vat:
+            return False, ['No VAT number specified on the contact'], None
+
+        sReq = self.performGet('clients', "?vat=" + partner.vat)
+
+        if sReq['status'] == 'success':
+            if len(sReq['data']) == 1:
+                partner.df_client_id_webship = sReq['data'][0]['_id']
+                _logger.info("match_client_by_vat: matched partner %s (VAT %s) to Stoqflow client %s",
+                             partner.name, partner.vat, sReq['data'][0]['_id'])
+                return True, [], None
+            elif len(sReq['data']) > 1:
+                _logger.info("match_client_by_vat: %d clients found for VAT %s", len(sReq['data']), partner.vat)
+                return False, ['Multiple clients found with VAT %s (%d). Please select the correct one.' % (partner.vat, len(sReq['data']))], sReq['data']
+            else:
+                return False, [], None
+        return False, ['Error searching for client by VAT: ' + sReq.get('errorText', 'Unknown error')], None
+
+    def _match_client_by_email(self, partner):
+        """Try to match a partner to a Stoqflow client by e-mail address.
+        Returns (matched: bool, errors: list, data: list or None).
+        When multiple matches are found, data contains the Stoqflow client dicts."""
+        if not partner.email:
+            return False, ['No e-mail address specified on the contact'], None
+
+        sReq = self.performGet('clients', "?email=" + partner.email)
+
+        if sReq['status'] == 'success':
+            if len(sReq['data']) == 1:
+                partner.df_client_id_webship = sReq['data'][0]['_id']
+                _logger.info("match_client_by_email: matched partner %s (email %s) to Stoqflow client %s",
+                             partner.name, partner.email, sReq['data'][0]['_id'])
+                return True, [], None
+            elif len(sReq['data']) > 1:
+                _logger.info("match_client_by_email: %d clients found for email %s", len(sReq['data']), partner.email)
+                return False, ['Multiple clients found with e-mail %s (%d). Please select the correct one.' % (partner.email, len(sReq['data']))], sReq['data']
+            else:
+                return False, [], None
+        return False, ['Error searching for client by e-mail: ' + sReq.get('errorText', 'Unknown error')], None
+
+    def match_partner_by_sequence(self, partner):
+        """Match a partner to a Stoqflow client using the configured matching sequence.
+        The sequence is read from ir.config_parameter 'webship.contact_match_sequence'.
+        Returns a dict with keys:
+          - 'errors': list of error strings (empty on success)
+          - 'multiple': list of Stoqflow client dicts if multiple were found, else None
+          - 'match_field': which field had the multiple matches ('VAT' or 'e-mail')"""
+        result = {'errors': [], 'multiple': None, 'match_field': ''}
+
+        if not hasattr(self, 'env'):
+            errors = self.match_partner(partner)
+            result['errors'] = errors
+            return result
+
+        sequence = self.env['ir.config_parameter'].sudo().get_param(
+            'webship.contact_match_sequence', 'email_only')
+
+        if sequence == 'vat_then_email':
+            matched, errors, data = self._match_client_by_vat(partner)
+            if matched:
+                return result
+            if data:
+                result['errors'] = errors
+                result['multiple'] = data
+                result['match_field'] = 'VAT'
+                return result
+            # Fall back to e-mail
+            matched, errors, data = self._match_client_by_email(partner)
+            if matched:
+                return result
+            if data:
+                result['errors'] = errors
+                result['multiple'] = data
+                result['match_field'] = 'e-mail'
+                return result
+            result['errors'] = errors if errors else ['No client found in Stoqflow by VAT or e-mail']
+
+        elif sequence == 'vat_only':
+            matched, errors, data = self._match_client_by_vat(partner)
+            if matched:
+                return result
+            if data:
+                result['errors'] = errors
+                result['multiple'] = data
+                result['match_field'] = 'VAT'
+                return result
+            result['errors'] = errors if errors else ['No client found in Stoqflow by VAT']
+
+        elif sequence == 'email_then_vat':
+            matched, errors, data = self._match_client_by_email(partner)
+            if matched:
+                return result
+            if data:
+                result['errors'] = errors
+                result['multiple'] = data
+                result['match_field'] = 'e-mail'
+                return result
+            # Fall back to VAT
+            matched, errors, data = self._match_client_by_vat(partner)
+            if matched:
+                return result
+            if data:
+                result['errors'] = errors
+                result['multiple'] = data
+                result['match_field'] = 'VAT'
+                return result
+            result['errors'] = errors if errors else ['No client found in Stoqflow by e-mail or VAT']
+
+        else:
+            # Default: email_only
+            matched, errors, data = self._match_client_by_email(partner)
+            if matched:
+                return result
+            if data:
+                result['errors'] = errors
+                result['multiple'] = data
+                result['match_field'] = 'e-mail'
+                return result
+            result['errors'] = errors if errors else ['No client found in Stoqflow by e-mail']
+
+        return result
+
     def match_supplier(self, partner):
         """Match an Odoo partner to a Webship supplier by email address.
         Requires exactly one match to succeed, returns error if zero or multiple found."""
@@ -1650,6 +1776,22 @@ class WebShipHandler:
         if picking.df_object_in_webship == 'Order':
             bDeliveryMode = True
             pickingUrl = self.baseUrl + 'orders'
+
+            # If "match when order sync" is enabled and partner has no Stoqflow client ID,
+            # attempt to match the contact to an existing Stoqflow client first
+            if hasattr(self, 'env') and not picking.partner_id.df_client_id_webship:
+                match_on_sync = self.env['ir.config_parameter'].sudo().get_param(
+                    'webship.match_on_order_sync') == 'True'
+                if match_on_sync:
+                    _logger.info("sync_picking: attempting contact match for partner %s before sync",
+                                 picking.partner_id.name)
+                    match_result = self.match_partner_by_sequence(picking.partner_id)
+                    if match_result.get('errors'):
+                        _logger.info("sync_picking: contact match result for %s: %s",
+                                     picking.partner_id.name, match_result['errors'])
+                    if match_result.get('multiple'):
+                        _logger.info("sync_picking: multiple Stoqflow clients found for %s, skipping auto-match",
+                                     picking.partner_id.name)
 
             clientCode = picking.sale_id.partner_id.df_client_id_webship
 

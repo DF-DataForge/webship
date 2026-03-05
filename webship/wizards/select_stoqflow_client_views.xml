@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="webship_select_client_form" model="ir.ui.view">
+        <field name="name">webship.select.client.form</field>
+        <field name="model">webship.select.client</field>
+        <field name="arch" type="xml">
+            <form string="Multiple Stoqflow clients found">
+                <group>
+                    <p colspan="2" class="text-muted">
+                        Multiple clients were found in Stoqflow matching
+                        the <strong><field name="match_field" nolabel="1" class="d-inline"/></strong>
+                        of contact <strong><field name="partner_id" nolabel="1" class="d-inline" readonly="1" options="{'no_open': True}"/></strong>.
+                        Please select the correct client below.
+                    </p>
+                </group>
+                <field name="line_ids" nolabel="1">
+                    <tree editable="bottom" create="false" delete="false">
+                        <field name="client_number" readonly="1"/>
+                        <field name="name" readonly="1"/>
+                        <field name="email" readonly="1"/>
+                        <field name="vat" readonly="1"/>
+                        <field name="stoqflow_id" readonly="1"/>
+                        <button name="action_select"
+                                string="Select"
+                                type="object"
+                                class="btn-primary"/>
+                    </tree>
+                </field>
+                <footer>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

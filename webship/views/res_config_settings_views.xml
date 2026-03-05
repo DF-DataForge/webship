@@ -75,6 +75,29 @@
                             </setting>
                         </block>
 
+                        <!-- Contact Matching: configure how contacts are looked up in Stoqflow -->
+                        <block title="Contact Matching" id="ws_contact_matching_block">
+                            <setting string="Matching Sequence" help="Choose how Odoo searches for an existing client in Stoqflow before creating a new one. The matching sequence determines which field(s) are used and in what order.">
+                                <group>
+                                    <field name="webship_contact_match_sequence"/>
+                                </group>
+                                <div class="text-muted mt8">
+                                    <ul class="mb-0">
+                                        <li><strong>VAT → E-mail:</strong> First looks up a client with the same VAT number. If no match is found, it tries the e-mail address.</li>
+                                        <li><strong>VAT only:</strong> Only looks up clients by VAT number. Contacts without a VAT number will not be matched.</li>
+                                        <li><strong>E-mail only:</strong> Only looks up clients by e-mail address.</li>
+                                        <li><strong>E-mail → VAT:</strong> First looks up a client with the same e-mail address. If no match is found, it tries the VAT number.</li>
+                                    </ul>
+                                </div>
+                            </setting>
+                            <setting string="Automatic Matching" help="Control whether contacts are automatically matched when orders are sent to Stoqflow.">
+                                <group>
+                                    <field name="webship_match_on_order_sync"/>
+                                </group>
+                                <div class="text-muted">When enabled, each time an order is synced to Stoqflow the system will first attempt to find and link an existing Stoqflow client using the matching sequence above. This avoids creating duplicate clients in Stoqflow.</div>
+                            </setting>
+                        </block>
+
                         <!-- Error notifications: configure who gets emailed when a queue error occurs -->
                         <block title="Error Notifications" id="ws_error_notifications_block">
                             <setting string="Notification Recipients" help="These recipients receive an email whenever an error occurs during queue processing (pending orders or status fetch).">

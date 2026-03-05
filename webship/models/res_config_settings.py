@@ -61,6 +61,33 @@ class ResConfigSettings(models.TransientModel):
     # Skip matching existing Stoqflow clients before creating new ones
     webship_do_not_match_client_before_create = fields.Boolean(string="Do not match client before create", config_parameter='webship.not_match_client_before_create',
                                                                help="When enabled, Stoqflow will always create a new client instead of trying to match an existing one first. Use this if you experience duplicate matching issues.")
+
+    # --- Contact Matching Settings ---
+    # Matching sequence used to find existing Stoqflow clients before creating new ones
+    webship_contact_match_sequence = fields.Selection(
+        selection=[
+            ('vat_then_email', 'VAT → E-mail'),
+            ('vat_only', 'VAT only'),
+            ('email_only', 'E-mail only'),
+            ('email_then_vat', 'E-mail → VAT'),
+        ],
+        string='Contact matching sequence',
+        default='email_only',
+        config_parameter='webship.contact_match_sequence',
+        help="Determines the order in which Stoqflow looks up an existing client when syncing a contact.\n\n"
+             "• VAT → E-mail: first tries to find a client by VAT number; if no match is found, falls back to e-mail address.\n"
+             "• VAT only: only looks up clients by VAT number. Contacts without a VAT will not be matched.\n"
+             "• E-mail only: only looks up clients by e-mail address.\n"
+             "• E-mail → VAT: first tries to find a client by e-mail address; if no match is found, falls back to VAT number."
+    )
+    # Automatically match (link) a client in Stoqflow when the order is synced
+    webship_match_on_order_sync = fields.Boolean(
+        string="Match client when order syncs",
+        config_parameter='webship.match_on_order_sync',
+        help="When enabled, the system automatically attempts to match (link) an Odoo contact to an existing Stoqflow client "
+             "using the configured matching sequence every time an order is sent to Stoqflow. "
+             "If a match is found, the Stoqflow client ID is stored on the contact so subsequent syncs skip the lookup."
+    )
     # Automatically create backorders when Stoqflow marks an order as completed
     webship_auto_create_backorder = fields.Boolean(string="Auto create backorder on complete", config_parameter='webship.auto_create_backorder',
                                                    help="When enabled, a backorder is automatically created in Odoo when Stoqflow reports an order as completed with partial quantities.")
@@ -366,8 +393,8 @@ class ResConfigSettings(models.TransientModel):
                         self.env['webship.warehouse'].create({'warehouse_id':w['_id'], 'name':w['name']})
 
     def ws_match_clients_email(self):
-        """Batch match Stoqflow clients to Odoo partners by email address.
-        Fetches all clients from GET /clients, finds unique email matches in Odoo,
+        """Batch match Stoqflow clients to Odoo partners by email address (and/or VAT).
+        Fetches all clients from GET /clients, finds unique email/VAT matches in Odoo,
         and writes the Stoqflow client _id onto the matching res.partner record."""
         wsHandler = self.getHandler()
 

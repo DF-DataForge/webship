@@ -51,7 +51,8 @@ Features:
         'views/res_config_settings_views.xml',
         'views/cron.xml',
         'views/stock_quant_list.xml',
-        'views/json_history_views.xml'
+        'views/json_history_views.xml',
+        'wizards/select_stoqflow_client_views.xml'
     ],
 
 'application': True,

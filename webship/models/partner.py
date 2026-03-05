@@ -91,16 +91,52 @@ class Partner(models.Model):
 
         return wsHandler
 
+    def _open_select_client_wizard(self, record, match_result):
+        """Open a wizard popup letting the user pick from multiple Stoqflow client matches."""
+        line_vals = []
+        for client in match_result['multiple']:
+            line_vals.append((0, 0, {
+                'stoqflow_id': client.get('_id', ''),
+                'name': client.get('name', ''),
+                'email': client.get('email', ''),
+                'vat': client.get('vat', ''),
+                'client_number': client.get('client_number', ''),
+            }))
+        wizard = self.env['webship.select.client'].create({
+            'partner_id': record.id,
+            'match_field': match_result['match_field'],
+            'line_ids': line_vals,
+        })
+        return {
+            'name': 'Multiple Stoqflow clients found',
+            'type': 'ir.actions.act_window',
+            'res_model': 'webship.select.client',
+            'view_mode': 'form',
+            'res_id': wizard.id,
+            'target': 'new',
+        }
+
     def ws_match_partner(self):
-        """Attempt to find this partner in Webship by email and link the IDs.
+        """Attempt to find this partner in Webship using the configured matching sequence.
         Searches as client, supplier, or both depending on the partner flags.
+        If multiple Stoqflow clients match, opens a selection popup.
         Displays the result (success or errors) in the sync result field."""
         wsHandler = self.getHandler()
+        wsHandler.set_env(self.env)
 
         for record in self:
-            # Try matching as client if flagged
+            sResult = None
+            match_result = None
+
+            # Try matching as client if flagged (uses the configured matching sequence)
             if record.df_is_client_in_webship:
-                sResult = wsHandler.match_partner(record)
+                match_result = wsHandler.match_partner_by_sequence(record)
+                # If multiple matches found, open wizard to let user select
+                if match_result.get('multiple'):
+                    record.df_partner_syncresult_webship = match_result['errors'][0] if match_result['errors'] else 'Multiple clients found'
+                    return self._open_select_client_wizard(record, match_result)
+                sResult = match_result['errors']
+
             # Try matching as supplier if flagged
             if record.df_is_supplier_in_webship:
                 sResult = wsHandler.match_supplier(record)
