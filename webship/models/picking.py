@@ -25,20 +25,20 @@ class StockPicking(models.Model):
     _inherit = 'stock.picking'
 
     # Stoqflow order ID (returned by POST /orders) assigned after syncing an outbound order
-    df_picking_id_webship = fields.Char("Order id Stoqflow", readOnly=True)
+    df_picking_id_webship = fields.Char("Order id Stoqflow", readonly=True)
     # Human-readable order number (e.g. "ORD-00123") fetched from GET /orders/{id}
     df_picking_code_webship = fields.Char("Order code Stoqflow", store=True, compute="_fetch_picking_code")
 
     # Stoqflow purchase order ID (returned by POST /purchase-orders) for inbound orders
-    df_po_id_webship = fields.Char("Purchase order id Stoqflow", readOnly=True)
+    df_po_id_webship = fields.Char("Purchase order id Stoqflow", readonly=True)
     # Human-readable PO number fetched from GET /purchase-orders/{id}
     df_po_code_webship = fields.Char("Po code Stoqflow")
 
     # Timestamp of the last synchronization attempt to Stoqflow
-    df_picking_lastsync_webship = fields.Datetime("Last sync on", readOnly=True)
+    df_picking_lastsync_webship = fields.Datetime("Last sync on", readonly=True)
 
     # HTML result of the last sync (success message or error details)
-    df_picking_syncresult_webship = fields.Html("Result last sync", readOnly=True)
+    df_picking_syncresult_webship = fields.Html("Result last sync", readonly=True)
 
     # Current status of this picking in Stoqflow (e.g. 'ready-to-pick', 'completed')
     df_status_webship = fields.Selection([

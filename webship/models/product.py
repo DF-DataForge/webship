@@ -16,7 +16,7 @@ class Productvar(models.Model):
     df_url_prod = fields.Html('Code Stoqflow', compute="_compute_html_product", sanitize=False)
 
     # Webship product ID (set when the product is synced or matched)
-    df_product_id_webship = fields.Char("Product id Stoqflow", readOnly=True)
+    df_product_id_webship = fields.Char("Product id Stoqflow", readonly=True)
 
     # Webship-specific product type classification determining how the product
     # is handled in the warehouse (basic, virtual, composite, derivative)
@@ -89,10 +89,10 @@ class Productvar(models.Model):
     df_check_serial_numbers = fields.Boolean(string="Serial numbers", default=False)
 
     # Timestamp of the last synchronization to Webship
-    df_product_lastsync_webship = fields.Datetime("Last sync on", readOnly=True)
+    df_product_lastsync_webship = fields.Datetime("Last sync on", readonly=True)
 
     # HTML result message of the last sync attempt (success or error details)
-    df_product_syncresult_webship = fields.Html("Result last sync", readOnly=True)
+    df_product_syncresult_webship = fields.Html("Result last sync", readonly=True)
 
     # When True, this product is excluded from all Webship synchronizations
     df_product_do_not_send_webship = fields.Boolean("Never send this product to Stoqflow", default=False)

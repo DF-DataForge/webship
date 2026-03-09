@@ -26,7 +26,7 @@ class ProductCategory(models.Model):
     _inherit = 'product.category'
 
     # Webship shop ID assigned to this product category
-    df_cat_shop_id_webship = fields.Char("Shop id Stoqflow", readOnly=True)
+    df_cat_shop_id_webship = fields.Char("Shop id Stoqflow", readonly=True)
 
 
 class ProductPackaging(models.Model):
@@ -83,6 +83,6 @@ class StockWarehouse(models.Model):
     _inherit = 'stock.warehouse'
 
     # Webship warehouse ID linked to this Odoo warehouse
-    df_warehouse_id_webship = fields.Char("Warehouse id Stoqflow", readOnly=True)
+    df_warehouse_id_webship = fields.Char("Warehouse id Stoqflow", readonly=True)
     # Webship shop ID linked to this Odoo warehouse
     df_shop_id_webship = fields.Char("Shop id Stoqflow")

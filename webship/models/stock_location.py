@@ -10,7 +10,7 @@ class StockLocations(models.Model):
     df_warehouse_id_webship = fields.Char("Warehouse id Stoqflow")
 
     # Stoqflow shop ID associated with this location
-    df_shop_id_webship = fields.Char("Shop id Stoqflow", readOnly=True)
+    df_shop_id_webship = fields.Char("Shop id Stoqflow", readonly=True)
 
     # Flag indicating whether this location is managed by Stoqflow.
     # Pickings going to/from Stoqflow locations trigger synchronization.

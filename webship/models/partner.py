@@ -10,11 +10,11 @@ class Partner(models.Model):
     _inherit = 'res.partner'
 
     # Webship supplier ID (set when the partner is synced as a supplier)
-    df_supplier_id_webship = fields.Char("Supplier id Stoqflow", readOnly=True)
+    df_supplier_id_webship = fields.Char("Supplier id Stoqflow", readonly=True)
     # Whether this partner should be treated as a supplier in Stoqflow
     df_is_supplier_in_webship = fields.Boolean("Supplier in Stoqflow", default=False)
     # Stoqflow client ID (set when the partner is synced as a client)
-    df_client_id_webship = fields.Char("Client id Stoqflow", readOnly=True)
+    df_client_id_webship = fields.Char("Client id Stoqflow", readonly=True)
     # Whether this partner should be treated as a client in Stoqflow
     df_is_client_in_webship = fields.Boolean("Client in Stoqflow", default=True)
     # Timestamp of the last push to Stoqflow

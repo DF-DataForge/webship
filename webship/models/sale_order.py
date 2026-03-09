@@ -6,7 +6,7 @@ class SaleOrder(models.Model):
     _inherit = 'sale.order'
 
     # Webship order ID linked to this sale order (set during sync)
-    df_order_id_webship = fields.Char("Order id Stoqflow", readOnly=True)
+    df_order_id_webship = fields.Char("Order id Stoqflow", readonly=True)
 
     def action_view_pickings(self):
         """Open a list view of all stock pickings related to this sale order.
