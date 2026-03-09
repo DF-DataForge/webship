@@ -1526,6 +1526,51 @@ msgid "Properties"
 msgstr "Properties"
 
 #. module: webship
+#: code:addons/webship/models/ws.py:0
+msgid "SKU missing on product %s"
+msgstr "SKU missing on product %s"
+
+#. module: webship
+#: code:addons/webship/models/ws.py:0
+msgid "SKU not found in Stoqflow for product %s (code: %s)"
+msgstr "SKU not found in Stoqflow for product %s (code: %s)"
+
+#. module: webship
+#: code:addons/webship/models/ws.py:0
+msgid "No syncable items found on this picking"
+msgstr "No syncable items found on this picking"
+
+#. module: webship
+#: code:addons/webship/models/ws.py:0
+msgid "Supplier does not exist in Stoqflow"
+msgstr "Supplier does not exist in Stoqflow"
+
+#. module: webship
+#: model:ir.model.fields,selection:webship.field_stock_picking__df_process_code__P
+msgid "Pending"
+msgstr "Pending"
+
+#. module: webship
+#: model:ir.model.fields,selection:webship.field_stock_picking__df_process_code__F
+msgid "Finished"
+msgstr "Finished"
+
+#. module: webship
+#: model:ir.model.fields,selection:webship.field_stock_picking__df_process_code__E
+msgid "Error"
+msgstr "Error"
+
+#. module: webship
+#: model:ir.model.fields,selection:webship.field_stock_picking__df_process_code__M
+msgid "Manual"
+msgstr "Manual"
+
+#. module: webship
+#: model:ir.model.fields,selection:webship.field_stock_picking__df_process_code__NA
+msgid "Not Applicable"
+msgstr "Not Applicable"
+
+#. module: webship
 #: model:ir.model.fields,field_description:webship.field_webship_parcel__df_number
 msgid "#"
 msgstr "#"

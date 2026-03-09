@@ -1,17 +1,43 @@
 # Post-migration script that runs after the module is installed or upgraded.
-# Intended for migrating legacy field values to new field names on products.
-from odoo import api, SUPERUSER_ID
+# Ensures all Stoqflow pickings have a valid df_process_code (never blank).
+import logging
+
+_logger = logging.getLogger(__name__)
 
 
 def migrate(cr, registry):
-    """Iterate over all products and copy legacy field values to the
-    new Webship-prefixed fields. Currently a placeholder with no active migration."""
-    env = api.Environment(cr, SUPERUSER_ID, {})
+    """Fix pickings with blank df_process_code using raw SQL.
+    - Already synced (have a Stoqflow ID) -> set to 'F' (Finished)
+    - Not yet synced (no Stoqflow ID) -> set to 'M' (Manual)
+    Only applies to pickings that involve a Webship location."""
 
-    # Load all product records for field migration
-    Product = env['product.product']
-    products = Product.search([])
+    # Set synced pickings to F (Finished) - those that have a stoqflow order or PO id
+    cr.execute("""
+        UPDATE stock_picking sp
+        SET df_process_code = 'F'
+        WHERE (sp.df_process_code IS NULL OR sp.df_process_code = '' OR sp.df_process_code = 'false')
+          AND (sp.df_picking_id_webship IS NOT NULL AND sp.df_picking_id_webship != ''
+               OR sp.df_po_id_webship IS NOT NULL AND sp.df_po_id_webship != '')
+          AND (sp.location_id IN (SELECT id FROM stock_location WHERE df_is_webship_location = TRUE)
+               OR sp.location_dest_id IN (SELECT id FROM stock_location WHERE df_is_webship_location = TRUE))
+    """)
+    synced_count = cr.rowcount
+    if synced_count:
+        _logger.info("post_migration: set %d synced pickings to F (Finished)", synced_count)
 
-    for product in products:
-        # Placeholder: copy old field values to new fields when needed
-        None
+    # Set unsynced pickings to M (Manual) - no stoqflow ID yet
+    cr.execute("""
+        UPDATE stock_picking sp
+        SET df_process_code = 'M'
+        WHERE (sp.df_process_code IS NULL OR sp.df_process_code = '' OR sp.df_process_code = 'false')
+          AND (sp.df_picking_id_webship IS NULL OR sp.df_picking_id_webship = '')
+          AND (sp.df_po_id_webship IS NULL OR sp.df_po_id_webship = '')
+          AND (sp.location_id IN (SELECT id FROM stock_location WHERE df_is_webship_location = TRUE)
+               OR sp.location_dest_id IN (SELECT id FROM stock_location WHERE df_is_webship_location = TRUE))
+    """)
+    manual_count = cr.rowcount
+    if manual_count:
+        _logger.info("post_migration: set %d unsynced pickings to M (Manual)", manual_count)
+
+    if not synced_count and not manual_count:
+        _logger.info("post_migration: no Stoqflow pickings with blank df_process_code found")

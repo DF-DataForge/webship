@@ -61,9 +61,13 @@
                                 <div class="text-muted">Companies, brands, and warehouses need to be loaded from the Stoqflow API before orders can be processed.</div>
                             </setting>
                             <setting string="Domain Filter" help="Optionally restrict which pickings are automatically synced to Stoqflow using an Odoo domain expression.">
-                                <group>
-                                    <field name="webship_domain" placeholder="[('mk_instance_id','in',[2,3])]"/>
-                                </group>
+                                <div class="mt16">
+                                    <field name="webship_domain" widget="domain" options="{'model': 'stock.picking'}"/>
+                                </div>
+                                <div class="mt8">
+                                    <label for="webship_domain_text" string="Domain rule" class="fw-normal"/>
+                                    <field name="webship_domain_text" placeholder="[]" class="o_field_widget w-100"/>
+                                </div>
                                 <div class="text-muted">Only pickings matching this filter will be synced. Leave empty to sync all Stoqflow pickings.</div>
                             </setting>
                             <setting string="Logging &amp; Display" help="Configure extra UI elements and API logging for debugging.">

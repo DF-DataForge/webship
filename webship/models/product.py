@@ -33,10 +33,60 @@ class Productvar(models.Model):
         default="basic"
     )
 
-    # Flag indicating this is a biological product (for warehouse handling)
+    # --- Stoqflow product fields ---
+    # Product type as per Stoqflow API (basic, composition, derivative)
+    df_type = fields.Selection(
+        selection=[
+            ("basic", "Basic"),
+            ("composition", "Composition"),
+            ("derivative", "Derivative"),
+        ],
+        string="Stoqflow type",
+        default="basic",
+    )
+
+    # Brand linked to this product in Stoqflow
+    df_brand_id = fields.Many2one(
+        comodel_name='webship.brand',
+        string="Stoqflow brand",
+    )
+
+    # Stock type determines FIFO/LIFO/FEFO handling
+    df_stock_type = fields.Selection(
+        selection=[
+            ("fifo", "FIFO"),
+            ("lifo", "LIFO"),
+            ("fefo", "FEFO"),
+        ],
+        string="Stock type",
+    )
+
+    # Stock levels
+    df_min_stock = fields.Integer(string="Min stock", default=0)
+    df_max_stock = fields.Integer(string="Max stock")
+    df_min_order = fields.Integer(string="Min order qty", default=1)
+    df_order_multiples = fields.Integer(string="Order multiples", default=1)
+
+    # Physical properties (mm)
+    df_length = fields.Integer(string="Length (mm)")
+    df_width = fields.Integer(string="Width (mm)")
+    df_height = fields.Integer(string="Height (mm)")
+
+    # Trade / customs
+    df_hs_code = fields.Char(string="HS code")
+    df_country_of_origin = fields.Char(string="Country of origin", help="ISO 3166-1 alpha-2 code, e.g. NL, DE, CN")
+    df_economic_operator = fields.Char(string="Economic operator")
+    # Flags
     df_stock_bio = fields.Boolean(string="Biological product", default=False)
-    # Flag indicating this is a food product (for warehouse handling)
     df_stock_foodstuff = fields.Boolean(string="Food product", default=False)
+    df_flag_cold_chain = fields.Boolean(string="Cold chain", default=False)
+    df_flag_fragile = fields.Boolean(string="Fragile", default=False)
+    df_flag_hazardous = fields.Boolean(string="Hazardous", default=False)
+
+    # Checks
+    df_check_expiry_dates = fields.Boolean(string="Expiry dates", default=False)
+    df_check_batches = fields.Boolean(string="Batches", default=False)
+    df_check_serial_numbers = fields.Boolean(string="Serial numbers", default=False)
 
     # Timestamp of the last synchronization to Webship
     df_product_lastsync_webship = fields.Datetime("Last sync on", readOnly=True)

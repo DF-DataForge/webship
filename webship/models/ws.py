@@ -1,13 +1,15 @@
 # Core API handler for integrating Odoo with the Webship warehouse management system.
 # Provides methods to sync products, partners, pickings, and orders between Odoo and Webship.
-from urllib.parse import urlencode
+from urllib.parse import urlencode, quote
 
-from odoo import models
+from odoo import models, _
 import time
 from datetime import datetime, timedelta
 import requests
+from requests.adapters import HTTPAdapter
 import logging
 from requests.auth import HTTPBasicAuth
+from urllib3.util.retry import Retry
 import math
 import json
 
@@ -22,14 +24,31 @@ _logger = logging.getLogger(__name__)
 class WebShipHandler:
     """Central handler for all Webship API communication.
     Manages authentication, CRUD operations, and data synchronization."""
+    REQUEST_TIMEOUT = (10, 30)  # (connect, read) timeout in seconds
+
     def __init__(self, ws_login, ws_password, ws_base_url):
         """Initialize the handler with Webship API credentials and base URL."""
         self.ws_login = ws_login
         self.ws_password = ws_password
         self.baseUrl = ws_base_url
-        self.sleepTime = 1  # Rate-limit delay between API calls (seconds)
+        self.sleepTime = 0.5  # Rate-limit delay between API calls (seconds)
         self.headers = {'x-addon-public-key':'kRTxA08bKieVQroS'}
         self.auth = HTTPBasicAuth(ws_login, ws_password)
+
+        # Session with connection pooling and automatic retries on transient errors
+        self.session = requests.Session()
+        self.session.auth = self.auth
+        self.session.headers.update(self.headers)
+        retry_strategy = Retry(
+            total=3,
+            backoff_factor=1,  # 1s, 2s, 4s
+            status_forcelist=[429, 500, 502, 503],
+            allowed_methods=["GET", "POST", "PUT"],
+            raise_on_status=False,
+        )
+        adapter = HTTPAdapter(max_retries=retry_strategy)
+        self.session.mount("https://", adapter)
+        self.session.mount("http://", adapter)
 
     def set_env(self, env):
         """Inject the Odoo environment so the handler can access ORM models."""
@@ -55,10 +74,36 @@ class WebShipHandler:
         })
 
     def removeFalseVals(self, sDict):
-        """Strip keys with False values from a dict before sending to the API."""
-        filtered_data = {k: v for k, v in sDict.items() if v is not False}
+        """Strip keys with False or None values from a dict before sending to the API."""
+        filtered_data = {k: v for k, v in sDict.items() if v is not False and v is not None}
 
         return filtered_data
+
+    def _truncate(self, value, max_len):
+        """Truncate a string value to max_len characters if needed."""
+        if value and isinstance(value, str) and len(value) > max_len:
+            return value[:max_len]
+        return value
+
+    def _parse_error_response(self, response):
+        """Parse an API error response, extracting field-level details from 400 errors."""
+        error_text = response.text
+        if response.status_code == 400:
+            try:
+                error_data = response.json()
+                if isinstance(error_data, list):
+                    error_text = '; '.join(
+                        f"{e.get('field', '?')}: {e.get('message', str(e))}"
+                        for e in error_data
+                    )
+                elif isinstance(error_data, dict) and 'errors' in error_data:
+                    error_text = '; '.join(
+                        f"{e.get('field', '?')}: {e.get('message', str(e))}"
+                        for e in error_data['errors']
+                    )
+            except (ValueError, TypeError):
+                pass
+        return error_text
 
     def get_brand(self):
         """Return the first configured Webship brand ID."""
@@ -101,7 +146,7 @@ class WebShipHandler:
 
     def test(self):
         """Test the API connection and return a (status, message) tuple."""
-        response = requests.get(self.baseUrl + 'products', auth=self.auth, headers=self.headers)
+        response = self.session.get(self.baseUrl + 'products', timeout=self.REQUEST_TIMEOUT)
 
         if response.status_code != 200:
             sStatus = 'danger'
@@ -178,7 +223,7 @@ class WebShipHandler:
         """GET a single resource by its Webship ID."""
         url = self.baseUrl + sUrl + '/' + skey
 
-        response = requests.get(url, auth=self.auth, headers=self.headers)
+        response = self.session.get(url, timeout=self.REQUEST_TIMEOUT)
         self.sleep()
 
         _logger.debug("fetchByKey response: %s", response.text)
@@ -194,7 +239,7 @@ class WebShipHandler:
         """GET a single resource by ID with high detail level."""
         url = self.baseUrl + sUrl + '/' + skey + '?detail=high'
 
-        response = requests.get(url, auth=self.auth, headers=self.headers)
+        response = self.session.get(url, timeout=self.REQUEST_TIMEOUT)
         self.sleep()
 
         _logger.debug("fetchByKeyDetail response: %s", response.text)
@@ -233,7 +278,7 @@ class WebShipHandler:
         _logger.debug("fetchAll URL: %s", url)
 
         # First page request
-        response = requests.get(url, auth=self.auth, headers=self.headers)
+        response = self.session.get(url, timeout=self.REQUEST_TIMEOUT)
         self.sleep()
 
         if response.status_code != 200:
@@ -259,7 +304,7 @@ class WebShipHandler:
                 pageNumber += 1
                 paged_url = f"{base_page_url}&page={pageNumber}"
 
-                response = requests.get(paged_url, auth=self.auth, headers=self.headers)
+                response = self.session.get(paged_url, timeout=self.REQUEST_TIMEOUT)
                 self.sleep()
 
                 if response.status_code != 200:
@@ -297,7 +342,7 @@ class WebShipHandler:
 
         _logger.debug("findClientByVat URL: %s", url)
 
-        response = requests.get(url, auth=self.auth, headers=self.headers)
+        response = self.session.get(url, timeout=self.REQUEST_TIMEOUT)
 
         totalCount = response.headers.get('total-count')
 
@@ -325,7 +370,7 @@ class WebShipHandler:
 
         _logger.debug("findSupplierByVat URL: %s", url)
 
-        response = requests.get(url, auth=self.auth, headers=self.headers)
+        response = self.session.get(url, timeout=self.REQUEST_TIMEOUT)
 
         totalCount = response.headers.get('total-count')
 
@@ -346,11 +391,11 @@ class WebShipHandler:
 
         self.sleep()
 
-        url = self.baseUrl + 'products?sku=' + skuNr
+        url = self.baseUrl + 'products?sku=' + quote(str(skuNr), safe='')
 
         _logger.debug("findProductBySku URL: %s", url)
 
-        response = requests.get(url, auth=self.auth, headers=self.headers)
+        response = self.session.get(url, timeout=self.REQUEST_TIMEOUT)
 
         totalCount = response.headers.get('total-count')
 
@@ -388,10 +433,11 @@ class WebShipHandler:
 
         sQuery = None
         for s in skus:
+            encoded_sku = quote(str(s), safe='')
             if sQuery == None:
-                sQuery = 'sku='+str(s)
+                sQuery = 'sku=' + encoded_sku
             else:
-                sQuery = sQuery + ','+str(s)
+                sQuery = sQuery + ',' + encoded_sku
 
         _logger.info('Query for skus: %s', sQuery)
 
@@ -662,12 +708,12 @@ class WebShipHandler:
         self.showDebugInfo('About to post: ' + str(cleanedObject))
 
         self.sleep()
-        response = requests.post(url, json=cleanedObject, auth=self.auth, headers=self.headers)
+        response = self.session.post(url, json=cleanedObject, timeout=self.REQUEST_TIMEOUT)
 
         self.showDebugInfo('Response: ' + response.text)
 
         if response.status_code != 200:
-            return {'status': 'error', 'errorCode':response.status_code, 'errorText':response.text}
+            return {'status': 'error', 'errorCode':response.status_code, 'errorText':self._parse_error_response(response)}
         else:
             responseData = response.json()
             return {'status':'success', 'data':responseData}
@@ -681,12 +727,12 @@ class WebShipHandler:
         self.showDebugInfo('About to put: ' + str(cleanedObject))
 
         self.sleep()
-        response = requests.put(url, json=cleanedObject, auth=self.auth, headers=self.headers)
+        response = self.session.put(url, json=cleanedObject, timeout=self.REQUEST_TIMEOUT)
 
         self.showDebugInfo('Response: ' + response.text)
 
         if response.status_code != 200:
-            return {'status': 'error', 'errorCode':response.status_code, 'errorText':response.text}
+            return {'status': 'error', 'errorCode':response.status_code, 'errorText':self._parse_error_response(response)}
         else:
             responseData = response.json()
             return {'status':'success', 'data':responseData}
@@ -696,7 +742,7 @@ class WebShipHandler:
         url = self.baseUrl + url + sParams
 
         self.sleep()
-        response = requests.get(url, auth=self.auth, headers=self.headers)
+        response = self.session.get(url, timeout=self.REQUEST_TIMEOUT)
 
         self.showDebugInfo('Url called: ' + url)
         self.showDebugInfo('Response got: ' + response.text)
@@ -704,7 +750,7 @@ class WebShipHandler:
 
 
         if response.status_code != 200:
-            return {'status': 'error', 'errorCode':response.status_code, 'errorText':response.text}
+            return {'status': 'error', 'errorCode':response.status_code, 'errorText':self._parse_error_response(response)}
         else:
             responseData = response.json()
             return {'status':'success', 'data':responseData}
@@ -786,7 +832,6 @@ class WebShipHandler:
                     if existing['status'] == 'success' and len(existing.get('data', [])) > 0:
                         return ['Email already exists in Stoqflow. Use the "Match" button to link this client.']
 
-                del sJson['client_number']
                 result = self.performPost('clients', sJson)
                 if result['status'] == 'success':
                     partner.df_client_id_webship = result['data']['_id']
@@ -811,10 +856,15 @@ class WebShipHandler:
     def picking_get_line_items(self, picking):
         """Extract line items from a picking, splitting by packaging SKUs when applicable."""
         output = []
+        self._skipped_products = []
         _logger.debug("picking_get_line_items picking: %s", picking)
         for i in picking.move_ids:
             _logger.debug("Processing move product: %s", i.product_id.default_code)
-            if i.product_id.df_product_do_not_send_webship == True or i.product_id.default_code == False:
+            if i.product_id.df_product_do_not_send_webship == True:
+                continue
+            if i.product_id.default_code == False:
+                self._skipped_products.append(i.product_id.name)
+                _logger.warning("Skipping product '%s' (id=%s): no default_code (SKU) set", i.product_id.name, i.product_id.id)
                 continue
             sOutput = {'productObj': i.product_id, 'type':i.product_id.type, 'default_code':i.product_id.default_code, 'product_id':i.product_id.id, 'quantity':i.product_uom_qty}
 
@@ -1254,11 +1304,49 @@ class WebShipHandler:
                         and (m.product_id.df_product_id_webship == webship_pid
                              or (_pkg_odoo_pid and m.product_id.id == _pkg_odoo_pid))
                     )
-                    if done_moves:
-                        msg = "Stoqflow product_id '%s' (qty %s): product found on picking but move(s) already in '%s' state" % (
-                            webship_pid, remaining_qty, done_moves[0].state)
+                    # Try to resolve the product name + SKU from the Stoqflow ID
+                    product = self.env['product.product'].sudo().search(
+                        [('df_product_id_webship', '=', webship_pid)], limit=1
+                    )
+                    if product:
+                        sku = product.default_code or ''
+                        product_label = "'%s' (SKU: %s)" % (product.name, sku) if sku else "'%s'" % product.name
+                    elif _pkg_odoo_pid:
+                        # Fallback: resolve from packaging-mapped Odoo product
+                        pkg_product = self.env['product.product'].sudo().browse(_pkg_odoo_pid)
+                        if pkg_product.exists():
+                            sku = pkg_product.default_code or ''
+                            product_label = "'%s' (SKU: %s)" % (pkg_product.name, sku) if sku else "'%s'" % pkg_product.name
+                        else:
+                            product_label = "Stoqflow ID '%s'" % webship_pid
                     else:
-                        msg = "Stoqflow product_id '%s' (qty %s): no matching product found on picking" % (webship_pid, remaining_qty)
+                        # Fallback: check if the Stoqflow ID belongs to a packaging record
+                        pkg = self.env['product.packaging'].sudo().search(
+                            [('df_product_id_webship', '=', webship_pid)], limit=1
+                        )
+                        if pkg and pkg.product_id:
+                            sku = pkg.product_id.default_code or ''
+                            product_label = "'%s' (SKU: %s)" % (pkg.product_id.name, sku) if sku else "'%s'" % pkg.product_id.name
+                        else:
+                            # Last resort: fetch from Stoqflow API to get the SKU
+                            product_label = "Stoqflow ID '%s'" % webship_pid
+                            try:
+                                ws_result = self.performGet('products/', webship_pid)
+                                if ws_result.get('status') == 'success' and ws_result.get('data'):
+                                    ws_sku = ws_result['data'].get('sku', '')
+                                    ws_name = ws_result['data'].get('name', '')
+                                    if ws_sku:
+                                        product_label = "'%s' (SKU: %s)" % (ws_name, ws_sku) if ws_name else "(SKU: %s)" % ws_sku
+                                    elif ws_name:
+                                        product_label = "'%s'" % ws_name
+                            except Exception:
+                                _logger.debug("Could not fetch product %s from Stoqflow API", webship_pid)
+
+                    if done_moves:
+                        msg = "%s (qty %s): product found on picking but move(s) already in '%s' state" % (
+                            product_label, remaining_qty, done_moves[0].state)
+                    else:
+                        msg = "%s (qty %s): no matching product found on picking" % (product_label, remaining_qty)
                     warnings.append(msg)
                     _logger.warning("setPickingQuantities: %s on %s", msg, sPicking.name)
         #END if new status = 'completed'
@@ -1270,32 +1358,47 @@ class WebShipHandler:
         newStatus = order['status']
 
         if newStatus == 'completed' and sPicking.state != 'done':
-            self.showDebugInfo('Setting picking to done')
+            if self.get_default_auto_create_backorder() == 'True':
+                self.showDebugInfo('Setting picking to done')
 
-            try:
-                if self.get_default_auto_create_backorder() == 'True':
+                try:
                     sPicking.make_backorder()
-                else:
-                    sPicking = sPicking.with_context(skip_backorder=True)
 
-                _logger.info('Calling _action_done for picking %s', sPicking.name)
+                    _logger.info('Calling _action_done for picking %s', sPicking.name)
 
-                sPicking.button_validate()
+                    sPicking.button_validate()
 
-                if sPicking.state != 'done':
-                    sPicking._action_done()
+                    if sPicking.state != 'done':
+                        sPicking._action_done()
 
-                _logger.info('Picking %s validated successfully', sPicking.name)
+                    _logger.info('Picking %s validated successfully', sPicking.name)
 
-            except Exception as e:
-                error_msg = str(e)
+                except Exception as e:
+                    error_msg = str(e)
 
-                _logger.exception(
-                    "Error while validating picking %s from Webship",
-                    sPicking.name
+                    _logger.exception(
+                        "Error while validating picking %s from Webship",
+                        sPicking.name
+                    )
+
+                    warnings.append("Validation error: %s" % error_msg)
+            else:
+                short_lines = sPicking.move_ids.filtered(
+                    lambda m: m.state not in ('cancel', 'done') and m.quantity < m.product_uom_qty
                 )
+                if short_lines:
+                    line_names = ', '.join(short_lines.mapped(lambda m: m.product_id.display_name))
+                    msg = 'Quantities not met on lines: %s. Could not complete picking.' % line_names
+                else:
+                    msg = 'Auto-create backorder is disabled. Could not complete picking.'
 
-                warnings.append("Validation error: %s" % error_msg)
+                _logger.info(
+                    'Picking %s: %s',
+                    sPicking.name, msg
+                )
+                sPicking.df_picking_syncresult_webship = (
+                    '<span style="color:red;">%s</span>' % msg
+                )
 
         if oldStatus != newStatus:
             sPicking.df_status_webship = newStatus
@@ -1441,20 +1544,24 @@ class WebShipHandler:
                 sOutput['errors'].append('Shipping date cannot be in the past')
 
         if items == []:
-            sOutput['errors'].append('There are items with zero quantity')
+            if hasattr(self, '_skipped_products') and self._skipped_products:
+                for product_name in self._skipped_products:
+                    sOutput['errors'].append(_('SKU missing on product %s') % product_name)
+            else:
+                sOutput['errors'].append(_('No syncable items found on this picking'))
 
         #if clientCode == False:
         #    sOutput['errors'].append('Client does not exist in Webship')
 
         for i in sOutput['mainList']:
             if i['default_code'] == False or i['default_code'] == None:
-                sOutput['errors'].append('No SKU in Odoo for product ' + i['name'])
+                sOutput['errors'].append(_('SKU missing on product %s') % i['name'])
 
         for i in sOutput['mainList']:
             _logger.debug('Product code: %s, WSku: %s', i['default_code'], i['WSku'])
             if i['default_code'] != False and i['default_code'] != None and i['WSku'] == None:
                 _logger.warning('No Webship SKU for product: %s', i)
-                sOutput['errors'].append('No SKU in Webship for product ' + i['name'] + ' with code ' + i['default_code'])
+                sOutput['errors'].append(_('SKU not found in Stoqflow for product %s (code: %s)') % (i['name'], i['default_code']))
 
         for i in sOutput['mainList']:
             if not self.is_integer_float(i['quantity']):
@@ -1479,14 +1586,14 @@ class WebShipHandler:
             else picking.name
         )
 
-        sOutput['webshipObj'] = {'shop_id': shopId, 'client_id': clientCode, 'origin': {'id':picking.id, 'number':origin_number}}
+        sOutput['webshipObj'] = {'shop_id': shopId, 'client_id': clientCode, 'origin': {'id':str(picking.id), 'number':origin_number}}
 
         _logger.debug("build_order_object output: %s", sOutput)
 
         if picking.note != False:
-            sOutput['webshipObj']['notes'] = picking.note
+            sOutput['webshipObj']['notes'] = self._truncate(picking.note, 500)
         elif picking.sale_id != False and picking.sale_id.partner_id.df_standard_internal_note:
-            sOutput['webshipObj']['notes'] = picking.sale_id.partner_id.df_standard_internal_note
+            sOutput['webshipObj']['notes'] = self._truncate(picking.sale_id.partner_id.df_standard_internal_note, 500)
 
         if sOutput['sendScheduledDate']:
             sOutput['webshipObj']['status'] = 'on-hold'
@@ -1494,7 +1601,6 @@ class WebShipHandler:
         else:
             #sOutput['webshipObj']['status'] = 'ready-to-pick'
             sOutput['webshipObj']['status'] = self.get_default_status()
-            sOutput['webshipObj']['scheduled'] = ''
 
         sOutput['webshipObj']['order_items'] =[]
         for i in sOutput['mainList']:
@@ -1522,15 +1628,15 @@ class WebShipHandler:
                     _logger.info("build_order_object: falling back to sale order contact phone for picking %s", picking.name)
 
             clientInfo = {
-                'name':picking.partner_id.name,
+                'name':self._truncate(picking.partner_id.name, 100),
                 'vat':picking.partner_id.vat,
-                'address_1':picking.partner_id.street,
-                'address_2':picking.partner_id.street2 or ' ',
-                'city':picking.partner_id.city,
-                'postal_code':picking.partner_id.zip,
+                'address_1':self._truncate(picking.partner_id.street, 100),
+                'address_2':self._truncate(picking.partner_id.street2 or ' ', 100),
+                'city':self._truncate(picking.partner_id.city, 100),
+                'postal_code':self._truncate(picking.partner_id.zip, 20),
                 'country':sCountrCode,
                 'email':sEmail,
-                'phone':sPhone,
+                'phone':self._truncate(sPhone, 100),
                           }
             _logger.debug("Client info: %s", clientInfo)
 
@@ -1597,23 +1703,37 @@ class WebShipHandler:
         sOutput['errors'] = []
 
         if items == []:
-            sOutput['errors'].append('There are items with zero quantity')
+            if hasattr(self, '_skipped_products') and self._skipped_products:
+                for product_name in self._skipped_products:
+                    sOutput['errors'].append(_('SKU missing on product %s') % product_name)
+            else:
+                sOutput['errors'].append(_('No syncable items found on this picking'))
 
         if supplierCode == False:
-            sOutput['errors'].append('Supplier does not exist in Webship')
+            sOutput['errors'].append(_('Supplier does not exist in Stoqflow'))
 
         for i in sOutput['mainList']:
             if i['default_code'] == False or i['default_code'] == None:
-                sOutput['errors'].append('No SKU in Odoo for product ' + i['name'])
+                sOutput['errors'].append(_('SKU missing on product %s') % i['name'])
 
         for i in sOutput['mainList']:
             if i['default_code'] != False and i['default_code'] != None and i['WSku'] == None:
-                sOutput['errors'].append('No SKU in Webship for product ' + i['name'] + ' with code ' + i['default_code'])
+                sOutput['errors'].append(_('SKU not found in Stoqflow for product %s (code: %s)') % (i['name'], i['default_code']))
 
         #print('Location dest id: ')
         #print(picking.location_dest_id.df_warehouse_id_webship)
         #sOutput['webshipObj'] = {'supplier_id': supplierCode, 'warehouse_id':self.get_warehouse()}
         sOutput['webshipObj'] = {'supplier_id': supplierCode, 'warehouse_id': picking.location_dest_id.df_warehouse_webship.warehouse_id}
+
+        # Supplier reference for deduplication: picking ID + order name
+        po_ref = "%s-%s" % (picking.id, picking.name or '')
+        sOutput['webshipObj']['supplier_reference'] = self._truncate(po_ref, 100)
+
+        # Custom fields with picking ID and order name for traceability
+        sOutput['webshipObj']['custom_fields'] = [
+            {'key': 'odoo_picking_id', 'value': str(picking.id)},
+            {'key': 'odoo_picking_name', 'value': self._truncate(picking.name or '', 500)},
+        ]
 
         if sOutput['sendScheduledDate']:
             sOutput['webshipObj']['status'] = 'on-hold'
@@ -1658,7 +1778,7 @@ class WebShipHandler:
         url = self.baseUrl + 'orders/' + pickingId
 
         self.sleep()
-        response = requests.get(url, auth=self.auth, headers=self.headers)
+        response = self.session.get(url, timeout=self.REQUEST_TIMEOUT)
 
         if response.status_code != 200:
             _logger.error('get_picking_code failed with status code %s: %s', response.status_code, response.text)
@@ -1675,7 +1795,7 @@ class WebShipHandler:
         url = self.baseUrl + 'purchase-orders/' + pickingId
 
         self.sleep()
-        response = requests.get(url, auth=self.auth, headers=self.headers)
+        response = self.session.get(url, timeout=self.REQUEST_TIMEOUT)
 
         if response.status_code != 200:
             _logger.error('get_po_code failed with status code %s: %s', response.status_code, response.text)
@@ -1694,7 +1814,7 @@ class WebShipHandler:
         sPayload = {'status':sStatus}
         self.sleep()
 
-        response = requests.put(url, json=sPayload, auth=self.auth, headers=self.headers)
+        response = self.session.put(url, json=sPayload, timeout=self.REQUEST_TIMEOUT)
 
         if response.status_code != 200:
             _logger.error('setStatusOrder failed with status code %s: %s', response.status_code, response.text)
@@ -1724,12 +1844,94 @@ class WebShipHandler:
         if product.default_code == False or product.default_code == '':
             errors.append('No sku for product')
 
-        brandId = self.get_brand()
-        productObj = {'brand_id':brandId, 'sku':product.default_code, 'name':product.name, 'price':product.standard_price, 'retail_price':product.lst_price}
+        # Use product-level brand if set, otherwise fall back to global default
+        if product.df_brand_id:
+            brandId = product.df_brand_id.brand_id
+        else:
+            brandId = self.get_brand()
 
+        productObj = {
+            'brand_id': brandId,
+            'sku': product.default_code,
+            'name': product.name,
+            'price': product.standard_price,
+            'retail_price': product.lst_price,
+            'has_stock': product.detailed_type == 'product',
+        }
+
+        # Description (from Odoo sale description)
+        if product.description_sale:
+            productObj['description'] = product.description_sale
+
+        # Product type
+        if product.df_type:
+            productObj['type'] = product.df_type
+
+        # Stock type
+        if product.df_stock_type:
+            productObj['stock_type'] = product.df_stock_type
+
+        # Stock levels
+        if product.df_min_stock:
+            productObj['min_stock'] = product.df_min_stock
+        if product.df_max_stock:
+            productObj['max_stock'] = product.df_max_stock
+        if product.df_min_order:
+            productObj['min_order'] = product.df_min_order
+        if product.df_order_multiples:
+            productObj['order_multiples'] = product.df_order_multiples
+
+        # Physical properties (weight from Odoo in kg, convert to grams)
+        properties = {}
+        if product.weight:
+            properties['weight'] = int(product.weight * 1000)
+        if product.df_length:
+            properties['length'] = product.df_length
+        if product.df_width:
+            properties['width'] = product.df_width
+        if product.df_height:
+            properties['height'] = product.df_height
+        if properties:
+            properties['unit'] = {'value': 1, 'unit': 'item'}
+            productObj['properties'] = properties
+
+        # Trade / customs
+        if product.df_hs_code:
+            productObj['hs_code'] = product.df_hs_code
+        if product.df_country_of_origin:
+            productObj['country_of_origin'] = product.df_country_of_origin
+        if product.df_economic_operator:
+            productObj['economic_operator'] = product.df_economic_operator
+
+        # Flags
+        flags = {}
+        if product.df_stock_bio:
+            flags['bio'] = True
+        if product.df_stock_foodstuff:
+            flags['foodstuff'] = True
+        if product.df_flag_cold_chain:
+            flags['cold_chain'] = True
+        if product.df_flag_fragile:
+            flags['fragile'] = True
+        if product.df_flag_hazardous:
+            flags['hazardous'] = True
+        if flags:
+            productObj['flags'] = flags
+
+        # Checks
+        checks = {}
+        if product.df_check_expiry_dates:
+            checks['expiry_dates'] = True
+        if product.df_check_batches:
+            checks['batches'] = True
+        if product.df_check_serial_numbers:
+            checks['serial_numbers'] = True
+        if checks:
+            productObj['checks'] = checks
+
+        # Barcodes
         if product.barcode:
             productObj['barcodes'] = [{'type':'ean13', 'code':product.barcode, 'main':True}]
-
 
         if product.df_product_id_webship == False:
             # Before creating, check if this SKU already exists in Webship
@@ -1748,6 +1950,9 @@ class WebShipHandler:
             if result['status'] == 'success':
                 product.df_product_id_webship = result['data']['_id']
         else:
+            # Remove read-only fields before PUT
+            for key in ['brand_id', 'sku']:
+                productObj.pop(key, None)
             result = self.performPut('products', productObj, product.df_product_id_webship )
 
         self.showDebugInfo(result)
@@ -1844,9 +2049,9 @@ class WebShipHandler:
                     return errors
 
             else:
-                #perform put
-                if 'status' in sJson:
-                    sJson.pop('status')
+                #perform put - remove read-only fields
+                for key in ['status', 'origin', 'shop_id']:
+                    sJson.pop(key, None)
 
                 sResult = self.performPut('orders', sJson, picking.df_picking_id_webship)
                 self._log_json(picking, 'sent', 'PUT', 'orders/' + picking.df_picking_id_webship, sJson)
@@ -1886,6 +2091,17 @@ class WebShipHandler:
             sJson = wsObject['webshipObj']
 
             if picking.df_po_id_webship == False:
+                # Deduplication: check if a PO with this supplier_reference already exists
+                po_ref = sJson.get('supplier_reference', '')
+                if po_ref:
+                    existing = self.performGet('purchase-orders', '?supplier_reference=' + quote(po_ref))
+                    if existing['status'] == 'success' and len(existing.get('data', [])) > 0:
+                        existing_po = existing['data'][0]
+                        picking.df_po_id_webship = existing_po['_id']
+                        _logger.info("PO already exists in Stoqflow (supplier_reference=%s, id=%s), linking instead of creating", po_ref, existing_po['_id'])
+                        errors = self.statusWsToOdoo(picking)
+                        return errors
+
                 sResult = self.performPost('purchase-orders', sJson)
                 self._log_json(picking, 'sent', 'POST', 'purchase-orders', sJson)
 
@@ -1910,7 +2126,7 @@ class WebShipHandler:
             errors = []
             orderUrl = self.baseUrl + 'orders/' + picking.df_picking_id_webship + '?detail=high'
 
-            response = requests.get(orderUrl, auth=self.auth, headers=self.headers)
+            response = self.session.get(orderUrl, timeout=self.REQUEST_TIMEOUT)
 
             if response.status_code == 200:
                 responseData = response.json()
@@ -1929,8 +2145,9 @@ class WebShipHandler:
                 if responseData['status'] == 'completed':
                     try:
                         picking.button_validate()
-                    except:
-                        return ['Error while setting state to done on picking order']
+                    except Exception as e:
+                        _logger.exception("Error validating picking %s: %s", picking.name, e)
+                        return ['Error while setting state to done on picking order: ' + str(e)]
                     #try:
                     #    picking.sale_id = 'done'
                     #except:
@@ -1944,7 +2161,7 @@ class WebShipHandler:
             errors = []
             orderUrl = self.baseUrl + 'purchase-orders/' + picking.df_po_id_webship + '?detail=high'
 
-            response = requests.get(orderUrl, auth=self.auth, headers=self.headers)
+            response = self.session.get(orderUrl, timeout=self.REQUEST_TIMEOUT)
 
             if response.status_code == 200:
                 responseData = response.json()
@@ -1993,7 +2210,7 @@ class WebShipHandler:
         if prodInfo.product_id_webship == False:
             time.sleep(self.sleepTime)
             _logger.debug("sync_prod POST payload: %s", sWJson)
-            response = requests.post(produrl, json=sWJson, auth=(self.ws_login, self.ws_password))
+            response = self.session.post(produrl, json=sWJson, timeout=self.REQUEST_TIMEOUT)
 
             if response.status_code != 200:
                 _logger.error('sync_prod POST failed with status code %s: %s', response.status_code, response.text)
@@ -2007,7 +2224,7 @@ class WebShipHandler:
         else:
             time.sleep(self.sleepTime)
             _logger.debug("sync_prod PUT payload: %s, URL: %s", sWJson, produrl)
-            response = requests.put(produrl + '/' + prodInfo.product_id_webship, json=sWJson, auth=(self.ws_login, self.ws_password))
+            response = self.session.put(produrl + '/' + prodInfo.product_id_webship, json=sWJson, timeout=self.REQUEST_TIMEOUT)
 
             if response.status_code != 200:
                 _logger.error('sync_prod PUT failed with status code %s: %s', response.status_code, response.text)
@@ -2043,7 +2260,7 @@ class WebShipHandler:
         if supInfo.supplier_id_webship == False:
             time.sleep(self.sleepTime)
             _logger.debug("sync_sup POST supplier payload: %s", sWJson)
-            response = requests.post(sup_url, json=sWJson, auth=(self.ws_login, self.ws_password))
+            response = self.session.post(sup_url, json=sWJson, timeout=self.REQUEST_TIMEOUT)
 
             if response.status_code != 200:
                 _logger.error('sync_sup POST supplier failed with status code %s: %s', response.status_code, response.text)
@@ -2057,7 +2274,7 @@ class WebShipHandler:
         else:
             time.sleep(self.sleepTime)
             _logger.debug("sync_sup PUT supplier payload: %s", sWJson)
-            response = requests.put(sup_url + '/' + supInfo.supplier_id_webship, json=sWJson, auth=(self.ws_login, self.ws_password))
+            response = self.session.put(sup_url + '/' + supInfo.supplier_id_webship, json=sWJson, timeout=self.REQUEST_TIMEOUT)
 
             if response.status_code != 200:
                 _logger.error('sync_sup PUT supplier failed with status code %s: %s', response.status_code, response.text)
@@ -2072,7 +2289,7 @@ class WebShipHandler:
             sWJson['addresses']['billing'] = addressInfo
             sWJson['addresses']['shipping'] = addressInfo
             _logger.debug("sync_sup POST client payload: %s", sWJson)
-            response = requests.post(client_url, json=sWJson, auth=(self.ws_login, self.ws_password))
+            response = self.session.post(client_url, json=sWJson, timeout=self.REQUEST_TIMEOUT)
 
             if response.status_code != 200:
                 _logger.error('sync_sup POST client failed with status code %s: %s', response.status_code, response.text)
@@ -2086,8 +2303,8 @@ class WebShipHandler:
         else:
             time.sleep(self.sleepTime)
             _logger.debug("sync_sup PUT client payload: %s", sWJson)
-            response = requests.put(client_url + '/' + supInfo.client_id_webship, json=sWJson,
-                                    auth=(self.ws_login, self.ws_password))
+            response = self.session.put(client_url + '/' + supInfo.client_id_webship, json=sWJson,
+                                    timeout=self.REQUEST_TIMEOUT)
 
             if response.status_code != 200:
                 _logger.error('sync_sup PUT client failed with status code %s: %s', response.status_code, response.text)
@@ -2111,7 +2328,7 @@ class WebShipHandler:
         url = self.baseUrl + 'orders'
 
         time.sleep(self.sleepTime)
-        response = requests.get(url, auth=(self.ws_login, self.ws_password))
+        response = self.session.get(url, timeout=self.REQUEST_TIMEOUT)
 
         if response.status_code != 200:
             _logger.error('emptyOrders failed with status code %s: %s', response.status_code, response.text)
@@ -2127,7 +2344,7 @@ class WebShipHandler:
         time.sleep(self.sleepTime)
         url = self.baseUrl + 'products'
 
-        response = requests.get(url, auth=(self.ws_login, self.ws_password))
+        response = self.session.get(url, timeout=self.REQUEST_TIMEOUT)
 
         if response.status_code != 200:
             _logger.error('emptyProducts failed with status code %s: %s', response.status_code, response.text)
@@ -2143,7 +2360,7 @@ class WebShipHandler:
         url = self.baseUrl + 'clients'
 
         time.sleep(self.sleepTime)
-        response = requests.get(url, auth=(self.ws_login, self.ws_password))
+        response = self.session.get(url, timeout=self.REQUEST_TIMEOUT)
 
         if response.status_code != 200:
             _logger.error('emptyClients failed with status code %s: %s', response.status_code, response.text)
@@ -2159,7 +2376,7 @@ class WebShipHandler:
         url = self.baseUrl + 'suppliers'
 
         time.sleep(self.sleepTime)
-        response = requests.get(url, auth=(self.ws_login, self.ws_password))
+        response = self.session.get(url, timeout=self.REQUEST_TIMEOUT)
 
         if response.status_code != 200:
             _logger.error('emptySuppliers failed with status code %s: %s', response.status_code, response.text)
@@ -2180,7 +2397,7 @@ class WebShipHandler:
         if velden['product_id_webship'] == False:
             _logger.info('Inserting product...')
             time.sleep(1)
-            response = requests.post(url, json=sWJson, auth=(self.ws_login, self.ws_password))
+            response = self.session.post(url, json=sWJson, timeout=self.REQUEST_TIMEOUT)
 
             if response.status_code == 403:
                 _logger.warning('SKU non-unique for product %s', velden.get('default_code'))
@@ -2195,8 +2412,8 @@ class WebShipHandler:
         else:
             _logger.info('Updating product...')
             time.sleep(1)
-            response = requests.put(url + '/' + str(velden['product_id_webship']), json=sWJson,
-                                    auth=(self.Wsusername, self.Wspassword))
+            response = self.session.put(url + '/' + str(velden['product_id_webship']), json=sWJson,
+                                    timeout=self.REQUEST_TIMEOUT)
 
             if response.status_code != 200:
                 _logger.error('updateProduct PUT failed with status code %s: %s', response.status_code, response.text)
@@ -2208,7 +2425,7 @@ class WebShipHandler:
 
     def exportSups(self):
         """Export all suppliers from Webship as a JSON list."""
-        response = requests.get(self.baseUrl + 'suppliers', auth=self.auth, headers=self.headers)
+        response = self.session.get(self.baseUrl + 'suppliers', timeout=self.REQUEST_TIMEOUT)
 
         if response.status_code != 200:
             _logger.error('exportSups failed with status code %s: %s', response.status_code, response.text)
@@ -2229,7 +2446,7 @@ class WebShipHandler:
         while True:
             self.sleep()
 
-            response = requests.get(self.baseUrl + 'clients?page=' + str(page), auth=self.auth, headers=self.headers)
+            response = self.session.get(self.baseUrl + 'clients?page=' + str(page), timeout=self.REQUEST_TIMEOUT)
 
             totalCount = response.headers.get('total-count')
 

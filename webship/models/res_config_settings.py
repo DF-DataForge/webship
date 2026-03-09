@@ -8,7 +8,7 @@ from requests.auth import HTTPBasicAuth
 from datetime import timedelta
 
 from . import ws
-from odoo import fields, models
+from odoo import api, fields, models
 import logging
 _logger = logging.getLogger(__name__)
 
@@ -125,6 +125,11 @@ class ResConfigSettings(models.TransientModel):
     # Optional domain filter to restrict which pickings are auto-synced (e.g. "[('mk_instance_id','in',[2,3])]")
     webship_domain = fields.Char(string='Stoqflow domain filter', config_parameter='webship.domain',
                                  help="Optional Odoo domain filter to restrict which pickings are automatically synced to Stoqflow. Only pickings matching this filter will be synced. Example: [('mk_instance_id','in',[2,3])] to only sync orders from specific marketplace instances.")
+    webship_domain_text = fields.Char(
+        string='Domain rule (text)',
+        compute='_compute_webship_domain_text',
+        inverse='_inverse_webship_domain_text',
+        help="Editable text representation of the domain filter above.")
 
     # --- Error Notification Settings ---
     # Users who receive an email when a queue processing error occurs
@@ -180,6 +185,15 @@ class ResConfigSettings(models.TransientModel):
         [('minutes', 'Minutes'), ('hours', 'Hours'), ('days', 'Days'), ('weeks', 'Weeks'), ('months', 'Months')],
         string='Unit',
         default='days')
+
+    @api.depends('webship_domain')
+    def _compute_webship_domain_text(self):
+        for rec in self:
+            rec.webship_domain_text = rec.webship_domain or '[]'
+
+    def _inverse_webship_domain_text(self):
+        for rec in self:
+            rec.webship_domain = rec.webship_domain_text
 
     def _ws_get_cron(self, xml_id):
         """Return the ir.cron record for the given module-local xml_id, or None."""
@@ -340,7 +354,7 @@ class ResConfigSettings(models.TransientModel):
                     '<tr style="background:%s">'
                     '<td>%s</td><td>%s</td><td>%s</td><td>%s</td>'
                     '</tr>'
-                ) % (row_color, p.name, p.df_process_code or '-', lastsync, result)
+                ) % (row_color, p.name, dict(p._fields['df_process_code'].selection).get(p.df_process_code, '-'), lastsync, result)
             body += '</table>'
         else:
             body += '<p>No pickings were processed in the last 24 hours.</p>'
@@ -527,17 +541,25 @@ class ResConfigSettings(models.TransientModel):
 
     def ws_sync_all_pickings_statusP(self):
         """Cron job action: sync all pickings with process code 'P' (pending) to Stoqflow.
-        Pickings involving Webship locations are synced; others are marked 'E' (excluded)."""
+        Pickings without Webship locations are marked 'NA'; sync failures are marked 'E'."""
         for p in self.env['stock.picking'].search([('df_process_code','=','P')]):
             try:
                 if p.location_id.df_is_webship_location == True or p.location_dest_id.df_is_webship_location:
                     p.ws_sync_picking()
                 else:
-                    # Mark as excluded since it doesn't involve Webship locations
-                    p.write({'df_process_code': 'E'})
+                    # Mark as not applicable since it doesn't involve Webship locations
+                    _logger.info(
+                        "df_process_code [%s]: P -> NA (no Webship location)",
+                        p.name,
+                    )
+                    p.write({'df_process_code': 'NA'})
             except Exception as e:
                 # Mark picking as errored and log the exception, but continue processing
                 _logger.exception("Error while syncing picking %s: %s", p.id, str(e))
+                _logger.info(
+                    "df_process_code [%s]: P -> E (sync error: %s)",
+                    p.name, str(e),
+                )
                 p.write({
                     'df_process_code': 'E',
                     'df_picking_lastsync_webship': fields.Datetime.now(),

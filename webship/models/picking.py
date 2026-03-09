@@ -41,7 +41,16 @@ class StockPicking(models.Model):
     df_picking_syncresult_webship = fields.Html("Result last sync", readOnly=True)
 
     # Current status of this picking in Stoqflow (e.g. 'ready-to-pick', 'completed')
-    df_status_webship = fields.Char('Status in Stoqflow', readOnly=True)
+    df_status_webship = fields.Selection([
+        ('concept', 'Concept'),
+        ('ordered', 'Ordered'),
+        ('on-hold', 'On Hold'),
+        ('ready-to-pick', 'Ready to Pick'),
+        ('picking', 'Picking'),
+        ('packing', 'Packing'),
+        ('completed', 'Completed'),
+        ('cancelled', 'Cancelled'),
+    ], string='Status in Stoqflow', readonly=True)
 
     # Timestamp of the last status change reported by the Stoqflow API
     df_last_changedate_webship = fields.Datetime("Last change in Stoqflow")
@@ -68,18 +77,17 @@ class StockPicking(models.Model):
 
     # Computed Stoqflow object type based on location directions:
     #   'Order' = outbound (source is Webship), 'Purchase order' = inbound (dest is Webship), 'Mutation' = other
-    df_object_in_webship = fields.Char('Object in Stoqflow', compute="_find_object_webship", store=False)
+    df_object_in_webship = fields.Char('Object in Stoqflow', compute="_find_object_webship", store=True)
 
     # Process code controlling the sync lifecycle:
-    #   'P' = pending (needs sync), 'F' = finished (synced), 'E' = excluded, False = not applicable
-    df_process_code = fields.Char('Process code', default=lambda self: self._default_process_code())
-
-    # Flag indicating the picking originates from a WooCommerce sale order
-    df_is_from_woocommerce = fields.Boolean(
-        string='From WooCommerce',
-        compute='_compute_is_from_woocommerce',
-        store=True
-    )
+    #   'P' = pending, 'F' = finished, 'E' = error, 'M' = manual, 'NA' = not applicable
+    df_process_code = fields.Selection([
+        ('P', 'Pending'),
+        ('F', 'Finished'),
+        ('E', 'Error'),
+        ('M', 'Manual'),
+        ('NA', 'Not Applicable'),
+    ], string='Process code', default=lambda self: self._default_process_code(), tracking=True)
 
     # Comma-separated tracking URLs from Webship parcels (parcel.tracking_url values)
     df_carrier_tracking_urls = fields.Char('Tracking Reference URLs')
@@ -238,29 +246,6 @@ class StockPicking(models.Model):
         )
         self.df_pick_analysis_ids = lines
 
-    def recalcComputed(self):
-        """Manually trigger recomputation of the WooCommerce flag on selected pickings."""
-        for picking in self:
-            picking._compute_is_from_woocommerce()
-
-
-    @api.depends('sale_id')
-    def _compute_is_from_woocommerce(self):
-        """Check if the linked sale order was created by the WooCommerce marketplace
-        integration by inspecting the mk_instance_id field on the sale order."""
-        for picking in self:
-            picking.df_is_from_woocommerce = False
-
-            sale_order = picking.sale_id
-            if not sale_order:
-                continue
-
-            # Check if the marketplace instance field exists and is set to WooCommerce
-            if hasattr(sale_order, 'mk_instance_id') and sale_order.mk_instance_id:
-                instance_name = sale_order.mk_instance_id.name
-                if instance_name == "Woo Commerce":
-                    picking.df_is_from_woocommerce = True
-
     def getHandler(self):
         """Create and return a WebShipHandler instance using stored Stoqflow API credentials.
         Reads username, password, and base URL from ir.config_parameter."""
@@ -275,15 +260,11 @@ class StockPicking(models.Model):
     @api.model
     def _default_process_code(self):
         """Determine the default process code for new pickings.
-        Returns 'P' (pending sync) if order sync is enabled and the picking is not
-        from WooCommerce, otherwise False (no sync needed)."""
-        if self.df_is_from_woocommerce:
-            return False
-        # The config parameter is stored as the string 'True', not a boolean
-        webship_sync = self.env['ir.config_parameter'].sudo().get_param('webship.sync_order')
-        if webship_sync == 'True':
-            return 'P'
-        return False
+        Defaults to 'P' (pending sync). When a domain filter is configured,
+        create()/write() will further demote non-matching pickings to 'M'.
+        Non-Stoqflow pickings (no Webship location) are harmless as 'P' —
+        the cron marks them 'NA' on first run."""
+        return 'P'
 
     @api.model
     def create(self, vals):
@@ -303,20 +284,69 @@ class StockPicking(models.Model):
             'df_last_changedate_webship':False
         })
 
+        # Log initial process code
+        picking._log_process_code("initialized")
+
         # If auto-sync is enabled ('P'), evaluate the domain filter to exclude non-matching pickings
         if picking.df_process_code == 'P':
-            webship_domain = self.env['ir.config_parameter'].sudo().get_param('webship.domain')
-            if webship_domain:
-                try:
-                    domain = safe_eval(webship_domain)
-                    match = self.env['stock.picking'].search([('id', '=', picking.id)] + domain, limit=1)
-                    # If the picking does not match the domain filter, disable auto-sync
-                    if not match:
-                        picking.df_process_code = False
-                except Exception:
-                    _logger.warning("Invalid webship domain filter: %s", webship_domain)
+            self._apply_domain_filter(picking)
 
         return picking
+
+    def write(self, vals):
+        """Re-evaluate the domain filter when mk_instance_id is set on a picking
+        that was previously excluded because the field was not yet available."""
+        res = super(StockPicking, self).write(vals)
+
+        if 'mk_instance_id' in vals:
+            for picking in self.filtered(lambda p: p.df_process_code == 'M'):
+                picking._log_process_code("mk_instance_id changed to %s, re-evaluating" % vals['mk_instance_id'])
+                self._apply_domain_filter(picking, promote=True)
+
+        return res
+
+    def _log_process_code(self, reason):
+        """Log the current process code and relevant context to the picking chatter."""
+        self.ensure_one()
+        webship_sync = self.env['ir.config_parameter'].sudo().get_param('webship.sync_order')
+        webship_domain = self.env['ir.config_parameter'].sudo().get_param('webship.domain')
+        mk_id = self.mk_instance_id.id if hasattr(self, 'mk_instance_id') and self.mk_instance_id else 'not set'
+        self.message_post(
+            body="Stoqflow process code %s: <b>%s</b> (sync_order=%s, domain=%s, mk_instance_id=%s)" % (
+                reason, self.df_process_code, webship_sync, webship_domain or 'none', mk_id,
+            ),
+            subtype_xmlid='mail.mt_note',
+        )
+
+    def _apply_domain_filter(self, picking, promote=False):
+        """Evaluate the webship domain filter against a picking.
+        If promote=False (create): demote P -> M when the picking does NOT match.
+        If promote=True (write):  promote M -> P when the picking DOES match."""
+        webship_domain = self.env['ir.config_parameter'].sudo().get_param('webship.domain')
+        if not webship_domain:
+            if promote:
+                picking.df_process_code = 'P'
+                picking._log_process_code("promoted (no domain filter)")
+            return
+        try:
+            domain = safe_eval(webship_domain)
+            # Flush to ensure all field values (especially mk_instance_id) are in the DB for search
+            self.env.flush_all()
+            match = self.env['stock.picking'].search([('id', '=', picking.id)] + domain, limit=1)
+            if promote and match:
+                picking.df_process_code = 'P'
+                picking._log_process_code("promoted (matched domain filter)")
+            elif not promote and not match:
+                picking.df_process_code = 'M'
+                picking._log_process_code("demoted (excluded by domain filter)")
+            elif promote and not match:
+                picking._log_process_code("stays M (did not match domain filter)")
+        except Exception as e:
+            _logger.warning("Invalid webship domain filter: %s (%s)", webship_domain, e)
+            picking.message_post(
+                body="Stoqflow: invalid domain filter: %s (%s)" % (webship_domain, e),
+                subtype_xmlid='mail.mt_note',
+            )
 
     def _schedule_merge_after_create(self):
         """Schedule a post-commit merge of duplicate move lines for Webship destination pickings.
@@ -540,6 +570,10 @@ class StockPicking(models.Model):
 
             # Mark as finished ('F') so the cron job does not re-sync this picking
             if self.df_process_code == 'P':
+                _logger.info(
+                    "df_process_code [%s]: P -> F (sync successful)",
+                    self.name,
+                )
                 self.df_process_code = 'F'
 
             # Fetch the human-readable order number from Stoqflow

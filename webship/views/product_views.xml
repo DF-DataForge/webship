@@ -23,6 +23,47 @@
                         <field name="df_product_syncresult_webship" readonly="1" widget="html" string="Sync Status"/>
                     </group>
 
+                    <separator string="Stoqflow Product Details"/>
+                    <group col="2">
+                        <group string="General">
+                            <field name="df_type"/>
+                            <field name="df_brand_id"/>
+                            <field name="df_stock_type"/>
+                        </group>
+                        <group string="Stock Levels">
+                            <field name="df_min_stock"/>
+                            <field name="df_max_stock"/>
+                            <field name="df_min_order"/>
+                            <field name="df_order_multiples"/>
+                        </group>
+                    </group>
+                    <group col="2">
+                        <group string="Dimensions">
+                            <field name="df_length"/>
+                            <field name="df_width"/>
+                            <field name="df_height"/>
+                        </group>
+                        <group string="Trade &amp; Customs">
+                            <field name="df_hs_code"/>
+                            <field name="df_country_of_origin"/>
+                            <field name="df_economic_operator"/>
+                        </group>
+                    </group>
+                    <group col="2">
+                        <group string="Flags">
+                            <field name="df_stock_bio"/>
+                            <field name="df_stock_foodstuff"/>
+                            <field name="df_flag_cold_chain"/>
+                            <field name="df_flag_fragile"/>
+                            <field name="df_flag_hazardous"/>
+                        </group>
+                        <group string="Checks">
+                            <field name="df_check_expiry_dates"/>
+                            <field name="df_check_batches"/>
+                            <field name="df_check_serial_numbers"/>
+                        </group>
+                    </group>
+
                     <separator string="Stoqflow Synchronization"/>
                     <group col="2">
                         <group>
@@ -66,6 +107,47 @@
                     <separator string="Product Status"/>
                     <group>
                         <field name="df_url_prod" colspan="2" nolabel="1"/>
+                    </group>
+
+                    <separator string="Stoqflow Product Details"/>
+                    <group col="2">
+                        <group string="General">
+                            <field name="df_type"/>
+                            <field name="df_brand_id"/>
+                            <field name="df_stock_type"/>
+                        </group>
+                        <group string="Stock Levels">
+                            <field name="df_min_stock"/>
+                            <field name="df_max_stock"/>
+                            <field name="df_min_order"/>
+                            <field name="df_order_multiples"/>
+                        </group>
+                    </group>
+                    <group col="2">
+                        <group string="Dimensions">
+                            <field name="df_length"/>
+                            <field name="df_width"/>
+                            <field name="df_height"/>
+                        </group>
+                        <group string="Trade &amp; Customs">
+                            <field name="df_hs_code"/>
+                            <field name="df_country_of_origin"/>
+                            <field name="df_economic_operator"/>
+                        </group>
+                    </group>
+                    <group col="2">
+                        <group string="Flags">
+                            <field name="df_stock_bio"/>
+                            <field name="df_stock_foodstuff"/>
+                            <field name="df_flag_cold_chain"/>
+                            <field name="df_flag_fragile"/>
+                            <field name="df_flag_hazardous"/>
+                        </group>
+                        <group string="Checks">
+                            <field name="df_check_expiry_dates"/>
+                            <field name="df_check_batches"/>
+                            <field name="df_check_serial_numbers"/>
+                        </group>
                     </group>
 
                     <separator string="Stoqflow Synchronization"/>

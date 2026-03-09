@@ -11,7 +11,7 @@
     'website': "https://www.data-forge.be",
 
     'category': 'Uncategorized',
-    'version': '1.0',
+    'version': '1.2',
     'description': """
 Stoqflow Integration Module v1.0
 =================================
@@ -57,5 +57,6 @@ Features:
 
 'application': True,
 'installable': True,
-'auto_install': False
+'auto_install': False,
+'post_init_hook': 'migrate',
 }

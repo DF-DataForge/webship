@@ -38,6 +38,28 @@ class Product(models.Model):
         store=False
     )
 
+    # --- Stoqflow product fields (related to variant) ---
+    df_type = fields.Selection(related='product_variant_id.df_type', string='Stoqflow type', readonly=False)
+    df_brand_id = fields.Many2one(related='product_variant_id.df_brand_id', string='Stoqflow brand', readonly=False)
+    df_stock_type = fields.Selection(related='product_variant_id.df_stock_type', string='Stock type', readonly=False)
+    df_min_stock = fields.Integer(related='product_variant_id.df_min_stock', string='Min stock', readonly=False)
+    df_max_stock = fields.Integer(related='product_variant_id.df_max_stock', string='Max stock', readonly=False)
+    df_min_order = fields.Integer(related='product_variant_id.df_min_order', string='Min order qty', readonly=False)
+    df_order_multiples = fields.Integer(related='product_variant_id.df_order_multiples', string='Order multiples', readonly=False)
+    df_length = fields.Integer(related='product_variant_id.df_length', string='Length (mm)', readonly=False)
+    df_width = fields.Integer(related='product_variant_id.df_width', string='Width (mm)', readonly=False)
+    df_height = fields.Integer(related='product_variant_id.df_height', string='Height (mm)', readonly=False)
+    df_hs_code = fields.Char(related='product_variant_id.df_hs_code', string='HS code', readonly=False)
+    df_country_of_origin = fields.Char(related='product_variant_id.df_country_of_origin', string='Country of origin', readonly=False)
+    df_economic_operator = fields.Char(related='product_variant_id.df_economic_operator', string='Economic operator', readonly=False)
+    df_stock_bio = fields.Boolean(related='product_variant_id.df_stock_bio', string='Biological product', readonly=False)
+    df_stock_foodstuff = fields.Boolean(related='product_variant_id.df_stock_foodstuff', string='Food product', readonly=False)
+    df_flag_cold_chain = fields.Boolean(related='product_variant_id.df_flag_cold_chain', string='Cold chain', readonly=False)
+    df_flag_fragile = fields.Boolean(related='product_variant_id.df_flag_fragile', string='Fragile', readonly=False)
+    df_flag_hazardous = fields.Boolean(related='product_variant_id.df_flag_hazardous', string='Hazardous', readonly=False)
+    df_check_expiry_dates = fields.Boolean(related='product_variant_id.df_check_expiry_dates', string='Expiry dates', readonly=False)
+    df_check_batches = fields.Boolean(related='product_variant_id.df_check_batches', string='Batches', readonly=False)
+    df_check_serial_numbers = fields.Boolean(related='product_variant_id.df_check_serial_numbers', string='Serial numbers', readonly=False)
     def ws_sync_product(self):
         """Sync this product template to Webship by delegating to its single variant.
         Raises an error if the template has multiple variants since Webship

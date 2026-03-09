@@ -1466,6 +1466,51 @@ msgid "Properties"
 msgstr "Propri\u00e9t\u00e9s"
 
 #. module: webship
+#: code:addons/webship/models/ws.py:0
+msgid "SKU missing on product %s"
+msgstr "SKU manquant sur le produit %s"
+
+#. module: webship
+#: code:addons/webship/models/ws.py:0
+msgid "SKU not found in Stoqflow for product %s (code: %s)"
+msgstr "SKU introuvable dans Stoqflow pour le produit %s (code : %s)"
+
+#. module: webship
+#: code:addons/webship/models/ws.py:0
+msgid "No syncable items found on this picking"
+msgstr "Aucun article synchronisable trouv\u00e9 sur ce transfert"
+
+#. module: webship
+#: code:addons/webship/models/ws.py:0
+msgid "Supplier does not exist in Stoqflow"
+msgstr "Le fournisseur n'existe pas dans Stoqflow"
+
+#. module: webship
+#: model:ir.model.fields,selection:webship.field_stock_picking__df_process_code__P
+msgid "Pending"
+msgstr "En attente"
+
+#. module: webship
+#: model:ir.model.fields,selection:webship.field_stock_picking__df_process_code__F
+msgid "Finished"
+msgstr "Termin\u00e9"
+
+#. module: webship
+#: model:ir.model.fields,selection:webship.field_stock_picking__df_process_code__E
+msgid "Error"
+msgstr "Erreur"
+
+#. module: webship
+#: model:ir.model.fields,selection:webship.field_stock_picking__df_process_code__M
+msgid "Manual"
+msgstr "Manuel"
+
+#. module: webship
+#: model:ir.model.fields,selection:webship.field_stock_picking__df_process_code__NA
+msgid "Not Applicable"
+msgstr "Non applicable"
+
+#. module: webship
 #: model:ir.model.fields,field_description:webship.field_webship_parcel__df_number
 msgid "#"
 msgstr "#"
