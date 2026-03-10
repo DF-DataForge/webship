@@ -5,7 +5,8 @@
 #
 # Stoqflow API context:
 #   - Outbound pickings (source is Webship location) -> synced as "orders"
-#     via POST/PUT /orders with statuses: concept, ready-to-pick, on-hold, completed
+#     via POST/PUT /orders with statuses: concept, awaiting-payment, ready-to-pick,
+#     picking, ready-to-pack, packing, ready-to-ship, on-hold, completed, cancelled
 #   - Inbound pickings (destination is Webship location) -> synced as "purchase-orders"
 #     via POST/PUT /purchase-orders with statuses: concept, ordered, completed
 #   - Authentication: HTTP Basic Auth + x-addon-public-key header
@@ -43,11 +44,14 @@ class StockPicking(models.Model):
     # Current status of this picking in Stoqflow (e.g. 'ready-to-pick', 'completed')
     df_status_webship = fields.Selection([
         ('concept', 'Concept'),
+        ('awaiting-payment', 'Awaiting Payment'),
         ('ordered', 'Ordered'),
         ('on-hold', 'On Hold'),
         ('ready-to-pick', 'Ready to Pick'),
         ('picking', 'Picking'),
+        ('ready-to-pack', 'Ready to Pack'),
         ('packing', 'Packing'),
+        ('ready-to-ship', 'Ready to Ship'),
         ('completed', 'Completed'),
         ('cancelled', 'Cancelled'),
     ], string='Status in Stoqflow', readonly=True)
@@ -114,7 +118,7 @@ class StockPicking(models.Model):
         for record in self:
             record.df_show_pick_analysis_tab = show
 
-    def _populate_pick_analysis(self, data):
+    def _populate_pick_analysis(self, data, wsHandler=None):
         """Build pick analysis lines from a Stoqflow order JSON payload.
         Called after setPickingQuantities during fetch quantities.
 
@@ -138,6 +142,44 @@ class StockPicking(models.Model):
             return
 
         self.env.flush_all()
+
+        # ----- Fetch Stoqflow product info via GET /products?subset=... -----
+        ws_product_info = {}  # ws_id -> {'sku': ..., 'name': ...}
+        if wsHandler:
+            all_ws_ids = set()
+            for pick in picks:
+                if pick.get('product_id'):
+                    all_ws_ids.add(pick['product_id'])
+                if pick.get('parent_product_id'):
+                    all_ws_ids.add(pick['parent_product_id'])
+            if all_ws_ids:
+                subset_param = '?subset=%s&fields=sku,name' % ','.join(all_ws_ids)
+                _logger.info(
+                    "pick_analysis [%s]: fetching %d Stoqflow products via subset",
+                    self.name, len(all_ws_ids),
+                )
+                try:
+                    result = wsHandler.performGet('products', subset_param)
+                    if result.get('status') == 'success' and isinstance(result.get('data'), list):
+                        for prod in result['data']:
+                            ws_product_info[prod['_id']] = {
+                                'sku': prod.get('sku', ''),
+                                'name': prod.get('name', ''),
+                            }
+                        _logger.info(
+                            "pick_analysis [%s]: fetched %d Stoqflow products",
+                            self.name, len(ws_product_info),
+                        )
+                    else:
+                        _logger.warning(
+                            "pick_analysis [%s]: failed to fetch Stoqflow products: %s",
+                            self.name, result,
+                        )
+                except Exception:
+                    _logger.exception(
+                        "pick_analysis [%s]: error fetching Stoqflow products",
+                        self.name,
+                    )
 
         # ----- Build packaging lookup: Stoqflow ID -> (parent product, packaging record) -----
         pkg_ws_id_to_info = {}
@@ -224,10 +266,18 @@ class StockPicking(models.Model):
             is_sub = bool(ws_parent_pid and ws_parent_pid != ws_pid)
             ordered_ws_id = ws_parent_pid if ws_parent_pid else ws_pid
 
+            # Stoqflow product info from API
+            product_info = ws_product_info.get(ws_pid, {})
+            parent_info = ws_product_info.get(ws_parent_pid, {}) if ws_parent_pid else {}
+
             lines.append((0, 0, {
                 'sequence': idx,
                 'ws_product_id': ws_pid,
+                'ws_product_sku': product_info.get('sku', ''),
+                'ws_product_name': product_info.get('name', ''),
                 'ws_parent_product_id': ws_parent_pid or '',
+                'ws_parent_product_sku': parent_info.get('sku', ''),
+                'ws_parent_product_name': parent_info.get('name', ''),
                 'ws_lookup_id': lookup_id,
                 'odoo_product_id': odoo_product_id,
                 'is_box': is_box,
@@ -668,7 +718,7 @@ class StockPicking(models.Model):
 
         _logger.info("fetchQuantities: %s -> calling setPickingQuantities", record.name)
         wsHandler.setPickingQuantities(record, data)
-        record._populate_pick_analysis(data)
+        record._populate_pick_analysis(data, wsHandler=wsHandler)
         record.df_ws_lastChangeDate = sEdited
 
     def make_backorder(self):

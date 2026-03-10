@@ -11,7 +11,11 @@ class PickAnalysisLine(models.Model):
 
     # Raw Stoqflow IDs from the pick payload
     ws_product_id = fields.Char(string='Stoqflow Product ID')
+    ws_product_sku = fields.Char(string='Stoqflow Product SKU')
+    ws_product_name = fields.Char(string='Stoqflow Product Name')
     ws_parent_product_id = fields.Char(string='Stoqflow Parent Product ID')
+    ws_parent_product_sku = fields.Char(string='Stoqflow Parent Product SKU')
+    ws_parent_product_name = fields.Char(string='Stoqflow Parent Product Name')
 
     # The Stoqflow ID that was used for the counting lookup
     # (parent_product_id when present, otherwise product_id)

@@ -121,8 +121,12 @@
                             <field name="is_total_line" column_invisible="1"/>
                             <field name="sequence" string="#"/>
                             <field name="ws_product_id" string="product_id"/>
+                            <field name="ws_product_sku" string="SKU"/>
+                            <field name="ws_product_name" string="Name"/>
                             <field name="ws_parent_product_id" string="parent_product_id"/>
-                            <field name="odoo_product_id" string="Product"/>
+                            <field name="ws_parent_product_sku" string="Parent SKU"/>
+                            <field name="ws_parent_product_name" string="Parent Name"/>
+                            <field name="odoo_product_id" string="Product in Odoo"/>
                             <field name="is_box" string="Box?"/>
                             <field name="packaging_id" string="Packaging"/>
                             <field name="packaging_qty" string="Qty/Box"/>

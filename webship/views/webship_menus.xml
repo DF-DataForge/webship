@@ -33,9 +33,13 @@
                 <filter string="Ready to Pick" name="status_ready"
                         domain="[('df_status_webship', '=', 'ready-to-pick')]"/>
                 <filter string="Picking / Packing" name="status_in_progress"
-                        domain="[('df_status_webship', 'in', ('picking', 'packing'))]"/>
+                        domain="[('df_status_webship', 'in', ('picking', 'ready-to-pack', 'packing'))]"/>
+                <filter string="Ready to Ship" name="status_ready_to_ship"
+                        domain="[('df_status_webship', '=', 'ready-to-ship')]"/>
                 <filter string="On Hold" name="status_on_hold"
                         domain="[('df_status_webship', '=', 'on-hold')]"/>
+                <filter string="Awaiting Payment" name="status_awaiting_payment"
+                        domain="[('df_status_webship', '=', 'awaiting-payment')]"/>
                 <filter string="Concept" name="status_concept"
                         domain="[('df_status_webship', '=', 'concept')]"/>
                 <filter string="Cancelled" name="status_cancelled"
@@ -121,9 +125,9 @@
                 <field name="partner_id"/>
                 <field name="df_status_webship"
                        widget="badge"
-                       decoration-success="df_status_webship == 'completed'"
-                       decoration-info="df_status_webship in ('ready-to-pick', 'picking', 'packing')"
-                       decoration-warning="df_status_webship in ('on-hold', 'concept')"
+                       decoration-success="df_status_webship in ('completed', 'ready-to-ship')"
+                       decoration-info="df_status_webship in ('ready-to-pick', 'picking', 'ready-to-pack', 'packing')"
+                       decoration-warning="df_status_webship in ('on-hold', 'concept', 'awaiting-payment')"
                        decoration-muted="df_status_webship in ('ordered', False)"
                        decoration-danger="df_status_webship == 'cancelled'"/>
                 <field name="df_picking_syncresult_webship" widget="html"/>

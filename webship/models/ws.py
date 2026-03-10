@@ -1364,14 +1364,26 @@ class WebShipHandler:
                 try:
                     sPicking.make_backorder()
 
-                    _logger.info('Calling _action_done for picking %s', sPicking.name)
+                    _logger.info('Calling button_validate for picking %s', sPicking.name)
 
-                    sPicking.button_validate()
+                    validate_result = sPicking.button_validate()
+
+                    # button_validate may return a wizard action instead of actually validating
+                    if isinstance(validate_result, dict) and validate_result.get('type') == 'ir.actions.act_window':
+                        wizard_name = validate_result.get('res_model', 'unknown wizard')
+                        _logger.warning(
+                            'button_validate for %s returned wizard action: %s',
+                            sPicking.name, wizard_name
+                        )
+                        warnings.append(
+                            "Validation blocked by wizard: %s. Manual validation required." % wizard_name
+                        )
 
                     if sPicking.state != 'done':
+                        _logger.info('Calling _action_done for picking %s (state still %s)', sPicking.name, sPicking.state)
                         sPicking._action_done()
 
-                    _logger.info('Picking %s validated successfully', sPicking.name)
+                    _logger.info('Picking %s validated successfully (state: %s)', sPicking.name, sPicking.state)
 
                 except Exception as e:
                     error_msg = str(e)
@@ -1382,23 +1394,81 @@ class WebShipHandler:
                     )
 
                     warnings.append("Validation error: %s" % error_msg)
+
+                # Check if picking is still not done after validation attempt
+                if sPicking.state != 'done':
+                    short_lines = sPicking.move_ids.filtered(
+                        lambda m: m.state not in ('cancel', 'done') and m.quantity != m.product_uom_qty
+                    )
+                    if short_lines:
+                        line_details = []
+                        for m in short_lines:
+                            line_details.append(
+                                '%s: %s of %s %s' % (
+                                    m.product_id.display_name,
+                                    m.quantity, m.product_uom_qty,
+                                    m.product_uom.name
+                                )
+                            )
+                        msg = 'Picking not set to done. Quantity mismatch on: %s' % '; '.join(line_details)
+                    else:
+                        msg = 'Picking not set to done after validation (state: %s). Check move states: %s' % (
+                            sPicking.state,
+                            ', '.join('%s (%s)' % (m.product_id.display_name, m.state) for m in sPicking.move_ids)
+                        )
+                    warnings.append(msg)
+                    _logger.warning('setPickingQuantities: %s for %s', msg, sPicking.name)
             else:
                 short_lines = sPicking.move_ids.filtered(
                     lambda m: m.state not in ('cancel', 'done') and m.quantity < m.product_uom_qty
                 )
                 if short_lines:
                     line_names = ', '.join(short_lines.mapped(lambda m: m.product_id.display_name))
-                    msg = 'Quantities not met on lines: %s. Could not complete picking.' % line_names
-                else:
-                    msg = 'Auto-create backorder is disabled. Could not complete picking.'
+                    msg = 'Quantities not met on lines: %s. Auto-create backorder is disabled, could not complete picking.' % line_names
 
-                _logger.info(
-                    'Picking %s: %s',
-                    sPicking.name, msg
-                )
-                sPicking.df_picking_syncresult_webship = (
-                    '<span style="color:red;">%s</span>' % msg
-                )
+                    _logger.info(
+                        'Picking %s: %s',
+                        sPicking.name, msg
+                    )
+                    sPicking.df_picking_syncresult_webship = (
+                        '<span style="color:red;">%s</span>' % msg
+                    )
+                else:
+                    # All quantities match demand - safe to validate without backorder
+                    try:
+                        _logger.info('Calling button_validate for picking %s (no backorder needed)', sPicking.name)
+                        validate_result = sPicking.button_validate()
+
+                        if isinstance(validate_result, dict) and validate_result.get('type') == 'ir.actions.act_window':
+                            wizard_name = validate_result.get('res_model', 'unknown wizard')
+                            _logger.warning(
+                                'button_validate for %s returned wizard action: %s',
+                                sPicking.name, wizard_name
+                            )
+                            warnings.append(
+                                "Validation blocked by wizard: %s. Manual validation required." % wizard_name
+                            )
+
+                        if sPicking.state != 'done':
+                            sPicking._action_done()
+
+                        _logger.info('Picking %s validated successfully (state: %s)', sPicking.name, sPicking.state)
+
+                    except Exception as e:
+                        error_msg = str(e)
+                        _logger.exception(
+                            "Error while validating picking %s from Webship",
+                            sPicking.name
+                        )
+                        warnings.append("Validation error: %s" % error_msg)
+
+                    if sPicking.state != 'done':
+                        msg = 'Picking not set to done after validation (state: %s). Check move states: %s' % (
+                            sPicking.state,
+                            ', '.join('%s (%s)' % (m.product_id.display_name, m.state) for m in sPicking.move_ids)
+                        )
+                        warnings.append(msg)
+                        _logger.warning('setPickingQuantities: %s for %s', msg, sPicking.name)
 
         if oldStatus != newStatus:
             sPicking.df_status_webship = newStatus
