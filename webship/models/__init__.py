@@ -20,3 +20,5 @@ from . import stoqflow_order_report
 from . import json_history
 from . import webship_parcel
 from . import pick_analysis
+from . import stoqflow_courier
+from . import delivery

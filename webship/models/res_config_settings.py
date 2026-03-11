@@ -103,6 +103,17 @@ class ResConfigSettings(models.TransientModel):
     webship_fallback_sale_order_contact = fields.Boolean(string="Fallback to sale order contact for phone/email", config_parameter='webship.fallback_sale_order_contact',
                                                           help="When enabled, if the contact on the picking is missing a phone number or email address, the phone number or email address from the main contact on the attached sale order is used instead.")
 
+    # --- Courier Settings ---
+    # When enabled, the preferred_courier from Stoqflow orders is mapped to the carrier on the picking
+    webship_fetch_courier = fields.Boolean(
+        string="Map courier from Stoqflow",
+        default=True,
+        config_parameter='webship.fetch_courier',
+        help="When enabled, the preferred_courier field from Stoqflow orders is used to "
+             "automatically set the delivery carrier on Odoo pickings. If the courier is not "
+             "linked to a delivery carrier in Odoo, a warning is shown in the sync result.",
+    )
+
     # Test field for entering a product SKU (used for debugging)
     testSku = fields.Char(string="Enter SKU", help="Enter a product SKU for testing Stoqflow API calls.")
 
@@ -405,6 +416,57 @@ class ResConfigSettings(models.TransientModel):
 
                     if not sResult:
                         self.env['webship.warehouse'].create({'warehouse_id':w['_id'], 'name':w['name']})
+
+    def ws_fetch_couriers(self):
+        """Fetch all couriers from Stoqflow (GET /couriers) and create/update stoqflow.courier records.
+        This populates the stoqflow.courier model so couriers can be linked to Odoo delivery carriers."""
+        wsHandler = self.getHandler()
+        sData = wsHandler.fetchCouriers()
+
+        count_created = 0
+        count_existing = 0
+
+        if sData['status'] == 'success':
+            for page in sData['data'].values():
+                # API may return a dict (keyed by courier id) or a list
+                items = page.values() if isinstance(page, dict) else page
+                for courier in items:
+                    if isinstance(courier, dict):
+                        courier_name = courier.get('name', '')
+                        courier_code = courier.get('courier', '') or courier.get('_id', '')
+                    elif isinstance(courier, str):
+                        courier_name = courier
+                        courier_code = courier
+                    else:
+                        continue
+
+                    if not courier_code:
+                        continue
+
+                    existing = self.env['stoqflow.courier'].search([('code', '=', courier_code)], limit=1)
+                    if existing:
+                        if courier_name and existing.name != courier_name:
+                            existing.name = courier_name
+                        count_existing += 1
+                    else:
+                        self.env['stoqflow.courier'].create({
+                            'name': courier_name or courier_code,
+                            'code': courier_code,
+                        })
+                        count_created += 1
+
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': 'Stoqflow Couriers',
+                'message': '%d couriers loaded (%d new, %d already existed).' % (
+                    count_created + count_existing, count_created, count_existing,
+                ),
+                'type': 'success',
+                'sticky': False,
+            },
+        }
 
     def ws_match_clients_email(self):
         """Batch match Stoqflow clients to Odoo partners by email address (and/or VAT).

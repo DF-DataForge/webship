@@ -177,6 +177,12 @@ class WebShipHandler:
 
         return sResult
 
+    def fetchCouriers(self):
+        """Fetch all couriers from Stoqflow (GET /couriers)."""
+        sResult = self.fetchAll('couriers')
+
+        return sResult
+
     def fetchClients(self):
         """Fetch all clients from Webship (low detail)."""
         sResult = self.fetchAll('clients', 'low')
@@ -1077,6 +1083,30 @@ class WebShipHandler:
                 sPicking.df_carrier_tracking_urls = tracking_urls
 
             self._sync_parcels(sPicking, parcels)
+
+        # Map StoqFlow preferred_courier -> Odoo carrier_id
+        preferred_courier = order.get('preferred_courier')
+        if preferred_courier and hasattr(self, 'env'):
+            fetch_courier_enabled = self.env['ir.config_parameter'].sudo().get_param(
+                'webship.fetch_courier', 'True'
+            )
+            if fetch_courier_enabled and fetch_courier_enabled != 'False':
+                carrier = sPicking.env['delivery.carrier'].stoqflow_find_delivery_carrier(preferred_courier)
+                if carrier:
+                    if sPicking.carrier_id != carrier:
+                        sPicking.carrier_id = carrier.id
+                        _logger.info(
+                            "setPickingQuantities: set carrier_id to '%s' for picking %s",
+                            carrier.name, sPicking.name,
+                        )
+                else:
+                    warnings.append(
+                        "Courier '%s' present on Stoqflow order but not linked in Odoo" % preferred_courier
+                    )
+                    _logger.warning(
+                        "setPickingQuantities: courier '%s' not linked in Odoo for picking %s",
+                        preferred_courier, sPicking.name,
+                    )
 
         if order.get('status') == 'completed':
             # ------------------------------------------------------------
@@ -2203,6 +2233,22 @@ class WebShipHandler:
 
                 picking.df_status_webship = responseData['status']
 
+                # Map StoqFlow preferred_courier -> Odoo carrier_id
+                preferred_courier = responseData.get('preferred_courier')
+                if preferred_courier and hasattr(self, 'env'):
+                    fetch_courier_enabled = self.env['ir.config_parameter'].sudo().get_param(
+                        'webship.fetch_courier', 'True'
+                    )
+                    if fetch_courier_enabled and fetch_courier_enabled != 'False':
+                        carrier = picking.env['delivery.carrier'].stoqflow_find_delivery_carrier(preferred_courier)
+                        if carrier:
+                            if picking.carrier_id != carrier:
+                                picking.carrier_id = carrier.id
+                        else:
+                            errors.append(
+                                "Courier '%s' present on Stoqflow order but not linked in Odoo" % preferred_courier
+                            )
+
                 if 'edited' in responseData:
                     latestChange = responseData['edited']
                 else:
@@ -2223,7 +2269,7 @@ class WebShipHandler:
                     #except:
                     #    return ['Error while setting state to done on sale order']
 
-                return []
+                return errors
             else:
                 errors.append(response.text)
                 return errors

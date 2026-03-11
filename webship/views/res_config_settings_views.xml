@@ -79,6 +79,28 @@
                             </setting>
                         </block>
 
+                        <!-- Couriers: load and link Stoqflow couriers to Odoo delivery carriers -->
+                        <block title="Couriers" id="ws_couriers_block">
+                            <setting string="Courier Mapping" help="Map couriers from Stoqflow to delivery carriers in Odoo.">
+                                <group>
+                                    <field name="webship_fetch_courier"/>
+                                </group>
+                                <div class="text-muted">
+                                    When enabled, the preferred courier from Stoqflow orders is automatically mapped
+                                    to the delivery carrier on the Odoo picking. If a courier is not yet linked, a
+                                    warning is shown in the sync result.
+                                </div>
+                                <div class="mt16">
+                                    <button icon="oi-arrow-right" name="ws_fetch_couriers" type="object"
+                                            string="Load couriers from Stoqflow" class="btn-link"/>
+                                </div>
+                                <div class="mt8">
+                                    <button icon="oi-arrow-right" type="action" name="%(stoqflow_courier_action)d"
+                                            string="Manage Stoqflow couriers" class="btn-link"/>
+                                </div>
+                            </setting>
+                        </block>
+
                         <!-- Contact Matching: configure how contacts are looked up in Stoqflow -->
                         <block title="Contact Matching" id="ws_contact_matching_block">
                             <setting string="Matching Sequence" help="Choose how Odoo searches for an existing client in Stoqflow before creating a new one. The matching sequence determines which field(s) are used and in what order.">

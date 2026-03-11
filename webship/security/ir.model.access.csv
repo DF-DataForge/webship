@@ -12,3 +12,4 @@ access_webship_parcel_resource,webship.parcel.resource,model_webship_parcel_reso
 access_webship_pick_analysis_line,webship.pick.analysis.line,model_webship_pick_analysis_line,base.group_user,1,1,1,1
 access_webship_select_client,webship.select.client,model_webship_select_client,base.group_user,1,1,1,1
 access_webship_select_client_line,webship.select.client.line,model_webship_select_client_line,base.group_user,1,1,1,1
+access_stoqflow_courier,stoqflow.courier,model_stoqflow_courier,base.group_user,1,1,1,1

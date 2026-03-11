@@ -40,6 +40,8 @@ Features:
         'views/stoqflow_dashboard_views.xml',
         'views/stoqflow_product_report_views.xml',
         'views/stoqflow_partner_report_views.xml',
+        'views/stoqflow_courier_views.xml',
+        'views/delivery_carrier_views.xml',
         'views/webship_menus.xml',
         'views/product_views.xml',
         'views/product_category_views.xml',

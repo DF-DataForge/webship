@@ -201,6 +201,18 @@
               action="stoqflow_partner_report_action"
               sequence="2"/>
 
+    <!-- Configuration Menu -->
+    <menuitem id="webship_config_menu"
+              name="Configuration"
+              parent="webship_root_menu"
+              sequence="8"/>
+
+    <menuitem id="webship_config_couriers"
+              name="Stoqflow Couriers"
+              parent="webship_config_menu"
+              action="stoqflow_courier_action"
+              sequence="1"/>
+
     <!-- Dashboard Menu -->
     <menuitem id="webship_dashboard_menu"
               name="Dashboard"

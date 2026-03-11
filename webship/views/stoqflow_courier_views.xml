@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <data>
+        <record id="stoqflow_courier_form_view" model="ir.ui.view">
+            <field name="name">stoqflow.courier.form</field>
+            <field name="model">stoqflow.courier</field>
+            <field name="arch" type="xml">
+                <form string="Stoqflow Courier">
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="name"/>
+                                <field name="code"/>
+                            </group>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="stoqflow_courier_tree_view" model="ir.ui.view">
+            <field name="name">stoqflow.courier.tree</field>
+            <field name="model">stoqflow.courier</field>
+            <field name="arch" type="xml">
+                <tree string="Stoqflow Couriers">
+                    <field name="name"/>
+                    <field name="code"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="stoqflow_courier_action" model="ir.actions.act_window">
+            <field name="name">Stoqflow Couriers</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">stoqflow.courier</field>
+            <field name="view_mode">tree,form</field>
+        </record>
+    </data>
+</odoo>
