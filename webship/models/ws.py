@@ -838,6 +838,7 @@ class WebShipHandler:
                     if existing['status'] == 'success' and len(existing.get('data', [])) > 0:
                         return ['Email already exists in Stoqflow. Use the "Match" button to link this client.']
 
+                sJson.pop('client_number', None)
                 result = self.performPost('clients', sJson)
                 if result['status'] == 'success':
                     partner.df_client_id_webship = result['data']['_id']
