@@ -820,9 +820,9 @@ class WebShipHandler:
                 sCountryCode = 'BE'
             sJson = {'name':generalName, 'contact':contactName, 'email':partner.email, 'phone':partner.phone, 'mobile':getattr(partner, 'mobile', None), 'vat':partner.vat, 'addresses': {'billing':{'address_1':partner.street, 'city':partner.city, 'postal_code':partner.zip, 'country':sCountryCode}}}
 
-            sClientNumber = f"CO{partner.id:07d}"
-
-            sJson['client_number'] = sClientNumber
+            # Do not generate a client number here; Stoqflow assigns it on its
+            # side. Sending a self-generated number causes a "client number must
+            # be unique" error when updating an existing client.
 
             if deliveryAdress.id != False:
                 sJson['addresses']['shipping'] = shippingAdress
@@ -838,7 +838,6 @@ class WebShipHandler:
                     if existing['status'] == 'success' and len(existing.get('data', [])) > 0:
                         return ['Email already exists in Stoqflow. Use the "Match" button to link this client.']
 
-                sJson.pop('client_number', None)
                 result = self.performPost('clients', sJson)
                 if result['status'] == 'success':
                     partner.df_client_id_webship = result['data']['_id']
