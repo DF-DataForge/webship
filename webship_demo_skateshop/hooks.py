@@ -70,6 +70,7 @@ def _validate(picking, date_done=None):
 def _purchase(env, vendor, lines, picking_type, days_ago=0, receive=False):
     po = env['purchase.order'].create({
         'partner_id': vendor.id,
+        'user_id': env.ref('base.user_admin').id,
         'picking_type_id': picking_type.id,
         'date_order': _days_ago(days_ago),
         'order_line': [
@@ -87,6 +88,9 @@ def _purchase(env, vendor, lines, picking_type, days_ago=0, receive=False):
 def _sell(env, customer, lines, warehouse, days_ago=0, confirm=True, deliver=False, website=None):
     so = env['sale.order'].create({
         'partner_id': customer.id,
+        # The hook runs as OdooBot; make the admin the salesperson so the
+        # orders show up under the default "My Quotations" filter.
+        'user_id': env.ref('base.user_admin').id,
         'warehouse_id': warehouse.id,
         'website_id': website.id if website else False,
         'date_order': _days_ago(days_ago),
@@ -107,6 +111,7 @@ def _sell(env, customer, lines, warehouse, days_ago=0, confirm=True, deliver=Fal
 def _manufacture(env, product, qty, warehouse, days_ago=0, produce=False):
     mo = env['mrp.production'].create({
         'product_id': product.id,
+        'user_id': env.ref('base.user_admin').id,
         'product_qty': qty,
         'picking_type_id': warehouse.manu_type_id.id,
         'date_start': _days_ago(days_ago),
@@ -516,6 +521,7 @@ def _run_assembly_flow(env, partners, products, wks, sqf):
     # Reorder of trucks, still a request for quotation
     env['purchase.order'].create({
         'partner_id': partners['truckline'].id,
+        'user_id': env.ref('base.user_admin').id,
         'picking_type_id': wks.in_type_id.id,
         'order_line': [Command.create({'product_id': comp['truck_139'].id, 'product_qty': 40})],
     })
