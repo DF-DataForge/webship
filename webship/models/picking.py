@@ -183,7 +183,7 @@ class StockPicking(models.Model):
 
         # ----- Build packaging lookup: Stoqflow ID -> (parent product, packaging record) -----
         pkg_ws_id_to_info = {}
-        all_packaging = self.env['product.packaging'].sudo().search([
+        all_packaging = self.env['webship.packaging'].sudo().search([
             ('df_product_id_webship', '!=', False)
         ])
         for pkg in all_packaging:
@@ -592,7 +592,7 @@ class StockPicking(models.Model):
             available_qty = move_line.product_id.with_context(
                 location=move_line.location_id.id
             ).qty_available
-            if available_qty < move_line.qty_done or available_qty < move_line.product_uom_qty:
+            if available_qty < move_line.quantity_product_uom:
                 return False
         return True
 

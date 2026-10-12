@@ -18,6 +18,9 @@ class Productvar(models.Model):
     # Webship product ID (set when the product is synced or matched)
     df_product_id_webship = fields.Char("Product id Stoqflow", readonly=True)
 
+    # Packaging units of this product that have their own SKU in Stoqflow
+    ws_packaging_ids = fields.One2many('webship.packaging', 'product_id', string="Stoqflow packagings")
+
     # Webship-specific product type classification determining how the product
     # is handled in the warehouse (basic, virtual, composite, derivative)
     df_productType = fields.Selection(

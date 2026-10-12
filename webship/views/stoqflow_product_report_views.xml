@@ -11,7 +11,7 @@
         <field name="model">product.product</field>
         <field name="priority">50</field>
         <field name="arch" type="xml">
-            <tree string="Stoqflow Products"
+            <list string="Stoqflow Products"
                   create="false"
                   edit="false"
                   default_order="write_date desc">
@@ -27,7 +27,7 @@
                 <field name="df_product_lastsync_webship" string="Last Sync"/>
                 <field name="df_product_syncresult_webship" widget="html" string="Sync Result"/>
                 <field name="df_product_do_not_send_webship" string="Excluded"/>
-            </tree>
+            </list>
         </field>
     </record>
 
@@ -55,7 +55,7 @@
                 <filter string="Active for Sync" name="active_sync"
                         domain="[('df_product_do_not_send_webship', '=', False)]"/>
                 <separator/>
-                <group expand="0" string="Group By">
+                <group>
                     <filter string="Category" name="group_category"
                             context="{'group_by': 'categ_id'}"/>
                     <filter string="Sync Result" name="group_sync_result"
@@ -71,7 +71,7 @@
     <record id="stoqflow_product_report_action" model="ir.actions.act_window">
         <field name="name">Products in Stoqflow</field>
         <field name="res_model">product.product</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">list,form</field>
         <field name="search_view_id" ref="stoqflow_product_report_search_view"/>
         <field name="domain">[('df_product_id_webship', '!=', False)]</field>
         <field name="help" type="html">
@@ -87,7 +87,7 @@
     <!-- Explicit view binding so Odoo uses our custom tree, not the default -->
     <record id="stoqflow_product_report_action_tree" model="ir.actions.act_window.view">
         <field name="sequence" eval="1"/>
-        <field name="view_mode">tree</field>
+        <field name="view_mode">list</field>
         <field name="view_id" ref="stoqflow_product_report_tree_view"/>
         <field name="act_window_id" ref="stoqflow_product_report_action"/>
     </record>

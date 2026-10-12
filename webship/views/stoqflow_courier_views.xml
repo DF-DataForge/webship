@@ -22,10 +22,10 @@
             <field name="name">stoqflow.courier.tree</field>
             <field name="model">stoqflow.courier</field>
             <field name="arch" type="xml">
-                <tree string="Stoqflow Couriers">
+                <list string="Stoqflow Couriers">
                     <field name="name"/>
                     <field name="code"/>
-                </tree>
+                </list>
             </field>
         </record>
 
@@ -33,7 +33,7 @@
             <field name="name">Stoqflow Couriers</field>
             <field name="type">ir.actions.act_window</field>
             <field name="res_model">stoqflow.courier</field>
-            <field name="view_mode">tree,form</field>
+            <field name="view_mode">list,form</field>
         </record>
     </data>
 </odoo>

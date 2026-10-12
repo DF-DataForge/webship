@@ -427,8 +427,8 @@ class WebShipHandler:
                 continue
             if p.product_id.code != False:
                 skus.append(p.product_id.code)
-            if hasattr(p.product_id, "packaging_ids") and p.product_id.packaging_ids:
-                for i in p.product_id.packaging_ids:
+            if p.product_id.ws_packaging_ids:
+                for i in p.product_id.ws_packaging_ids:
                     if i.df_sku_webship != False:
                         skus.append(i.df_sku_webship)
 
@@ -462,8 +462,8 @@ class WebShipHandler:
 
         # Store Webship product IDs on packaging records for quantity resolution
         for p in picking.move_ids:
-            if hasattr(p.product_id, "packaging_ids") and p.product_id.packaging_ids:
-                for pkg in p.product_id.packaging_ids:
+            if p.product_id.ws_packaging_ids:
+                for pkg in p.product_id.ws_packaging_ids:
                     if pkg.df_sku_webship and pkg.df_sku_webship in items:
                         pkg.df_product_id_webship = items[pkg.df_sku_webship]
                         _logger.info(
@@ -876,8 +876,8 @@ class WebShipHandler:
 
             divs = []
             sorted_skuList = []
-            if hasattr(i.product_id, "packaging_ids") and i.product_id.packaging_ids:
-                for j in i.product_id.packaging_ids:
+            if i.product_id.ws_packaging_ids:
+                for j in i.product_id.ws_packaging_ids:
                     if j.df_sku_webship != False and j.qty>0.0:
                         divs.append({'naam':j.name, 'Qty':j.qty, 'Sku':j.df_sku_webship})
 
@@ -1129,8 +1129,8 @@ class WebShipHandler:
                         _logger.warning("setPickingQuantities: %s", msg)
 
                 # Ensure packaging records have their Webship product IDs
-                if hasattr(m.product_id, 'packaging_ids') and m.product_id.packaging_ids:
-                    for pkg in m.product_id.packaging_ids:
+                if m.product_id.ws_packaging_ids:
+                    for pkg in m.product_id.ws_packaging_ids:
                         if pkg.df_sku_webship and not pkg.df_product_id_webship:
                             pkgId = self.findProductBySku(pkg.df_sku_webship)
                             if isinstance(pkgId, dict) and 'id' in pkgId:
@@ -1206,8 +1206,8 @@ class WebShipHandler:
             # Include ALL moves (even done/cancel) so the lookup table is
             # complete – this is read-only and does not modify any records.
             for m in sPicking.move_ids:
-                if hasattr(m.product_id, 'packaging_ids') and m.product_id.packaging_ids:
-                    for pkg in m.product_id.packaging_ids:
+                if m.product_id.ws_packaging_ids:
+                    for pkg in m.product_id.ws_packaging_ids:
                         if pkg.df_product_id_webship:
                             packaging_map[pkg.df_product_id_webship] = (
                                 m.product_id.df_product_id_webship,
@@ -1351,7 +1351,7 @@ class WebShipHandler:
                             product_label = "Stoqflow ID '%s'" % webship_pid
                     else:
                         # Fallback: check if the Stoqflow ID belongs to a packaging record
-                        pkg = self.env['product.packaging'].sudo().search(
+                        pkg = self.env['webship.packaging'].sudo().search(
                             [('df_product_id_webship', '=', webship_pid)], limit=1
                         )
                         if pkg and pkg.product_id:
@@ -1956,7 +1956,7 @@ class WebShipHandler:
             'name': product.name,
             'price': product.standard_price,
             'retail_price': product.lst_price,
-            'has_stock': product.detailed_type == 'product',
+            'has_stock': product.is_storable,
         }
 
         # Description (from Odoo sale description)

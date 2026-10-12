@@ -40,7 +40,7 @@ def migrate(cr, version):
         if p.df_product_id_webship:
             ws_id_to_label[p.df_product_id_webship] = _make_label(p.name, p.default_code or '')
 
-    all_pkgs = env['product.packaging'].sudo().search([('df_product_id_webship', '!=', False)])
+    all_pkgs = env['webship.packaging'].sudo().search([('df_product_id_webship', '!=', False)])
     for pkg in all_pkgs:
         if pkg.df_product_id_webship and pkg.df_product_id_webship not in ws_id_to_label:
             if pkg.product_id:

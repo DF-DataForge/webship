@@ -8,6 +8,4 @@ class StoqflowCourier(models.Model):
     name = fields.Char(string='Name', required=True)
     code = fields.Char(string='Code', required=True)
 
-    _sql_constraints = [
-        ('code_unique', 'UNIQUE(code)', 'Courier code must be unique!'),
-    ]
+    _code_unique = models.Constraint('UNIQUE(code)', 'Courier code must be unique!')
