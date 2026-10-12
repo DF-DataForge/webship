@@ -64,6 +64,22 @@
                         </group>
                     </group>
 
+                    <separator string="Stoqflow Packagings"/>
+                    <field name="ws_packaging_ids" nolabel="1" context="{'default_product_id': id}">
+                        <list editable="bottom">
+                            <field name="name"/>
+                            <field name="qty"/>
+                            <field name="df_sku_webship"/>
+                            <field name="df_product_id_webship" optional="hide"/>
+                            <button name="ws_match_packaging"
+                                    type="object"
+                                    icon="fa-refresh"
+                                    title="Fetch Product ID from Stoqflow by SKU"
+                                    class="btn-link"
+                                    invisible="not df_sku_webship"/>
+                        </list>
+                    </field>
+
                     <separator string="Stoqflow Synchronization"/>
                     <group col="2">
                         <group>
@@ -150,6 +166,22 @@
                         </group>
                     </group>
 
+                    <separator string="Stoqflow Packagings"/>
+                    <field name="ws_packaging_ids" nolabel="1" context="{'default_product_id': product_variant_id}">
+                        <list editable="bottom">
+                            <field name="name"/>
+                            <field name="qty"/>
+                            <field name="df_sku_webship"/>
+                            <field name="df_product_id_webship" optional="hide"/>
+                            <button name="ws_match_packaging"
+                                    type="object"
+                                    icon="fa-refresh"
+                                    title="Fetch Product ID from Stoqflow by SKU"
+                                    class="btn-link"
+                                    invisible="not df_sku_webship"/>
+                        </list>
+                    </field>
+
                     <separator string="Stoqflow Synchronization"/>
                     <group col="2">
                         <group>
@@ -188,7 +220,7 @@
         <field name="arch" type="xml">
 
             <!-- Add header with buttons -->
-            <xpath expr="//tree" position="inside">
+            <xpath expr="//list" position="inside">
                 <header>
                     <button name="ws_sync_product"
                             type="object"
@@ -202,12 +234,12 @@
             </xpath>
 
             <!-- Allow inline editing -->
-            <xpath expr="//tree" position="attributes">
+            <xpath expr="//list" position="attributes">
                 <attribute name="editable">bottom</attribute>
             </xpath>
 
             <!-- Add extra fields -->
-            <xpath expr="//tree" position="inside">
+            <xpath expr="//list" position="inside">
                 <field name="df_url_prod" widget="html" optional="hide"/>
                 <field name="df_product_lastsync_webship" readonly="1" optional="hide"/>
                 <field name="df_product_syncresult_webship" readonly="1" widget="html" optional="hide"/>

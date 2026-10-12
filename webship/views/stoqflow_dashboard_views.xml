@@ -49,7 +49,7 @@
         <field name="name">stoqflow.order.report.tree</field>
         <field name="model">stoqflow.order.report</field>
         <field name="arch" type="xml">
-            <tree string="Stoqflow Orders" create="false" edit="false"
+            <list string="Stoqflow Orders" create="false" edit="false"
                   default_order="create_date desc">
                 <field name="name"/>
                 <field name="create_date"/>
@@ -75,7 +75,7 @@
                        decoration-danger="sync_state == 'error'"
                        decoration-muted="sync_state == 'not_applicable'"/>
                 <field name="last_sync"/>
-            </tree>
+            </list>
         </field>
     </record>
 
@@ -112,7 +112,7 @@
                 <filter string="Ready in Odoo" name="ready_odoo"
                         domain="[('state', '=', 'assigned')]"/>
                 <separator/>
-                <group expand="0" string="Group By">
+                <group>
                     <filter string="Order Type" name="group_order_type"
                             context="{'group_by': 'order_type'}"/>
                     <filter string="Stoqflow Status" name="group_stoqflow_status"

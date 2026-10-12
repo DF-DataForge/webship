@@ -26,7 +26,7 @@ class PickAnalysisLine(models.Model):
 
     # Packaging info (only set when the lookup ID resolved to a packaging record)
     is_box = fields.Boolean(string='Is Box', default=False)
-    packaging_id = fields.Many2one('product.packaging', string='Box')
+    packaging_id = fields.Many2one('webship.packaging', string='Box')
     packaging_qty = fields.Float(string='Qty/Box')
 
     # Quantities

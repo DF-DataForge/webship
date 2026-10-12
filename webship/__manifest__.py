@@ -49,7 +49,6 @@ Features:
         'views/partner_views.xml',
         'views/webship_property_views.xml',
         'views/location_views.xml',
-        'views/product_packaging.xml',
         'views/res_config_settings_views.xml',
         'views/cron.xml',
         'views/stock_quant_list.xml',

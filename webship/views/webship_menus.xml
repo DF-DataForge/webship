@@ -69,7 +69,7 @@
                         domain="[('backorder_id', '!=', False)]"/>
 
                 <!-- Group By -->
-                <group expand="0" string="Group By">
+                <group>
                     <filter string="Object in Stoqflow" name="group_object"
                             context="{'group_by': 'df_object_in_webship'}"/>
                     <filter string="Process Code" name="group_process_code"
@@ -98,7 +98,7 @@
         <field name="model">stock.picking</field>
         <field name="priority">50</field>
         <field name="arch" type="xml">
-            <tree string="Stoqflow orders"
+            <list string="Stoqflow orders"
                   create="false"
                   edit="false"
                   default_order="create_date desc">
@@ -150,7 +150,7 @@
                        decoration-success="state == 'done'"
                        decoration-warning="state not in ('draft','cancel','done','assigned')"/>
 
-            </tree>
+            </list>
         </field>
     </record>
 
@@ -158,7 +158,7 @@
     <record id="webship_orders_action" model="ir.actions.act_window">
         <field name="name">Stoqflow orders</field>
         <field name="res_model">stock.picking</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">list,form</field>
         <field name="view_id" ref="df_webship_orders_type_tree_view"/>
         <field name="search_view_id" ref="df_webship_orders_search_view"/>
         <field name="domain">

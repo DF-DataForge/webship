@@ -14,6 +14,13 @@ class Product(models.Model):
         store=False
     )
 
+    # Stoqflow packagings of the variant (editable from the template form)
+    ws_packaging_ids = fields.One2many(
+        related='product_variant_id.ws_packaging_ids',
+        string='Stoqflow packagings',
+        readonly=False,
+    )
+
     # Duplicate HTML link field (kept for backward compatibility with views)
     df_url_prod = fields.Html(
         related='product_variant_id.df_url_prod',

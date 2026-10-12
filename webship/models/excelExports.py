@@ -546,7 +546,7 @@ class MyExcelDownloadController(http.Controller):
             worksheet.write(i, e, p.phone)
             e = e + 1
 
-            worksheet.write(i, e, p.mobile)
+            worksheet.write(i, e, getattr(p, 'mobile', None))
             e = e + 1
 
             worksheet.write(i, e, p.email)

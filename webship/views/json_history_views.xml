@@ -4,13 +4,13 @@
         <field name="name">webship.json.history.tree</field>
         <field name="model">webship.json.history</field>
         <field name="arch" type="xml">
-            <tree>
+            <list>
                 <field name="create_date" string="Date"/>
                 <field name="direction"/>
                 <field name="method"/>
                 <field name="endpoint"/>
                 <field name="picking_id"/>
-            </tree>
+            </list>
         </field>
     </record>
 
@@ -39,7 +39,7 @@
     <record id="webship_json_history_action" model="ir.actions.act_window">
         <field name="name">JSON History</field>
         <field name="res_model">webship.json.history</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">list,form</field>
     </record>
 
     <menuitem id="webship_json_history_menu" name="JSON History"

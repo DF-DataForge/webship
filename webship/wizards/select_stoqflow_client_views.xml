@@ -14,7 +14,7 @@
                     </p>
                 </group>
                 <field name="line_ids" nolabel="1">
-                    <tree editable="bottom" create="false" delete="false">
+                    <list editable="bottom" create="false" delete="false">
                         <field name="client_number" readonly="1"/>
                         <field name="name" readonly="1"/>
                         <field name="email" readonly="1"/>
@@ -24,7 +24,7 @@
                                 string="Select"
                                 type="object"
                                 class="btn-primary"/>
-                    </tree>
+                    </list>
                 </field>
                 <footer>
                     <button string="Cancel" class="btn-secondary" special="cancel"/>

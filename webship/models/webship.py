@@ -1,6 +1,6 @@
 # Contains several small model extensions that add Webship-specific
 # fields to existing Odoo models: properties, product categories,
-# product packaging, and stock warehouses.
+# Stoqflow packagings, and stock warehouses.
 from odoo.addons.webship.models.ws import WebShipHandler
 from odoo import models, fields
 import logging
@@ -29,12 +29,18 @@ class ProductCategory(models.Model):
     df_cat_shop_id_webship = fields.Char("Shop id Stoqflow", readonly=True)
 
 
-class ProductPackaging(models.Model):
-    """Extends product.packaging with an alternative Webship SKU.
-    Used when the packaging unit has a different SKU in Webship
-    than the main product (e.g. a box of 12 units)."""
-    _inherit = 'product.packaging'
+class WebshipPackaging(models.Model):
+    """Stoqflow packaging unit of a product with its own SKU in Stoqflow
+    (e.g. a box of 12 units). Replaces the product.packaging extension,
+    as product.packaging no longer exists in Odoo 19."""
+    _name = 'webship.packaging'
+    _description = "Stoqflow packaging"
+    _order = 'product_id, qty desc, id'
 
+    name = fields.Char("Packaging", required=True)
+    product_id = fields.Many2one('product.product', "Product", required=True, index=True, ondelete='cascade')
+    # Number of base product units contained in one packaging unit
+    qty = fields.Float("Contained quantity", default=1.0, digits='Product Unit')
     # Alternative SKU used in Webship for this packaging unit
     df_sku_webship = fields.Char("SKU Stoqflow")
     # Webship product ID corresponding to the packaging SKU (auto-populated)
