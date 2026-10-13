@@ -13,4 +13,11 @@ access_webship_pick_analysis_line,webship.pick.analysis.line,model_webship_pick_
 access_webship_select_client,webship.select.client,model_webship_select_client,base.group_user,1,1,1,1
 access_webship_select_client_line,webship.select.client.line,model_webship_select_client_line,base.group_user,1,1,1,1
 access_stoqflow_courier,stoqflow.courier,model_stoqflow_courier,base.group_user,1,1,1,1
-access_webship_packaging,webship.packaging,model_webship_packaging,base.group_user,1,1,1,1
+access_webship_retour_and_backorder,webship.retour.and.backorder,model_webship_retour_and_backorder,base.group_user,1,1,1,1
+access_webship_retour_and_backorder_line,webship.retour.and.backorder.line,model_webship_retour_and_backorder_line,base.group_user,1,1,1,1
+access_webship_backorder,webship.backorder,model_webship_backorder,base.group_user,1,1,1,1
+access_webship_backorder_confirm_delete,webship.backorder.confirm.delete,model_webship_backorder_confirm_delete,base.group_user,1,1,1,1
+access_webship_retour_confirm_return,webship.retour.confirm.return,model_webship_retour_confirm_return,base.group_user,1,1,1,1
+access_webship_status_update,webship.status.update,model_webship_status_update,base.group_user,1,1,1,1
+access_webship_trace_export,webship.trace.export,model_webship_trace_export,base.group_user,1,1,1,1
+access_webship_test_set_error,webship.test.set.error,model_webship_test_set_error,base.group_user,1,1,1,1

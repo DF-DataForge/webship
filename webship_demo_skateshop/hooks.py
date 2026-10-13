@@ -362,13 +362,6 @@ def _setup_products(env, partners, wks, sqf):
                       dict(clothing_flags, df_hs_code='65050090', df_length=22, df_width=20, df_height=3))
     socks = template('socks', "Woody's Crew Socks", 'WSS-SOCKS', cat_clothing, 2.10, 9.95, threadworks, 21, 0.06,
                      dict(clothing_flags, df_hs_code='61159500', df_length=25, df_width=10, df_height=2))
-    # Socks are also stored in Stoqflow per box of 12, with their own SKU
-    env['webship.packaging'].create({
-        'name': 'Box of 12',
-        'product_id': socks.product_variant_id.id,
-        'qty': 12,
-        'df_sku_webship': 'WSS-SOCKS-12',
-    })
 
     # Components never enter the Stoqflow warehouse, so they are not synced
     component_flags = {'df_product_do_not_send_webship': True}
@@ -596,7 +589,7 @@ def _run_clothing_flow(env, partners, products, sqf):
           sqf, days_ago=12, deliver=True, website=products['website'])
     _sell(env, partners['jonas'], [(_variant(hoodie, 'Black', 'L'), 1), (socks, 2)], sqf, days_ago=0,
           website=products['website'])
-    # B2B order: 24 pairs of socks are shipped as 2 boxes of 12 (packaging SKU)
+    # B2B order
     _sell(env, partners['concrete'], [
         (socks, 24),
         (_variant(tee, 'Black', 'M'), 6),

@@ -29,6 +29,6 @@ What it sets up:
   - Components: *Buy*, received in `H800`; not synced to Stoqflow (*Don't sync this product*).
   - Complete boards: *Manufacture* in `H800` (bill of materials: deck, 2 trucks, wheels, bearings, grip tape, hardware) + *Stoqflow Fulfilment: Supply Product from Skate Workshop H800* (H800 → transit → SQF).
   - Replenishment rules (manual trigger) for all of the above, visible under Inventory > Replenishment.
-- **Documents**: received and delivered history, plus open documents that are pending for Stoqflow (process code `P`): a clothing restock PO, a resupply of complete boards from the workshop, and webshop and B2B orders. The B2B order of 24 socks shows the packaging split (2 × `WSS-SOCKS-12`).
+- **Documents**: received and delivered history, plus open documents that are pending for Stoqflow (process code `P`): a clothing restock PO, a resupply of complete boards from the workshop, and webshop and B2B orders.
 
 Stoqflow API credentials are not set and the Stoqflow crons are switched off. To sync for real, enter sandbox credentials under Settings > Stoqflow, run *Fetch companies and warehouses*, link the `SQF/Stock` location to the Stoqflow warehouse, and switch the crons back on.

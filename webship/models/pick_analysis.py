@@ -24,11 +24,6 @@ class PickAnalysisLine(models.Model):
     # Resolved Odoo product (the base/parent product this line counts towards)
     odoo_product_id = fields.Many2one('product.product', string='Product')
 
-    # Packaging info (only set when the lookup ID resolved to a packaging record)
-    is_box = fields.Boolean(string='Is Box', default=False)
-    packaging_id = fields.Many2one('webship.packaging', string='Box')
-    packaging_qty = fields.Float(string='Qty/Box')
-
     # Quantities
     quantity = fields.Float(string='Qty Picked')
     total_items = fields.Float(string='Total Items')

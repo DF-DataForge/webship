@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="webship_trace_export_form" model="ir.ui.view">
+        <field name="name">webship.trace.export.form</field>
+        <field name="model">webship.trace.export</field>
+        <field name="arch" type="xml">
+            <form string="Stoqflow trace">
+                <div class="text-muted mb8">
+                    Click in the box, select all (Ctrl+A / Cmd+A) and copy (Ctrl+C / Cmd+C) to share this full Stoqflow trace.
+                </div>
+                <group>
+                    <field name="trace_text" widget="text" readonly="1" nolabel="1"/>
+                </group>
+                <footer>
+                    <button string="Close" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

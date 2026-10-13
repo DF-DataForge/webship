@@ -32,21 +32,13 @@ def migrate(cr, version):
 
     env = api.Environment(cr, SUPERUSER_ID, {})
 
-    # Build lookup: stoqflow_id -> readable label from products and packaging
+    # Build lookup: stoqflow_id -> readable label from products
     ws_id_to_label = {}
 
     all_products = env['product.product'].sudo().search([('df_product_id_webship', '!=', False)])
     for p in all_products:
         if p.df_product_id_webship:
             ws_id_to_label[p.df_product_id_webship] = _make_label(p.name, p.default_code or '')
-
-    all_pkgs = env['webship.packaging'].sudo().search([('df_product_id_webship', '!=', False)])
-    for pkg in all_pkgs:
-        if pkg.df_product_id_webship and pkg.df_product_id_webship not in ws_id_to_label:
-            if pkg.product_id:
-                ws_id_to_label[pkg.df_product_id_webship] = _make_label(
-                    pkg.product_id.name, pkg.product_id.default_code or ''
-                )
 
     def _replace_id(match):
         ws_id = match.group(1)
