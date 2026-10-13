@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 {
-    'name': "Stoqflow demo: Ollie's Skate Supply",
+    'name': "Stoqflow demo: Woody's Skate Supply",
     'summary': "Demo company: a skateboard shop that uses Stoqflow (Webship) for e-fulfilment",
     'author': "Data Forge",
     'website': "https://www.data-forge.be",
@@ -10,7 +10,7 @@
 Demo data for the Stoqflow integration (webship module)
 ========================================================
 
-Installs a complete demo company, **Ollie's Skate Supply BV**, a skateboard
+Installs a complete demo company, **Woody's Skate Supply BV**, a skateboard
 shop that outsources warehousing and webshop fulfilment to Stoqflow.
 
 Two flows are set up:
@@ -28,7 +28,14 @@ and creates warehouses, products, partners and orders.
 """,
     'license': 'AGPL-3',
     'depends': ['webship', 'sale_stock', 'purchase_stock', 'mrp', 'website_sale', 'website_sale_stock', 'l10n_be'],
-    'data': [],
+    'data': [
+        'views/website_templates.xml',
+    ],
+    'assets': {
+        'web.assets_frontend': [
+            'webship_demo_skateshop/static/src/scss/woody.scss',
+        ],
+    },
     'post_init_hook': 'post_init_hook',
     'installable': True,
     'application': False,

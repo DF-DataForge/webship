@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Homepage of the Woody's Skate Supply webshop -->
+    <template id="homepage_woody" inherit_id="website.homepage" name="Woody's homepage">
+        <xpath expr="//div[@id='wrap']" position="replace">
+            <div id="wrap" class="wss-home">
+                <t t-set="wss_boards" t-value="request.env.ref('webship_demo_skateshop.public_categ_boards', raise_if_not_found=False)"/>
+                <t t-set="wss_clothing" t-value="request.env.ref('webship_demo_skateshop.public_categ_clothing', raise_if_not_found=False)"/>
+                <t t-set="wss_products" t-value="request.env['product.template'].sudo().search([('is_published', '=', True), ('public_categ_ids', '!=', False)], order='list_price desc', limit=6)"/>
+
+                <!-- Hero -->
+                <section class="wss-hero" style="background-image: url('/webship_demo_skateshop/static/img/hero.jpg');">
+                    <div class="container">
+                        <div class="wss-hero-text">
+                            <span class="wss-tag">Antwerpen · Skate shop &amp; workshop</span>
+                            <h1>Skate harder.<br/>Ship faster.</h1>
+                            <p class="lead">Completes assembled by hand in our Antwerp workshop. Streetwear that rides.
+                                Packed and shipped by Stoqflow, usually within 24 hours.</p>
+                            <div class="d-flex flex-wrap gap-3">
+                                <a t-if="wss_boards" t-att-href="'/shop/category/%s' % wss_boards.id" class="btn btn-primary btn-lg">Shop completes</a>
+                                <a t-if="wss_clothing" t-att-href="'/shop/category/%s' % wss_clothing.id" class="btn btn-secondary btn-lg">Shop clothing</a>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Ticker -->
+                <div class="wss-marquee" aria-hidden="true">
+                    <div class="wss-marquee-track">
+                        <t t-foreach="range(2)" t-as="i">
+                            <span>Free shipping from €50</span><span class="wss-star">✦</span>
+                            <span>Assembled in Antwerp</span><span class="wss-star">✦</span>
+                            <span>Shipped by Stoqflow within 24h</span><span class="wss-star">✦</span>
+                            <span>30 days to return</span><span class="wss-star">✦</span>
+                        </t>
+                    </div>
+                </div>
+
+                <!-- Categories -->
+                <section class="py-5">
+                    <div class="container">
+                        <div class="row g-4">
+                            <div class="col-md-6" t-if="wss_boards">
+                                <a class="wss-tile" t-att-href="'/shop/category/%s' % wss_boards.id">
+                                    <img src="/webship_demo_skateshop/static/img/banner_completes.jpg" alt="Complete skateboards" loading="lazy"/>
+                                    <span class="wss-tile-label">Complete skateboards <i class="fa fa-arrow-right"/></span>
+                                </a>
+                            </div>
+                            <div class="col-md-6" t-if="wss_clothing">
+                                <a class="wss-tile" t-att-href="'/shop/category/%s' % wss_clothing.id">
+                                    <img src="/webship_demo_skateshop/static/img/banner_clothing.jpg" alt="Clothing" loading="lazy"/>
+                                    <span class="wss-tile-label">Clothing <i class="fa fa-arrow-right"/></span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Featured products -->
+                <section class="py-5 wss-drops">
+                    <div class="container">
+                        <div class="d-flex align-items-end justify-content-between mb-4">
+                            <h2 class="mb-0">Fresh drops</h2>
+                            <a href="/shop" class="wss-link">See everything <i class="fa fa-arrow-right"/></a>
+                        </div>
+                        <div class="row g-4">
+                            <div t-foreach="wss_products" t-as="product" class="col-6 col-lg-4">
+                                <a class="wss-card" t-att-href="product.website_url">
+                                    <img t-att-src="'/web/image/product.template/%s/image_512' % product.id" t-att-alt="product.name" loading="lazy"/>
+                                    <span class="wss-card-body">
+                                        <span class="wss-card-name" t-field="product.name"/>
+                                        <span class="wss-card-price" t-field="product.list_price"
+                                              t-options="{'widget': 'monetary', 'display_currency': website.currency_id}"/>
+                                    </span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Workshop story -->
+                <section class="py-5">
+                    <div class="container">
+                        <div class="row g-5 align-items-center">
+                            <div class="col-lg-6">
+                                <img class="wss-frame img-fluid" src="/webship_demo_skateshop/static/img/workshop.jpg" alt="All parts of a complete" loading="lazy"/>
+                            </div>
+                            <div class="col-lg-6">
+                                <span class="wss-tag">Our workshop</span>
+                                <h2>Built by hand in Antwerp</h2>
+                                <p class="lead">Every complete starts as a pile of parts: a 7-ply maple deck, two trucks,
+                                    four wheels, eight bearings, grip tape and hardware. We put them together, check every bolt
+                                    and send the finished boards to our fulfilment partner.</p>
+                                <ol class="wss-steps">
+                                    <li><b>Parts in.</b> Decks, trucks and wheels from our European suppliers.</li>
+                                    <li><b>Assembled.</b> Gripped, mounted and tested in the workshop.</li>
+                                    <li><b>Ready to ride.</b> Stocked at Stoqflow, shipped when you order.</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Fulfilment story -->
+                <section class="py-5 wss-dark">
+                    <div class="container">
+                        <div class="row g-5 align-items-center">
+                            <div class="col-lg-6 order-lg-2">
+                                <img class="wss-frame img-fluid" src="/webship_demo_skateshop/static/img/shipping.jpg" alt="Shipping box" loading="lazy"/>
+                            </div>
+                            <div class="col-lg-6 order-lg-1">
+                                <span class="wss-tag">Fulfilment</span>
+                                <h2>Stocked &amp; shipped by Stoqflow</h2>
+                                <p class="lead">Our stock lives in the Stoqflow fulfilment warehouse. Order before 3 pm
+                                    and your gear is picked, packed and handed to the courier the same day.</p>
+                                <ul class="wss-checks">
+                                    <li>Live stock: what you see online is on the shelf</li>
+                                    <li>Track &amp; trace on every parcel</li>
+                                    <li>Delivery in Belgium, the Netherlands, Germany and France</li>
+                                </ul>
+                                <a href="/shop" class="btn btn-secondary btn-lg mt-2">Start shopping</a>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </xpath>
+    </template>
+</odoo>

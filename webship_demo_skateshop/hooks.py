@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Builds the "Ollie's Skate Supply" demo company on install:
+# Builds the "Woody's Skate Supply" demo company on install:
 # master data (company, warehouses, partners, products, BoMs, routes) and
 # a set of documents that walk through both Stoqflow flows:
 #   1. clothing bought straight into the Stoqflow warehouse and sold from it
@@ -7,10 +7,12 @@
 #      complete boards, resupplied to Stoqflow and sold from there.
 # The Odoo webshop sells from the Stoqflow warehouse, so every webshop
 # order becomes a delivery out of Stoqflow (= a Stoqflow order).
+import base64
 import logging
 from datetime import timedelta
 
 from odoo import Command, fields
+from odoo.tools.misc import file_open
 
 _logger = logging.getLogger(__name__)
 
@@ -25,13 +27,14 @@ def post_init_hook(env):
     wks, sqf = _setup_warehouses(env, company)
     partners = _setup_partners(env)
     products = _setup_products(env, partners, wks, sqf)
+    _setup_images(env, company, products)
     website = _setup_webshop(env, company, products, sqf)
     products['website'] = website
     _run_clothing_flow(env, partners, products, sqf)
     _run_assembly_flow(env, partners, products, wks, sqf)
     _setup_orderpoints(env, products, wks, sqf)
     _set_process_codes(env)
-    _logger.info("Ollie's Skate Supply demo data installed")
+    _logger.info("Woody's Skate Supply demo data installed")
 
 
 # ---------------------------------------------------------------------------
@@ -48,6 +51,12 @@ def _xmlid(record, name):
         'noupdate': True,
     })
     return record
+
+
+def _image(name):
+    """Base64 content of one of the demo illustrations (static/img)."""
+    with file_open('%s/static/img/%s' % (MODULE, name), 'rb') as f:
+        return base64.b64encode(f.read())
 
 
 def _days_ago(days):
@@ -133,14 +142,14 @@ def _manufacture(env, product, qty, warehouse, days_ago=0, produce=False):
 def _setup_company(env):
     company = env.ref('base.main_company')
     company.write({
-        'name': "Ollie's Skate Supply BV",
+        'name': "Woody's Skate Supply BV",
         'street': 'Kammenstraat 42',
         'zip': '2000',
         'city': 'Antwerpen',
         'country_id': env.ref('base.be').id,
         'phone': '+32 3 555 01 23',
-        'email': 'hello@ollies-skate.example',
-        'website': 'https://ollies-skate.example',
+        'email': 'hello@woodys-skate.example',
+        'website': 'https://woodys-skate.example',
     })
     # Belgian chart of accounts and taxes (sets the company currency to EUR).
     # On a fresh database Odoo postpones loading the generic chart until the
@@ -150,7 +159,7 @@ def _setup_company(env):
     if company.chart_template != 'be_comp':
         env['account.chart.template'].try_loading('be_comp', company, install_demo=False)
     env['product.pricelist'].search([]).currency_id = env.ref('base.EUR')
-    env.ref('base.user_admin').partner_id.write({'name': 'Ollie Admin'})
+    env.ref('base.user_admin').partner_id.write({'name': 'Woody Admin'})
     return company
 
 
@@ -200,9 +209,9 @@ def _setup_warehouses(env, company):
     are assembled. Stoqflow Fulfilment: the e-fulfilment partner's warehouse,
     whose stock location is flagged as a Stoqflow location."""
     wks = env['stock.warehouse'].search([('company_id', '=', company.id)], limit=1)
-    wks.write({'name': 'Skate Workshop Antwerpen', 'code': 'WKS'})
+    wks.write({'name': 'Skate Workshop H800', 'code': 'H800'})
     # Renaming the code does not rename existing sequences; align the MO prefix
-    wks.manu_type_id.sequence_id.prefix = 'WKS/MO/'
+    wks.manu_type_id.sequence_id.prefix = 'H800/MO/'
     _xmlid(wks, 'warehouse_workshop')
 
     stoqflow_partner = env['res.partner'].create({
@@ -343,37 +352,37 @@ def _setup_products(env, partners, wks, sqf):
         'df_type': 'basic',
         'df_country_of_origin': 'PT',
     }
-    tee = template('tee', "Ollie's Logo Tee", 'OSS-TEE', cat_clothing, 6.50, 29.95, threadworks, 21, 0.18,
+    tee = template('tee', "Woody's Logo Tee", 'WSS-TEE', cat_clothing, 6.50, 29.95, threadworks, 21, 0.18,
                    dict(clothing_flags, df_hs_code='61091000', df_length=30, df_width=25, df_height=2),
                    [(size, size.value_ids), (color, values(color, ('Black', 'White')))])
-    hoodie = template('hoodie', 'Kickflip Hoodie', 'OSS-HOOD', cat_clothing, 18.00, 69.95, threadworks, 28, 0.65,
+    hoodie = template('hoodie', 'Kickflip Hoodie', 'WSS-HOOD', cat_clothing, 18.00, 69.95, threadworks, 28, 0.65,
                       dict(clothing_flags, df_hs_code='61102000', df_length=35, df_width=30, df_height=6),
                       [(size, size.value_ids), (color, values(color, ('Black', 'Forest Green')))])
-    beanie = template('beanie', "Ollie's Beanie", 'OSS-BEANIE', cat_clothing, 4.20, 19.95, threadworks, 21, 0.08,
+    beanie = template('beanie', "Woody's Beanie", 'WSS-BEANIE', cat_clothing, 4.20, 19.95, threadworks, 21, 0.08,
                       dict(clothing_flags, df_hs_code='65050090', df_length=22, df_width=20, df_height=3))
-    socks = template('socks', "Ollie's Crew Socks", 'OSS-SOCKS', cat_clothing, 2.10, 9.95, threadworks, 21, 0.06,
+    socks = template('socks', "Woody's Crew Socks", 'WSS-SOCKS', cat_clothing, 2.10, 9.95, threadworks, 21, 0.06,
                      dict(clothing_flags, df_hs_code='61159500', df_length=25, df_width=10, df_height=2))
     # Socks are also stored in Stoqflow per box of 12, with their own SKU
     env['webship.packaging'].create({
         'name': 'Box of 12',
         'product_id': socks.product_variant_id.id,
         'qty': 12,
-        'df_sku_webship': 'OSS-SOCKS-12',
+        'df_sku_webship': 'WSS-SOCKS-12',
     })
 
     # Components never enter the Stoqflow warehouse, so they are not synced
     component_flags = {'df_product_do_not_send_webship': True}
     comp = {}
     for key, name, sku, cost, vendor, delay, weight in [
-        ('deck_80', 'Maple Deck 8.0" Street', 'OSS-DECK-80', 14.00, 'maple', 35, 1.30),
-        ('deck_825', 'Maple Deck 8.25" Cruiser', 'OSS-DECK-825', 16.00, 'maple', 35, 1.40),
-        ('truck_139', 'Truck 139 mm Raw', 'OSS-TRK-139', 11.50, 'truckline', 21, 0.36),
-        ('truck_149', 'Truck 149 mm Black', 'OSS-TRK-149', 12.50, 'truckline', 21, 0.38),
-        ('wheels_53', 'Street Wheels 53 mm 99A (set of 4)', 'OSS-WHL-53', 9.00, 'urethane', 14, 0.40),
-        ('wheels_56', 'Cruiser Wheels 56 mm 85A (set of 4)', 'OSS-WHL-56', 11.00, 'urethane', 14, 0.48),
-        ('bearings', 'ABEC-7 Bearings (set of 8)', 'OSS-BRG-7', 5.50, 'urethane', 14, 0.12),
-        ('grip', 'Grip Tape Sheet 9 x 33"', 'OSS-GRIP', 2.80, 'gripgrit', 7, 0.10),
-        ('hardware', 'Mounting Hardware 1" (set of 8)', 'OSS-HW-1', 0.90, 'gripgrit', 7, 0.05),
+        ('deck_80', 'Maple Deck 8.0" Street', 'WSS-DECK-80', 14.00, 'maple', 35, 1.30),
+        ('deck_825', 'Maple Deck 8.25" Cruiser', 'WSS-DECK-825', 16.00, 'maple', 35, 1.40),
+        ('truck_139', 'Truck 139 mm Raw', 'WSS-TRK-139', 11.50, 'truckline', 21, 0.36),
+        ('truck_149', 'Truck 149 mm Black', 'WSS-TRK-149', 12.50, 'truckline', 21, 0.38),
+        ('wheels_53', 'Street Wheels 53 mm 99A (set of 4)', 'WSS-WHL-53', 9.00, 'urethane', 14, 0.40),
+        ('wheels_56', 'Cruiser Wheels 56 mm 85A (set of 4)', 'WSS-WHL-56', 11.00, 'urethane', 14, 0.48),
+        ('bearings', 'ABEC-7 Bearings (set of 8)', 'WSS-BRG-7', 5.50, 'urethane', 14, 0.12),
+        ('grip', 'Grip Tape Sheet 9 x 33"', 'WSS-GRIP', 2.80, 'gripgrit', 7, 0.10),
+        ('hardware', 'Mounting Hardware 1" (set of 8)', 'WSS-HW-1', 0.90, 'gripgrit', 7, 0.05),
     ]:
         tmpl = template(key, name, sku, cat_components, cost, round(cost * 2.2, 2), partners[vendor],
                         delay, weight, component_flags)
@@ -383,9 +392,9 @@ def _setup_products(env, partners, wks, sqf):
     # Complete boards: manufactured in the workshop, resupplied to Stoqflow
     completes = {}
     for key, name, sku, price, parts in [
-        ('street', 'Ollie\'s Street Complete 8.0"', 'OSS-CMP-STREET-80', 119.95,
+        ('street', 'Woody\'s Street Complete 8.0"', 'WSS-CMP-STREET-80', 119.95,
          [('deck_80', 1), ('truck_139', 2), ('wheels_53', 1), ('bearings', 1), ('grip', 1), ('hardware', 1)]),
-        ('cruiser', 'Ollie\'s Cruiser Complete 8.25"', 'OSS-CMP-CRUISER-825', 139.95,
+        ('cruiser', 'Woody\'s Cruiser Complete 8.25"', 'WSS-CMP-CRUISER-825', 139.95,
          [('deck_825', 1), ('truck_149', 2), ('wheels_56', 1), ('bearings', 1), ('grip', 1), ('hardware', 1)]),
     ]:
         tmpl = env['product.template'].create({
@@ -434,15 +443,22 @@ def _setup_webshop(env, company, products, sqf):
     delivered from Stoqflow."""
     website = env['website'].search([], limit=1)
     website.write({
-        'name': "Ollie's Skate Supply",
+        'name': "Woody's Skate Supply",
         'company_id': company.id,
         'warehouse_id': sqf.id,
     })
     _xmlid(website, 'website_shop')
 
+    website.logo = _image('logo.png')
+    _setup_theme(env)
+
     Category = env['product.public.category']
-    clothing = Category.create({'name': 'Clothing', 'sequence': 2})
-    boards = Category.create({'name': 'Complete skateboards', 'sequence': 1})
+    boards = _xmlid(Category.create({
+        'name': 'Complete skateboards', 'sequence': 1, 'image_1920': _image('banner_completes.jpg'),
+    }), 'public_categ_boards')
+    clothing = _xmlid(Category.create({
+        'name': 'Clothing', 'sequence': 2, 'image_1920': _image('banner_clothing.jpg'),
+    }), 'public_categ_clothing')
     for template in (products['tee'], products['hoodie'], products['beanie'].product_tmpl_id,
                      products['socks'].product_tmpl_id):
         template.write({'is_published': True, 'website_id': website.id,
@@ -450,7 +466,97 @@ def _setup_webshop(env, company, products, sqf):
     for product in products['completes'].values():
         product.product_tmpl_id.write({'is_published': True, 'website_id': website.id,
                                        'public_categ_ids': [Command.set(boards.ids)]})
+
+    _replace_placeholders(env, website, company)
+
+    # Header menu: Home, Completes, Clothing, Shop, Contact
+    Menu = env['website.menu']
+    root = website.menu_id
+    for sequence, name, url in [(15, 'Completes', '/shop/category/%s' % boards.id),
+                                (16, 'Clothing', '/shop/category/%s' % clothing.id)]:
+        Menu.create({'name': name, 'url': url, 'parent_id': root.id,
+                     'website_id': website.id, 'sequence': sequence})
     return website
+
+
+def _replace_placeholders(env, website, company):
+    """Swap Odoo's placeholder contact details in header and footer templates
+    for the company's own. Written as website-specific copies, like the
+    website editor does."""
+    replacements = {
+        '+1 555-555-5556': company.phone,
+        'info@yourcompany.example.com': company.email,
+        'hello@mycompany.com': company.email,
+        "We are a team of passionate people whose goal is to improve everyone's life through "
+        "disruptive products. We build great products to solve your business problems.":
+            "Woody's Skate Supply is a skate shop and workshop from Antwerp. We build complete "
+            "skateboards by hand and design our own streetwear.",
+        "Our products are designed for small to medium size companies willing to optimize "
+        "their performance.":
+            "Everything you order is stocked and shipped by our fulfilment partner Stoqflow, "
+            "usually within 24 hours.",
+        'Copyright &amp;copy; Company name': "Copyright &amp;copy; Woody's Skate Supply BV",
+    }
+    View = env['ir.ui.view']
+    for placeholder in replacements:
+        for view in View.search([('arch_db', 'ilike', placeholder), ('type', '=', 'qweb'),
+                                 ('website_id', '=', False)]):
+            arch = view.arch
+            for old, new in replacements.items():
+                arch = arch.replace(old, new)
+            if arch != view.arch:
+                view.with_context(website_id=website.id).write({'arch': arch})
+
+
+def _setup_theme(env):
+    """Brand colours, fonts and shapes, stored the same way the website
+    editor stores them, so they can still be changed from the editor."""
+    Assets = env['website.assets']
+    Assets.make_scss_customization('/website/static/src/scss/options/colors/user_color_palette.scss', {
+        'o-color-1': '#0A6CFF',  # primary: electric blue
+        'o-color-2': '#00EEDD',  # secondary: cyan
+        'o-color-3': '#F2F6FB',  # light background
+        'o-color-4': '#FFFFFF',  # body background
+        'o-color-5': '#0B1A7A',  # dark: navy
+    })
+    Assets.make_scss_customization('/website/static/src/scss/options/user_values.scss', {
+        'google-fonts': "('Archivo Black', 'Space Grotesk')",
+        'font': "'Space Grotesk'",
+        'headings-font': "'Archivo Black'",
+        'navbar-font': "'Space Grotesk'",
+        'buttons-font': "'Space Grotesk'",
+        'btn-border-radius': '2rem',
+        'btn-border-radius-lg': '2rem',
+        'btn-border-radius-sm': '2rem',
+        'menu': '1',
+        'footer': '5',
+        'copyright': '5',
+        'header-template': "'default'",
+        'logo-height': '3.25rem',
+    })
+
+
+def _setup_images(env, company, products):
+    """Attach the illustrations to the company and the products."""
+    company.logo = _image('logo.png')
+
+    def put(template, name):
+        template.image_1920 = _image('%s.jpg' % name)
+
+    put(products['tee'], 'tee_black')
+    for variant in products['tee'].product_variant_ids:
+        if 'White' in variant.product_template_attribute_value_ids.mapped('name'):
+            variant.image_variant_1920 = _image('tee_white.jpg')
+    put(products['hoodie'], 'hoodie_black')
+    for variant in products['hoodie'].product_variant_ids:
+        if 'Forest Green' in variant.product_template_attribute_value_ids.mapped('name'):
+            variant.image_variant_1920 = _image('hoodie_green.jpg')
+    put(products['beanie'].product_tmpl_id, 'beanie')
+    put(products['socks'].product_tmpl_id, 'socks')
+    for key, product in products['components'].items():
+        put(product.product_tmpl_id, key)
+    for key, product in products['completes'].items():
+        put(product.product_tmpl_id, 'complete_%s' % key)
 
 
 def _variant(template, *names):
