@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 {
-    'name': "Stoqflow demo: Ollie's Skate Supply",
+    'name': "Stoqflow demo: Woody's Skate Supply",
     'summary': "Demo company: a skateboard shop that uses Stoqflow (Webship) for e-fulfilment",
     'author': "Data Forge",
     'website': "https://www.data-forge.be",
@@ -10,7 +10,7 @@
 Demo data for the Stoqflow integration (webship module)
 ========================================================
 
-Installs a complete demo company, **Ollie's Skate Supply BV**, a skateboard
+Installs a complete demo company, **Woody's Skate Supply BV**, a skateboard
 shop that outsources warehousing and webshop fulfilment to Stoqflow.
 
 Two flows are set up:
