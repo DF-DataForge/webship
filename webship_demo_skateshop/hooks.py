@@ -7,10 +7,12 @@
 #      complete boards, resupplied to Stoqflow and sold from there.
 # The Odoo webshop sells from the Stoqflow warehouse, so every webshop
 # order becomes a delivery out of Stoqflow (= a Stoqflow order).
+import base64
 import logging
 from datetime import timedelta
 
 from odoo import Command, fields
+from odoo.tools.misc import file_open
 
 _logger = logging.getLogger(__name__)
 
@@ -25,6 +27,7 @@ def post_init_hook(env):
     wks, sqf = _setup_warehouses(env, company)
     partners = _setup_partners(env)
     products = _setup_products(env, partners, wks, sqf)
+    _setup_images(env, company, products)
     website = _setup_webshop(env, company, products, sqf)
     products['website'] = website
     _run_clothing_flow(env, partners, products, sqf)
@@ -48,6 +51,12 @@ def _xmlid(record, name):
         'noupdate': True,
     })
     return record
+
+
+def _image(name):
+    """Base64 content of one of the demo illustrations (static/img)."""
+    with file_open('%s/static/img/%s' % (MODULE, name), 'rb') as f:
+        return base64.b64encode(f.read())
 
 
 def _days_ago(days):
@@ -200,9 +209,9 @@ def _setup_warehouses(env, company):
     are assembled. Stoqflow Fulfilment: the e-fulfilment partner's warehouse,
     whose stock location is flagged as a Stoqflow location."""
     wks = env['stock.warehouse'].search([('company_id', '=', company.id)], limit=1)
-    wks.write({'name': 'Skate Workshop Antwerpen', 'code': 'WKS'})
+    wks.write({'name': 'Skate Workshop H800', 'code': 'H800'})
     # Renaming the code does not rename existing sequences; align the MO prefix
-    wks.manu_type_id.sequence_id.prefix = 'WKS/MO/'
+    wks.manu_type_id.sequence_id.prefix = 'H800/MO/'
     _xmlid(wks, 'warehouse_workshop')
 
     stoqflow_partner = env['res.partner'].create({
@@ -440,9 +449,16 @@ def _setup_webshop(env, company, products, sqf):
     })
     _xmlid(website, 'website_shop')
 
+    website.logo = _image('logo.png')
+    _setup_theme(env)
+
     Category = env['product.public.category']
-    clothing = Category.create({'name': 'Clothing', 'sequence': 2})
-    boards = Category.create({'name': 'Complete skateboards', 'sequence': 1})
+    boards = _xmlid(Category.create({
+        'name': 'Complete skateboards', 'sequence': 1, 'image_1920': _image('banner_completes.jpg'),
+    }), 'public_categ_boards')
+    clothing = _xmlid(Category.create({
+        'name': 'Clothing', 'sequence': 2, 'image_1920': _image('banner_clothing.jpg'),
+    }), 'public_categ_clothing')
     for template in (products['tee'], products['hoodie'], products['beanie'].product_tmpl_id,
                      products['socks'].product_tmpl_id):
         template.write({'is_published': True, 'website_id': website.id,
@@ -450,7 +466,97 @@ def _setup_webshop(env, company, products, sqf):
     for product in products['completes'].values():
         product.product_tmpl_id.write({'is_published': True, 'website_id': website.id,
                                        'public_categ_ids': [Command.set(boards.ids)]})
+
+    _replace_placeholders(env, website, company)
+
+    # Header menu: Home, Completes, Clothing, Shop, Contact
+    Menu = env['website.menu']
+    root = website.menu_id
+    for sequence, name, url in [(15, 'Completes', '/shop/category/%s' % boards.id),
+                                (16, 'Clothing', '/shop/category/%s' % clothing.id)]:
+        Menu.create({'name': name, 'url': url, 'parent_id': root.id,
+                     'website_id': website.id, 'sequence': sequence})
     return website
+
+
+def _replace_placeholders(env, website, company):
+    """Swap Odoo's placeholder contact details in header and footer templates
+    for the company's own. Written as website-specific copies, like the
+    website editor does."""
+    replacements = {
+        '+1 555-555-5556': company.phone,
+        'info@yourcompany.example.com': company.email,
+        'hello@mycompany.com': company.email,
+        "We are a team of passionate people whose goal is to improve everyone's life through "
+        "disruptive products. We build great products to solve your business problems.":
+            "Woody's Skate Supply is a skate shop and workshop from Antwerp. We build complete "
+            "skateboards by hand and design our own streetwear.",
+        "Our products are designed for small to medium size companies willing to optimize "
+        "their performance.":
+            "Everything you order is stocked and shipped by our fulfilment partner Stoqflow, "
+            "usually within 24 hours.",
+        'Copyright &amp;copy; Company name': "Copyright &amp;copy; Woody's Skate Supply BV",
+    }
+    View = env['ir.ui.view']
+    for placeholder in replacements:
+        for view in View.search([('arch_db', 'ilike', placeholder), ('type', '=', 'qweb'),
+                                 ('website_id', '=', False)]):
+            arch = view.arch
+            for old, new in replacements.items():
+                arch = arch.replace(old, new)
+            if arch != view.arch:
+                view.with_context(website_id=website.id).write({'arch': arch})
+
+
+def _setup_theme(env):
+    """Brand colours, fonts and shapes, stored the same way the website
+    editor stores them, so they can still be changed from the editor."""
+    Assets = env['website.assets']
+    Assets.make_scss_customization('/website/static/src/scss/options/colors/user_color_palette.scss', {
+        'o-color-1': '#0A6CFF',  # primary: electric blue
+        'o-color-2': '#00EEDD',  # secondary: cyan
+        'o-color-3': '#F2F6FB',  # light background
+        'o-color-4': '#FFFFFF',  # body background
+        'o-color-5': '#0B1A7A',  # dark: navy
+    })
+    Assets.make_scss_customization('/website/static/src/scss/options/user_values.scss', {
+        'google-fonts': "('Archivo Black', 'Space Grotesk')",
+        'font': "'Space Grotesk'",
+        'headings-font': "'Archivo Black'",
+        'navbar-font': "'Space Grotesk'",
+        'buttons-font': "'Space Grotesk'",
+        'btn-border-radius': '2rem',
+        'btn-border-radius-lg': '2rem',
+        'btn-border-radius-sm': '2rem',
+        'menu': '1',
+        'footer': '5',
+        'copyright': '5',
+        'header-template': "'default'",
+        'logo-height': '3.25rem',
+    })
+
+
+def _setup_images(env, company, products):
+    """Attach the illustrations to the company and the products."""
+    company.logo = _image('logo.png')
+
+    def put(template, name):
+        template.image_1920 = _image('%s.jpg' % name)
+
+    put(products['tee'], 'tee_black')
+    for variant in products['tee'].product_variant_ids:
+        if 'White' in variant.product_template_attribute_value_ids.mapped('name'):
+            variant.image_variant_1920 = _image('tee_white.jpg')
+    put(products['hoodie'], 'hoodie_black')
+    for variant in products['hoodie'].product_variant_ids:
+        if 'Forest Green' in variant.product_template_attribute_value_ids.mapped('name'):
+            variant.image_variant_1920 = _image('hoodie_green.jpg')
+    put(products['beanie'].product_tmpl_id, 'beanie')
+    put(products['socks'].product_tmpl_id, 'socks')
+    for key, product in products['components'].items():
+        put(product.product_tmpl_id, key)
+    for key, product in products['completes'].items():
+        put(product.product_tmpl_id, 'complete_%s' % key)
 
 
 def _variant(template, *names):

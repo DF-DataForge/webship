@@ -28,7 +28,14 @@ and creates warehouses, products, partners and orders.
 """,
     'license': 'AGPL-3',
     'depends': ['webship', 'sale_stock', 'purchase_stock', 'mrp', 'website_sale', 'website_sale_stock', 'l10n_be'],
-    'data': [],
+    'data': [
+        'views/website_templates.xml',
+    ],
+    'assets': {
+        'web.assets_frontend': [
+            'webship_demo_skateshop/static/src/scss/woody.scss',
+        ],
+    },
     'post_init_hook': 'post_init_hook',
     'installable': True,
     'application': False,
