@@ -1,5 +1,14 @@
 <odoo>
     <data noupdate="1">
+        <record id="ir_cron_status_updates" model="ir.cron">
+            <field name="name">Stoqflow fetch changed orders (status updates)</field>
+            <field name="model_id" ref="model_webship_status_update"/>
+            <field name="state">code</field>
+            <field name="code">model.cron_fetch_and_process()</field>
+            <field name="interval_number">10</field>
+            <field name="interval_type">minutes</field>
+            <field name="active">False</field>
+        </record>
         <record id="ir_cron_sync_statussen" model="ir.cron">
             <field name="name">Stoqflow sync statusses</field>
             <field name="model_id" ref="base.model_res_config_settings"/>
@@ -7,7 +16,7 @@
             <field name="code">model.ws_sync_statusses_since_last()</field>
             <field name="interval_number">30</field>
             <field name="interval_type">minutes</field>
-            <field name="active">True</field>
+            <field name="active">False</field>
         </record>
         <record id="ir_cron_sync_statusP" model="ir.cron">
             <field name="name">Stoqflow sync status P</field>
@@ -16,7 +25,7 @@
             <field name="code">model.ws_sync_all_pickings_statusP()</field>
             <field name="interval_number">30</field>
             <field name="interval_type">minutes</field>
-            <field name="active">True</field>
+            <field name="active">False</field>
         </record>
         <record id="ir_cron_import_stock" model="ir.cron">
             <field name="name">Stoqflow import stock</field>
@@ -25,7 +34,7 @@
             <field name="code">model.ws_import_stock()</field>
             <field name="interval_number">1</field>
             <field name="interval_type">days</field>
-            <field name="active">True</field>
+            <field name="active">False</field>
         </record>
         <record id="ir_cron_daily_report" model="ir.cron">
             <field name="name">Stoqflow daily processing report</field>
@@ -34,7 +43,25 @@
             <field name="code">model.ws_send_daily_report()</field>
             <field name="interval_number">1</field>
             <field name="interval_type">days</field>
-            <field name="active">True</field>
+            <field name="active">False</field>
+        </record>
+        <record id="ir_cron_sync_retours_and_backorders" model="ir.cron">
+            <field name="name">Stoqflow sync retours and backorders</field>
+            <field name="model_id" ref="base.model_res_config_settings"/>
+            <field name="state">code</field>
+            <field name="code">model.ws_sync_retours_and_backorders()</field>
+            <field name="interval_number">30</field>
+            <field name="interval_type">minutes</field>
+            <field name="active">False</field>
+        </record>
+        <record id="ir_cron_auto_delete_backorders" model="ir.cron">
+            <field name="name">Stoqflow fetch backorders</field>
+            <field name="model_id" ref="base.model_res_config_settings"/>
+            <field name="state">code</field>
+            <field name="code">model.ws_cron_backorders()</field>
+            <field name="interval_number">30</field>
+            <field name="interval_type">minutes</field>
+            <field name="active">False</field>
         </record>
     </data>
 </odoo>

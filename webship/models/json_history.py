@@ -10,6 +10,7 @@ class JsonHistory(models.Model):
     direction = fields.Selection([
         ('sent', 'Sent'),
         ('received', 'Received'),
+        ('trace', 'Trace'),
     ], string='Direction', required=True)
     endpoint = fields.Char(string='Endpoint')
     method = fields.Char(string='HTTP Method')

@@ -64,22 +64,6 @@
                         </group>
                     </group>
 
-                    <separator string="Stoqflow Packagings"/>
-                    <field name="ws_packaging_ids" nolabel="1" context="{'default_product_id': id}">
-                        <list editable="bottom">
-                            <field name="name"/>
-                            <field name="qty"/>
-                            <field name="df_sku_webship"/>
-                            <field name="df_product_id_webship" optional="hide"/>
-                            <button name="ws_match_packaging"
-                                    type="object"
-                                    icon="fa-refresh"
-                                    title="Fetch Product ID from Stoqflow by SKU"
-                                    class="btn-link"
-                                    invisible="not df_sku_webship"/>
-                        </list>
-                    </field>
-
                     <separator string="Stoqflow Synchronization"/>
                     <group col="2">
                         <group>
@@ -120,6 +104,10 @@
                 <page string="Stoqflow"
                       name="webship"
                       invisible="product_variant_count &gt; 1">
+                    <group>
+                        <field name="df_product_do_not_send_webship" string="Don't sync this product"/>
+                    </group>
+
                     <separator string="Product Status"/>
                     <group>
                         <field name="df_url_prod" colspan="2" nolabel="1"/>
@@ -165,22 +153,6 @@
                             <field name="df_check_serial_numbers"/>
                         </group>
                     </group>
-
-                    <separator string="Stoqflow Packagings"/>
-                    <field name="ws_packaging_ids" nolabel="1" context="{'default_product_id': product_variant_id}">
-                        <list editable="bottom">
-                            <field name="name"/>
-                            <field name="qty"/>
-                            <field name="df_sku_webship"/>
-                            <field name="df_product_id_webship" optional="hide"/>
-                            <button name="ws_match_packaging"
-                                    type="object"
-                                    icon="fa-refresh"
-                                    title="Fetch Product ID from Stoqflow by SKU"
-                                    class="btn-link"
-                                    invisible="not df_sku_webship"/>
-                        </list>
-                    </field>
 
                     <separator string="Stoqflow Synchronization"/>
                     <group col="2">

@@ -54,6 +54,20 @@
                                     style="width: 100%; padding: 10px 16px; border-radius: 2px;"/>
                         </group>
                     </group>
+                    <group col="2">
+                        <group>
+                            <h5>🔗 Match Supplier</h5>
+                            <p style="font-size: 12px; color: #666; margin-bottom: 12px;">
+                                Search Stoqflow for a supplier matching this email address and link it. Use when the supplier already exists in Stoqflow.
+                            </p>
+                            <button name="ws_match_supplier"
+                                    type="object"
+                                    string="Match Supplier with Stoqflow"
+                                    class="btn btn-secondary"
+                                    style="width: 100%; padding: 10px 16px; border-radius: 2px;"/>
+                        </group>
+                        <group/>
+                    </group>
 
                 </page>
             </xpath>

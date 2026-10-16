@@ -11,7 +11,7 @@
     'website': "https://www.data-forge.be",
 
     'category': 'Uncategorized',
-    'version': '1.2',
+    'version': '19.0.2.32',
     'description': """
 Stoqflow Integration Module v1.0
 =================================
@@ -24,7 +24,7 @@ Features:
 - Partner and customer data exchange
 - Stock picking and delivery management with parcel tracking
 - Warehouse and location mapping
-- Product packaging and category configuration
+- Product category configuration
 - Automated synchronization via scheduled cron jobs
 - Dashboard and reporting for Stoqflow orders, products, and partners
 - JSON history tracking for API communication logging
@@ -42,6 +42,7 @@ Features:
         'views/stoqflow_partner_report_views.xml',
         'views/stoqflow_courier_views.xml',
         'views/delivery_carrier_views.xml',
+        'views/retour_and_backorder_views.xml',
         'views/webship_menus.xml',
         'views/product_views.xml',
         'views/product_category_views.xml',
@@ -53,9 +54,19 @@ Features:
         'views/cron.xml',
         'views/stock_quant_list.xml',
         'views/json_history_views.xml',
-        'wizards/select_stoqflow_client_views.xml'
+        'views/status_update_views.xml',
+        'wizards/select_stoqflow_client_views.xml',
+        'wizards/confirm_backorder_delete_views.xml',
+        'wizards/confirm_retour_return_views.xml',
+        'wizards/trace_export_views.xml',
+        'wizards/set_test_error_views.xml'
     ],
 
+'assets': {
+    'web.assets_backend': [
+        'webship/static/src/js/selection_field_debug.js',
+    ],
+},
 'application': True,
 'installable': True,
 'auto_install': False,

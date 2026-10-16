@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="webship_retour_confirm_return_form" model="ir.ui.view">
+        <field name="name">webship.retour.confirm.return.form</field>
+        <field name="model">webship.retour.confirm.return</field>
+        <field name="arch" type="xml">
+            <form string="Return not yet delivered">
+                <group>
+                    <field name="warning_message" widget="text" readonly="1" nolabel="1"/>
+                </group>
+                <footer>
+                    <button name="action_confirm" string="Create Anyway" type="object" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

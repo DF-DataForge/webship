@@ -10,16 +10,13 @@ class Productvar(models.Model):
     _inherit = 'product.product'
 
     # HTML link to the product in the Webship web app (legacy field name)
-    wsUrlProd = fields.Html('Code Stoqflow', compute="_compute_html_product", sanitize=False)
+    wsUrlProd = fields.Html('Product link Stoqflow', compute="_compute_html_product", sanitize=False)
 
     # HTML link to the product in the Stoqflow web app
     df_url_prod = fields.Html('Code Stoqflow', compute="_compute_html_product", sanitize=False)
 
     # Webship product ID (set when the product is synced or matched)
     df_product_id_webship = fields.Char("Product id Stoqflow", readonly=True)
-
-    # Packaging units of this product that have their own SKU in Stoqflow
-    ws_packaging_ids = fields.One2many('webship.packaging', 'product_id', string="Stoqflow packagings")
 
     # Webship-specific product type classification determining how the product
     # is handled in the warehouse (basic, virtual, composite, derivative)
@@ -163,6 +160,15 @@ class Productvar(models.Model):
         wsHandler.set_env(self.env)
 
         for record in self:
+            # Honour the exclusion flag: a product marked "Never send this
+            # product to Stoqflow" must not be pushed, even from the manual
+            # Sync button (it is already skipped in the order/PO picking sync).
+            if record.df_product_do_not_send_webship:
+                record.df_product_syncresult_webship = (
+                    "This product is flagged 'Never send this product to Stoqflow' "
+                    "and was not synced. Uncheck the flag to sync it.")
+                continue
+
             sResult = wsHandler.sync_product(record)
 
             # Record the sync timestamp

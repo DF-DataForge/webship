@@ -1,7 +1,6 @@
 # Contains several small model extensions that add Webship-specific
 # fields to existing Odoo models: properties, product categories,
-# Stoqflow packagings, and stock warehouses.
-from odoo.addons.webship.models.ws import WebShipHandler
+# and stock warehouses.
 from odoo import models, fields
 import logging
 
@@ -27,60 +26,6 @@ class ProductCategory(models.Model):
 
     # Webship shop ID assigned to this product category
     df_cat_shop_id_webship = fields.Char("Shop id Stoqflow", readonly=True)
-
-
-class WebshipPackaging(models.Model):
-    """Stoqflow packaging unit of a product with its own SKU in Stoqflow
-    (e.g. a box of 12 units). Replaces the product.packaging extension,
-    as product.packaging no longer exists in Odoo 19."""
-    _name = 'webship.packaging'
-    _description = "Stoqflow packaging"
-    _order = 'product_id, qty desc, id'
-
-    name = fields.Char("Packaging", required=True)
-    product_id = fields.Many2one('product.product', "Product", required=True, index=True, ondelete='cascade')
-    # Number of base product units contained in one packaging unit
-    qty = fields.Float("Contained quantity", default=1.0, digits='Product Unit')
-    # Alternative SKU used in Webship for this packaging unit
-    df_sku_webship = fields.Char("SKU Stoqflow")
-    # Webship product ID corresponding to the packaging SKU (auto-populated)
-    df_product_id_webship = fields.Char("Product id Stoqflow")
-
-    def _get_ws_handler(self):
-        """Create and return a WebShipHandler instance using the stored API credentials."""
-        login = self.env['ir.config_parameter'].sudo().get_param('webship.username')
-        pw = self.env['ir.config_parameter'].sudo().get_param('webship.password')
-        base_url = self.env['ir.config_parameter'].sudo().get_param('webship.base_url')
-        return WebShipHandler(login, pw, base_url)
-
-    def ws_match_packaging(self):
-        """Fetch the Stoqflow product ID for this packaging record based on its SKU."""
-        handler = self._get_ws_handler()
-        handler.set_env(self.env)
-
-        for pkg in self:
-            sku = pkg.df_sku_webship
-            if not sku:
-                _logger.info("ws_match_packaging: packaging '%s' (id=%s) has no SKU, skipping", pkg.name, pkg.id)
-                continue
-
-            result = handler.findProductBySku(sku)
-            if isinstance(result, dict) and 'id' in result:
-                pkg.df_product_id_webship = result['id']
-                _logger.info(
-                    "ws_match_packaging: packaging '%s' SKU=%s -> matched Stoqflow ID %s",
-                    pkg.name, sku, result['id'],
-                )
-            elif isinstance(result, dict) and 'error' in result:
-                _logger.warning(
-                    "ws_match_packaging: packaging '%s' SKU=%s -> error: %s",
-                    pkg.name, sku, result['error'],
-                )
-            else:
-                _logger.warning(
-                    "ws_match_packaging: packaging '%s' SKU=%s -> not found in Stoqflow",
-                    pkg.name, sku,
-                )
 
 
 class StockWarehouse(models.Model):

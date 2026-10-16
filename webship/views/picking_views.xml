@@ -106,7 +106,9 @@
                         <field name="df_show_webship_page" invisible="1"></field>
                         <field name="df_is_webship_source" invisible="1"></field>
                         <field name="df_is_webship_destination" invisible="1"></field>
+                        <field name="df_show_trace_button" invisible="1"></field>
                         <p style="width:320px"><button icon="oi-arrow-right" name="ws_sync_picking" type="object" string="Manueel synchroniseren" class="btn-link"/></p>
+                        <p style="width:320px" groups="base.group_no_one" invisible="not df_show_trace_button"><button icon="fa-clipboard" name="action_webship_show_trace" type="object" string="Copy full Stoqflow trace" class="btn-link"/></p>
                     </group>
                 </page>
                 <page string="Stoqflow Parcels" name="stoqflow_parcels" invisible="not df_show_parcels_tab or (df_is_webship_source==False and df_is_webship_destination==False)">
@@ -127,9 +129,6 @@
                             <field name="ws_parent_product_sku" string="Parent SKU"/>
                             <field name="ws_parent_product_name" string="Parent Name"/>
                             <field name="odoo_product_id" string="Product in Odoo"/>
-                            <field name="is_box" string="Box?"/>
-                            <field name="packaging_id" string="Packaging"/>
-                            <field name="packaging_qty" string="Qty/Box"/>
                             <field name="quantity" string="Qty Picked"/>
                             <field name="total_items" string="Total Items" sum="Total"/>
                             <field name="order_item_qty" string="Qty Ordered" optional="hide"/>
@@ -137,6 +136,36 @@
                             <field name="ws_lookup_id" string="Lookup ID" optional="hide"/>
                         </list>
                     </field>
+                </page>
+                <page string="Debug" name="stoqflow_debug" groups="base.group_no_one" invisible="not df_is_neutralized">
+                    <field name="df_is_neutralized" invisible="1"/>
+                    <div class="text-muted mb8">
+                        Testing tools. This tab is only visible in developer mode on a
+                        neutralized (test/copy) database.
+                    </div>
+                    <group string="Set error state">
+                        <p style="width:420px">
+                            Put this picking into a known Stoqflow error state so the
+                            sync/recovery paths can be reproduced.
+                        </p>
+                        <p style="width:420px"><button icon="fa-bug" name="action_open_test_set_error" type="object" string="Set Stoqflow error state" class="btn-link"/></p>
+                    </group>
+                    <group string="Set process code / status">
+                        <p colspan="2" style="width:420px" class="text-muted">
+                            Force this picking's process code and/or Stoqflow status to
+                            any value, then Save.
+                        </p>
+                        <field name="df_process_code"/>
+                        <field name="df_status_webship" readonly="0"/>
+                    </group>
+                    <group string="Reset">
+                        <p style="width:420px">
+                            Erase every Stoqflow field (ids, codes, status, sync
+                            metadata, parcels, pick analysis) so this picking looks
+                            like it was never sent to Stoqflow.
+                        </p>
+                        <p style="width:420px"><button icon="fa-eraser" name="action_webship_test_clear_fields" type="object" string="Erase all Stoqflow fields" class="btn-link" confirm="Erase all Stoqflow fields on this picking?"/></p>
+                    </group>
                 </page>
              </xpath>
         </field>

@@ -19,12 +19,14 @@
                 <separator/>
                 <filter string="Pending" name="process_pending"
                         domain="[('df_process_code', '=', 'P')]"/>
-                <filter string="Finished" name="process_finished"
+                <filter string="Sent to Stoqflow" name="process_finished"
                         domain="[('df_process_code', '=', 'F')]"/>
                 <filter string="Error" name="process_error"
                         domain="[('df_process_code', '=', 'E')]"/>
                 <filter string="Manual" name="process_manual"
                         domain="[('df_process_code', '=', 'M')]"/>
+                <filter string="Cancelled" name="process_cancelled"
+                        domain="[('df_process_code', '=', 'C')]"/>
 
                 <!-- Filters: Stoqflow Status -->
                 <separator/>
@@ -132,15 +134,18 @@
                        decoration-danger="df_status_webship == 'cancelled'"/>
                 <field name="df_picking_syncresult_webship" widget="html"/>
                 <field name="df_url_order_or_po" widget="html"/>
-                <field name="sale_id"/>
+                <field name="df_sale_order_link" widget="html" string="Sales Order" optional="show"/>
+                <field name="df_purchase_order_link" widget="html" string="Purchase Order" optional="show"/>
 
                 <field name="df_process_code"
                        widget="badge"
                        decoration-warning="df_process_code == 'P'"
                        decoration-danger="df_process_code == 'E'"
                        decoration-success="df_process_code == 'F'"
-                       decoration-muted="df_process_code in ('M', 'NA')"
+                       decoration-muted="df_process_code in ('M', 'NA', 'C')"
                        readonly="1"/>
+
+                <field name="df_sync_retry_count" string="Sync retries" optional="hide"/>
 
                 <field name="state"
                        widget="badge"
@@ -170,6 +175,11 @@
                     ('state', 'in', ['confirmed', 'assigned', 'done'])
             ]
         </field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No stoqflow orders yet. Check configuration or add a stoqflow order
+            </p>
+        </field>
     </record>
 
     <!-- Menu -->
@@ -182,6 +192,144 @@
               parent="webship_root_menu"
               action="webship_orders_action"
               sequence="1"/>
+
+    <menuitem id="webship_retour_sub_root"
+              name="Retours"
+              parent="webship_root_menu"
+              action="webship_retour_and_backorder_action"
+              sequence="3"/>
+
+    <!-- Backorders List View (fetched from Stoqflow API) -->
+    <record id="df_webship_backorders_list_view" model="ir.ui.view">
+        <field name="name">df.webship.backorders.list</field>
+        <field name="model">webship.backorder</field>
+        <field name="priority">50</field>
+        <field name="arch" type="xml">
+            <list string="Stoqflow Backorders" create="false" edit="false"
+                  default_order="ws_created desc" decoration-muted="deleted == True">
+                <header>
+                    <button name="action_fetch_backorders"
+                            string="Fetch Backorders"
+                            type="object"
+                            class="btn-primary"/>
+                    <button name="action_delete_in_webship"
+                            string="Delete selected in Stoqflow"
+                            type="object"
+                            class="btn-danger"/>
+                </header>
+                <field name="ws_stoqflow_link" widget="html" string="Order"/>
+                <field name="order_or_po" widget="badge"/>
+                <field name="ws_product_sku"/>
+                <field name="ws_backorder_qty"/>
+                <field name="ws_client_name"/>
+                <field name="parent_picking_id" widget="many2one" options="{'open': true}"/>
+                <field name="odoo_backorder_picking_ids" widget="many2many_tags" options="{'open': true}"/>
+                <field name="ws_status" widget="badge"
+                       decoration-success="ws_status == 'completed'"
+                       decoration-info="ws_status == 'ready-to-pick'"
+                       decoration-warning="ws_status == 'on-hold'"
+                       decoration-muted="ws_status == 'concept'"
+                       decoration-danger="ws_status == 'cancelled'"/>
+                <field name="ws_created"/>
+                <field name="ws_edited"/>
+                <field name="process_code" widget="badge"
+                       decoration-warning="process_code == 'P'"
+                       decoration-success="process_code == 'F'"
+                       decoration-danger="process_code == 'E'"
+                       optional="show"/>
+                <field name="deleted" widget="boolean"/>
+                <field name="deleted_date"/>
+                <field name="ws_parent_order_id" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Backorders Form View -->
+    <record id="df_webship_backorders_form_view" model="ir.ui.view">
+        <field name="name">df.webship.backorders.form</field>
+        <field name="model">webship.backorder</field>
+        <field name="priority">50</field>
+        <field name="arch" type="xml">
+            <form string="Stoqflow Backorder" create="false">
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <group>
+                        <group string="Order Info">
+                            <field name="ws_stoqflow_link" widget="html" string="Order link Stoqflow"/>
+                            <field name="order_or_po" widget="badge"/>
+                            <field name="ws_status" widget="badge"
+                                   decoration-success="ws_status == 'completed'"
+                                   decoration-info="ws_status == 'ready-to-pick'"
+                                   decoration-warning="ws_status == 'on-hold'"
+                                   decoration-muted="ws_status == 'concept'"
+                                   decoration-danger="ws_status == 'cancelled'"/>
+                            <field name="ws_client_name"/>
+                            <field name="ws_product_sku"/>
+                            <field name="ws_backorder_qty"/>
+                        </group>
+                        <group string="Pickings">
+                            <field name="parent_picking_id" widget="many2one" options="{'open': true}"/>
+                            <field name="ws_parent_stoqflow_link" widget="html" string="Parent Order in Stoqflow"/>
+                        </group>
+                    </group>
+                    <group string="Backorder Pickings in Odoo">
+                        <field name="odoo_backorder_picking_ids" nolabel="1">
+                            <list create="false" delete="false" open="True">
+                                <field name="name" string="Reference"/>
+                                <field name="partner_id" string="Contact"/>
+                                <field name="scheduled_date" string="Scheduled Date"/>
+                                <field name="state" widget="badge"
+                                       decoration-danger="state == 'cancel'"
+                                       decoration-info="state == 'assigned'"
+                                       decoration-muted="state == 'draft'"
+                                       decoration-success="state == 'done'"
+                                       decoration-warning="state not in ('draft','cancel','done','assigned')"/>
+                            </list>
+                        </field>
+                    </group>
+                    <group>
+                        <group string="Timestamps &amp; Status">
+                            <field name="ws_created"/>
+                            <field name="ws_edited"/>
+                            <field name="process_code" widget="badge"
+                                   decoration-warning="process_code == 'P'"
+                                   decoration-success="process_code == 'F'"
+                                   decoration-danger="process_code == 'E'"/>
+                            <field name="deleted"/>
+                            <field name="deleted_date"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Order JSON" name="order_json"
+                              invisible="not ws_order_json">
+                            <field name="ws_order_json" widget="text" readonly="1" nolabel="1"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Backorders Action -->
+    <record id="webship_backorders_action" model="ir.actions.act_window">
+        <field name="name">Stoqflow Backorders</field>
+        <field name="res_model">webship.backorder</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="df_webship_backorders_list_view"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No backorders found. Fetch backorders from Stoqflow to see them here.
+            </p>
+        </field>
+    </record>
+
+    <menuitem id="webship_backorders_menu"
+              name="Backorders"
+              parent="webship_root_menu"
+              action="webship_backorders_action"
+              sequence="4"/>
 
     <!-- Reports Menu -->
     <menuitem id="webship_reports_menu"
@@ -217,24 +365,7 @@
     <menuitem id="webship_dashboard_menu"
               name="Dashboard"
               parent="webship_root_menu"
-              sequence="10"/>
-
-    <menuitem id="webship_dashboard_overview"
-              name="Order Charts"
-              parent="webship_dashboard_menu"
               action="stoqflow_order_report_graph_action"
-              sequence="1"/>
-
-    <menuitem id="webship_dashboard_pivot_analysis"
-              name="Pivot Analysis"
-              parent="webship_dashboard_menu"
-              action="stoqflow_order_report_pivot_action"
-              sequence="2"/>
-
-    <menuitem id="webship_dashboard_sync_status"
-              name="Sync Status"
-              parent="webship_dashboard_menu"
-              action="stoqflow_order_report_list_action"
-              sequence="3"/>
+              sequence="10"/>
 
 </odoo>

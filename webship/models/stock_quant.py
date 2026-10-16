@@ -43,10 +43,13 @@ class StockQuant(models.Model):
                     "You can only apply Webship stock on Webship locations."
                 ))
 
-            # Ensure Webship stock data has been fetched for this quant
-            if quant.df_webship_totalstock is None:
+            # Ensure Webship stock data has actually been fetched for this quant.
+            # df_webship_totalstock is a Float (never None), so an unfetched quant
+            # reads 0.0 and would silently zero real inventory; gate on the last
+            # check timestamp instead, which is empty until the first import.
+            if not quant.df_last_check_webship:
                 raise UserError(_(
-                    "Webship total stock is not set for product %s."
+                    "Webship stock has not been fetched yet for product %s."
                 ) % quant.product_id.display_name)
 
             # Set the inventory adjustment quantity to the Webship total
