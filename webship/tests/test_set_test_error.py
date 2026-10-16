@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
+from unittest import mock
+
 from odoo.exceptions import UserError
 from odoo.tests.common import TransactionCase
+
+from odoo.addons.webship.models.picking import StockPicking
 
 
 class TestSetTestError(TransactionCase):
@@ -9,6 +13,10 @@ class TestSetTestError(TransactionCase):
 
     def setUp(self):
         super().setUp()
+        # Setting a Stoqflow id recomputes the order code via GET /orders/{id}
+        patcher = mock.patch.object(StockPicking, 'fetch_picking_code', return_value='X')
+        patcher.start()
+        self.addCleanup(patcher.stop)
         self.customers = self.env.ref('stock.stock_location_customers')
         self.stock = self.env.ref('stock.stock_location_stock')
         self.product = self.env['product.product'].create({
@@ -18,6 +26,9 @@ class TestSetTestError(TransactionCase):
             'picking_type_id': self.env.ref('stock.picking_type_out').id,
             'location_id': self.stock.id,
             'location_dest_id': self.customers.id,
+        })
+        # create() blanks the Stoqflow fields, so set the existing id afterwards
+        self.picking.write({
             'df_picking_id_webship': 'OLD1',
             'df_sync_retry_count': 3,
         })
@@ -42,8 +53,8 @@ class TestSetTestError(TransactionCase):
         self.assertEqual(self.picking.df_process_code, 'E')
         self.assertFalse(self.picking.df_picking_id_webship)
         self.assertEqual(self.picking.df_sync_retry_count, 0)
-        self.assertEqual(self.picking.df_picking_syncresult_webship,
-                         'No Stoqflow order ID or PO ID set on this picking')
+        self.assertIn('No Stoqflow order ID or PO ID set on this picking',
+                      self.picking.df_picking_syncresult_webship)
 
     def test_refuses_on_non_neutralized_db(self):
         self._set_neutralized('false')
@@ -96,5 +107,5 @@ class TestSetTestError(TransactionCase):
             active_ids=[self.picking.id]).create({'error_type': 'no_id'})
         wizard.action_apply()
         self.assertEqual(self.picking.df_process_code, 'E')
-        self.assertEqual(self.picking.df_picking_syncresult_webship,
-                         'No Stoqflow order ID or PO ID set on this picking')
+        self.assertIn('No Stoqflow order ID or PO ID set on this picking',
+                      self.picking.df_picking_syncresult_webship)

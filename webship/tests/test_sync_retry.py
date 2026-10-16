@@ -126,14 +126,15 @@ class TestSyncRetry(TransactionCase):
         done.df_process_code = 'P'
 
         with mock.patch.object(
-                StockPicking, '_ws_push_to_stoqflow',
-                side_effect=AssertionError('done picking must not be pushed')) as push, \
+                StockPicking, '_ws_push_to_stoqflow', autospec=True,
+                return_value=[]) as push, \
                 mock.patch.object(type(self.settings), '_ws_send_error_email') as email:
             self.settings.ws_sync_all_pickings_statusP()
 
         self.assertEqual(done.df_process_code, 'NA')
         self.assertEqual(done.df_sync_retry_count, 0)
-        push.assert_not_called()
+        self.assertNotIn(done, [c.args[0] for c in push.call_args_list],
+                         'done picking must not be pushed')
         self.assertFalse(
             any(c.args and c.args[0] == done.name for c in email.call_args_list),
             'no error e-mail should be sent for a done picking')

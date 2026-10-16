@@ -670,8 +670,9 @@ class StockPicking(models.Model):
             record.ws_sync_picking()
 
     def fetch_picking_code(self):
-        """Fetch the human-readable order number from GET /orders/{id}
-        and store it on the picking record."""
+        """Fetch the human-readable order number from GET /orders/{id},
+        store it on the picking record and return it (the _fetch_picking_code
+        compute uses the return value)."""
         if self.df_picking_id_webship != False and self.df_picking_id_webship != None:
             wsHandler = self.getHandler()
 
@@ -683,6 +684,7 @@ class StockPicking(models.Model):
                 self.df_picking_code_webship = ''
         else:
             self.df_picking_code_webship = ''
+        return self.df_picking_code_webship
 
     def fetch_po_code(self):
         """Fetch the human-readable PO number from GET /purchase-orders/{id}

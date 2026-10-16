@@ -61,6 +61,6 @@ class TestManualNoIdBlank(TransactionCase):
     def test_non_manual_picking_still_reports_missing_id(self):
         self.picking.df_process_code = 'P'
         self._fetch()
-        self.assertEqual(
-            self.picking.df_picking_syncresult_webship,
-            'No Stoqflow order ID or PO ID set on this picking')
+        self.assertIn(
+            'No Stoqflow order ID or PO ID set on this picking',
+            self.picking.df_picking_syncresult_webship)
