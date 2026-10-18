@@ -42,9 +42,9 @@ class ResConfigSettings(models.TransientModel):
     # Stoqflow API password for HTTP Basic Auth
     webship_password = fields.Char(string='Stoqflow password', config_parameter='webship.password',
                                    help="API secret used for HTTP Basic Auth when connecting to the Stoqflow REST API.")
-    # Base URL of the Stoqflow REST API (e.g. https://api.stoqflow.com/)
+    # Base URL of the Stoqflow REST API (e.g. https://app.stoqflow.com/api/v2/)
     webship_url = fields.Char(string='Stoqflow API URL', config_parameter='webship.base_url',
-                              help="Base URL of the Stoqflow REST API, e.g. https://api.stoqflow.com/. All API calls are sent to this address.")
+                              help="Base URL of the Stoqflow REST API, e.g. https://app.stoqflow.com/api/v2/. All API calls are sent to this address.")
     # Base URL of the Stoqflow web application (used for building clickable links)
     webship_app_url = fields.Char(string='Stoqflow App URL', config_parameter='webship.base_app_url',
                                   help="Base URL of the Stoqflow web application, e.g. https://app.stoqflow.com/. Used to build clickable links to orders and products in Stoqflow.")

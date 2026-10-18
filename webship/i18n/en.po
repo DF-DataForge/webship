@@ -869,8 +869,8 @@ msgstr "API secret used for HTTP Basic Auth when connecting to the Stoqflow REST
 
 #. module: webship
 #: model:ir.model.fields,help:webship.field_res_config_settings__webship_url
-msgid "Base URL of the Stoqflow REST API, e.g. https://api.stoqflow.com/. All API calls are sent to this address."
-msgstr "Base URL of the Stoqflow REST API, e.g. https://api.stoqflow.com/. All API calls are sent to this address."
+msgid "Base URL of the Stoqflow REST API, e.g. https://app.stoqflow.com/api/v2/. All API calls are sent to this address."
+msgstr "Base URL of the Stoqflow REST API, e.g. https://app.stoqflow.com/api/v2/. All API calls are sent to this address."
 
 #. module: webship
 #: model:ir.model.fields,help:webship.field_res_config_settings__webship_app_url
@@ -1330,8 +1330,8 @@ msgstr "API URL: "
 
 #. module: webship
 #: model_terms:ir.ui.view,arch_db:webship.res_config_settings_view_form
-msgid "Base URL of the Stoqflow REST API (e.g. https://api.stoqflow.com/)"
-msgstr "Base URL of the Stoqflow REST API (e.g. https://api.stoqflow.com/)"
+msgid "Base URL of the Stoqflow REST API (e.g. https://app.stoqflow.com/api/v2/)"
+msgstr "Base URL of the Stoqflow REST API (e.g. https://app.stoqflow.com/api/v2/)"
 
 #. module: webship
 #: model_terms:ir.ui.view,arch_db:webship.res_config_settings_view_form

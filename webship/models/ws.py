@@ -368,7 +368,13 @@ class WebShipHandler:
 
     def test(self):
         """Test the API connection and return a (status, message) tuple."""
-        response = self.session.get(self.baseUrl + 'products', timeout=self.REQUEST_TIMEOUT)
+        try:
+            response = self.session.get(self.baseUrl + 'products', timeout=self.REQUEST_TIMEOUT)
+        except requests.exceptions.RequestException as e:
+            # Unreachable host (wrong API URL, DNS, timeout): report it in the
+            # notification instead of raising a server error
+            _logger.warning('Stoqflow connection test failed: %s', e)
+            return ('danger', 'Fout bij verbinden met %s: %s' % (self.baseUrl, e))
 
         if response.status_code != 200:
             sStatus = 'danger'

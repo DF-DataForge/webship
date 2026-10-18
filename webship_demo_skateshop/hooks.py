@@ -182,7 +182,7 @@ def _configure_stoqflow(env):
     empty on purpose: enter your Stoqflow sandbox key in the settings."""
     params = env['ir.config_parameter'].sudo()
     for key, value in {
-        'webship.base_url': 'https://api.stoqflow.com/',
+        'webship.base_url': 'https://app.stoqflow.com/api/v2/',
         'webship.base_app_url': 'https://app.stoqflow.com/',
         'webship.sync_order': 'True',
         'webship.sync_products': 'True',
