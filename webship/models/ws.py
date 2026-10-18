@@ -2788,10 +2788,8 @@ class WebShipHandler:
     def sync_product(self, product):
         """Create or update a product in Webship from an Odoo product record.
         If the product doesn't exist, checks that the SKU isn't already in use."""
-        errors = []
-
-        if product.default_code == False or product.default_code == '':
-            errors.append('No sku for product')
+        if not product.default_code:
+            return ['No SKU (Internal Reference) set on this product']
 
         # Use product-level brand if set, otherwise fall back to global default
         if product.df_brand_id:
@@ -2805,7 +2803,8 @@ class WebShipHandler:
             'name': product.name,
             'price': product.standard_price,
             'retail_price': product.lst_price,
-            'has_stock': product.type == 'product',
+            # Odoo 19: storable goods are type 'consu' with is_storable set
+            'has_stock': bool(product.is_storable),
         }
 
         # Description (from Odoo sale description)
@@ -2921,8 +2920,6 @@ class WebShipHandler:
             return []
         else:
             return ['Error occured: ' + result['errorText'] + ' (url: ' + result.get('url', '?') + ')']
-
-        return errors
 
     def sync_picking(self, picking):
         """Sync a picking (outbound order or purchase order) to Webship.

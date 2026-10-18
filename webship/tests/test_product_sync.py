@@ -140,3 +140,69 @@ class TestProductSync(TransactionCase):
         self.assertEqual(len(template.product_variant_ids), 1)
         template.df_product_do_not_send_webship = True
         self.assertTrue(template.product_variant_ids.df_product_do_not_send_webship)
+
+    # --- Product push payload and per-record results ----------------------
+
+    def _push(self, product):
+        """Run sync_product for a new product against a stubbed Stoqflow and
+        return the payload that would have been POSTed (None if no POST)."""
+        posted = {}
+
+        def _post(url, obj):
+            posted['obj'] = obj
+            return {'status': 'success', 'data': {'_id': 'P1'}}
+        with mock.patch.object(WebShipHandler, 'get_brand', return_value='B1'), \
+                mock.patch.object(WebShipHandler, 'findProductBySku', return_value=[]), \
+                mock.patch.object(WebShipHandler, 'performPost', side_effect=_post):
+            errors = self.handler.sync_product(product)
+        return errors, posted.get('obj')
+
+    def test_storable_product_has_stock(self):
+        # Odoo 19 has no type 'product': storable goods are 'consu' + is_storable.
+        product = self.env['product.product'].create({
+            'name': 'Storable', 'default_code': 'STOR', 'type': 'consu', 'is_storable': True,
+        })
+        errors, payload = self._push(product)
+        self.assertEqual(errors, [])
+        self.assertIs(payload['has_stock'], True)
+        self.assertEqual(product.df_product_id_webship, 'P1')
+
+    def test_non_storable_product_has_no_stock(self):
+        product = self.env['product.product'].create({
+            'name': 'Not storable', 'default_code': 'CONSU', 'type': 'consu', 'is_storable': False,
+        })
+        errors, payload = self._push(product)
+        self.assertEqual(errors, [])
+        self.assertIs(payload['has_stock'], False)
+
+    def test_missing_sku_is_not_pushed(self):
+        product = self.env['product.product'].create({'name': 'No SKU'})
+        errors, payload = self._push(product)
+        self.assertIsNone(payload, 'a product without SKU must not reach Stoqflow')
+        self.assertIn('No SKU', errors[0])
+
+    def test_multi_select_sync_keeps_each_result(self):
+        # Syncing several products at once (list view) stores each product's
+        # own result instead of the last one on the whole selection.
+        ok = self.env['product.product'].create({'name': 'Ok', 'default_code': 'OK1'})
+        bad = self.env['product.product'].create({'name': 'Bad', 'default_code': 'BAD1'})
+
+        def _sync(product):
+            return [] if product == ok else ['boom']
+        with mock.patch.object(WebShipHandler, 'sync_product', side_effect=_sync):
+            (ok | bad).ws_sync_product()
+        self.assertIn('success', ok.df_product_syncresult_webship)
+        self.assertIn('boom', bad.df_product_syncresult_webship)
+        self.assertTrue(ok.df_product_lastsync_webship)
+        self.assertTrue(bad.df_product_lastsync_webship)
+
+    def test_multi_select_match_keeps_each_result(self):
+        ok = self.env['product.product'].create({'name': 'Ok', 'default_code': 'OK2'})
+        bad = self.env['product.product'].create({'name': 'Bad', 'default_code': 'BAD2'})
+
+        def _match(product):
+            return [] if product == ok else ['Sku not found in Webship']
+        with mock.patch.object(WebShipHandler, 'match_product', side_effect=_match):
+            (ok | bad).ws_match_product()
+        self.assertIn('success', ok.df_product_syncresult_webship)
+        self.assertIn('Sku not found', bad.df_product_syncresult_webship)

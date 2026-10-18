@@ -140,7 +140,7 @@ class Productvar(models.Model):
 
             # Display success or format errors as an HTML list
             if sResult == []:
-                self.df_product_syncresult_webship = 'success'
+                record.df_product_syncresult_webship = 'success'
             else:
                 sOutput = '<p>Errors occured:</p>'
                 sOutput = sOutput + '<ul>'
@@ -148,7 +148,7 @@ class Productvar(models.Model):
                     sOutput += '<li>' + e + '</li>'
                 sOutput = sOutput + '</ul>'
 
-                self.df_product_syncresult_webship = sOutput
+                record.df_product_syncresult_webship = sOutput
 
 
 
@@ -172,11 +172,11 @@ class Productvar(models.Model):
             sResult = wsHandler.sync_product(record)
 
             # Record the sync timestamp
-            self.df_product_lastsync_webship = datetime.now()
+            record.df_product_lastsync_webship = datetime.now()
 
             # Display success or format errors as an HTML list
             if sResult == []:
-                self.df_product_syncresult_webship = 'success'
+                record.df_product_syncresult_webship = 'success'
             else:
                 sOutput = '<p>Errors occured:</p>'
                 sOutput = sOutput + '<ul>'
@@ -184,7 +184,7 @@ class Productvar(models.Model):
                     sOutput += '<li>' + e + '</li>'
                 sOutput = sOutput + '</ul>'
 
-                self.df_product_syncresult_webship = sOutput
+                record.df_product_syncresult_webship = sOutput
 
     def write(self, values):
         """Override write to allow future extensibility for Webship-specific logic."""
