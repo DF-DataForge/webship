@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="webship_status_update_tree" model="ir.ui.view">
+        <field name="name">webship.status.update.tree</field>
+        <field name="model">webship.status.update</field>
+        <field name="arch" type="xml">
+            <list default_order="id desc"
+                  decoration-success="state == 'done'"
+                  decoration-muted="state == 'skipped'"
+                  decoration-danger="state == 'error'">
+                <field name="create_date" string="Queued on"/>
+                <field name="df_object_type"/>
+                <field name="df_code_webship"/>
+                <field name="df_webship_id" optional="hide"/>
+                <field name="df_status_webship"/>
+                <field name="df_edited"/>
+                <field name="picking_id"/>
+                <field name="state"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="webship_status_update_form" model="ir.ui.view">
+        <field name="name">webship.status.update.form</field>
+        <field name="model">webship.status.update</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_process" type="object" string="Process now"
+                            class="btn-primary" invisible="state == 'done'"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="df_object_type"/>
+                            <field name="df_webship_id"/>
+                            <field name="df_code_webship"/>
+                            <field name="df_status_webship"/>
+                        </group>
+                        <group>
+                            <field name="df_edited"/>
+                            <field name="picking_id"/>
+                            <field name="create_date" string="Queued on"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="df_result" readonly="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="webship_status_update_search" model="ir.ui.view">
+        <field name="name">webship.status.update.search</field>
+        <field name="model">webship.status.update</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="df_webship_id"/>
+                <field name="df_code_webship"/>
+                <field name="picking_id"/>
+                <filter name="filter_pending" string="Pending" domain="[('state', '=', 'pending')]"/>
+                <filter name="filter_done" string="Done" domain="[('state', '=', 'done')]"/>
+                <filter name="filter_skipped" string="Skipped" domain="[('state', '=', 'skipped')]"/>
+                <filter name="filter_error" string="Error" domain="[('state', '=', 'error')]"/>
+                <separator/>
+                <filter name="filter_orders" string="Orders" domain="[('df_object_type', '=', 'order')]"/>
+                <filter name="filter_pos" string="Purchase Orders" domain="[('df_object_type', '=', 'purchase-order')]"/>
+                <!-- Group By -->
+                <group>
+                    <filter name="group_state" string="State" context="{'group_by': 'state'}"/>
+                    <filter name="group_type" string="Type" context="{'group_by': 'df_object_type'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="webship_status_update_action" model="ir.actions.act_window">
+        <field name="name">Status Updates</field>
+        <field name="res_model">webship.status.update</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="webship_status_update_menu" name="Status Updates"
+        parent="webship.webship_root_menu" sequence="19"
+        action="webship_status_update_action"/>
+</odoo>

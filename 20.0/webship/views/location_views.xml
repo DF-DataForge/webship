@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="stock_location_view_inherit_webship" model="ir.ui.view">
+        <field name="name">stock.location.view.inherit.webship</field>
+        <field name="model">stock.location</field>
+        <field name="inherit_id" ref="stock.view_location_form"/>
+        <field name="arch" type="xml">
+             <xpath expr="//field[@name='replenish_location']" position="after">
+                <field name="df_is_webship_location"></field>
+                 <field name="df_warehouse_webship"/>
+             </xpath>
+        </field>
+    </record>
+</odoo>
+<!-- Niet meer nodig. Shopid hangt aan de warehouse-->

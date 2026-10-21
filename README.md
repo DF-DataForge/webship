@@ -4,15 +4,25 @@ Odoo module **Koppeling Stoqflow by Data Forge** (`webship`): integration betwee
 
 Extracted from `Pivotal-Dataforge/flat-pro` with its git history preserved.
 
+## Layout
+
+One folder per Odoo version, each holding the addons for that version:
+
+| Folder | Odoo | Contents |
+|--------|------|----------|
+| `18.0/` | 18.0 | `webship` |
+| `19.0/` | 19.0 | `webship`, `webship_demo_skateshop` |
+| `20.0/` | 20.0 | `webship` |
+
 ## Installation
 
-Add this repository's root to the Odoo `addons_path` and install the `webship` module.
+Add the folder that matches your Odoo version (e.g. `<repo>/20.0`) to the Odoo `addons_path` and install the `webship` module.
 
 Depends only on standard Odoo modules: `base`, `web`, `sale`, `product`, `purchase`, `stock`, `delivery`.
 
 ## Demo database: Woody's Skate Supply
 
-`webship_demo_skateshop` turns a **fresh, empty** Odoo 19 database into a demo company that uses Stoqflow as its e-fulfilment partner. Install it from Apps (it pulls in `webship`, eCommerce, Manufacturing and the Belgian chart of accounts). Never install it on a production database: it renames the main company and creates warehouses, partners, products and orders.
+`19.0/webship_demo_skateshop` turns a **fresh, empty** Odoo 19 database into a demo company that uses Stoqflow as its e-fulfilment partner. Install it from Apps (it pulls in `webship`, eCommerce, Manufacturing and the Belgian chart of accounts). Never install it on a production database: it renames the main company and creates warehouses, partners, products and orders.
 
 What it sets up:
 
