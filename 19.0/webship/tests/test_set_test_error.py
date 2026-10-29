@@ -13,7 +13,9 @@ class TestSetTestError(TransactionCase):
 
     def setUp(self):
         super().setUp()
-        # Setting a Stoqflow id recomputes the order code via GET /orders/{id}
+        # Writing df_picking_id_webship arms the stored compute of
+        # df_picking_code_webship, which fetches the code via the API
+        # handler on the next flush - mock it like the other test files.
         patcher = mock.patch.object(StockPicking, 'fetch_picking_code', return_value='X')
         patcher.start()
         self.addCleanup(patcher.stop)
@@ -26,12 +28,12 @@ class TestSetTestError(TransactionCase):
             'picking_type_id': self.env.ref('stock.picking_type_out').id,
             'location_id': self.stock.id,
             'location_dest_id': self.customers.id,
-        })
-        # create() blanks the Stoqflow fields, so set the existing id afterwards
-        self.picking.write({
-            'df_picking_id_webship': 'OLD1',
             'df_sync_retry_count': 3,
         })
+        # Set AFTER create: the module's create() override deliberately
+        # resets every Stoqflow field on new pickings, so an id passed in
+        # the create vals would be wiped immediately.
+        self.picking.df_picking_id_webship = 'OLD1'
 
     def _set_neutralized(self, value):
         self.env['ir.config_parameter'].sudo().set_param(
@@ -53,6 +55,8 @@ class TestSetTestError(TransactionCase):
         self.assertEqual(self.picking.df_process_code, 'E')
         self.assertFalse(self.picking.df_picking_id_webship)
         self.assertEqual(self.picking.df_sync_retry_count, 0)
+        # Html field: a plain-text write is sanitized into wrapped Markup
+        # (<span>...</span> on Odoo 19), so compare content, not equality.
         self.assertIn('No Stoqflow order ID or PO ID set on this picking',
                       self.picking.df_picking_syncresult_webship)
 
@@ -107,5 +111,6 @@ class TestSetTestError(TransactionCase):
             active_ids=[self.picking.id]).create({'error_type': 'no_id'})
         wizard.action_apply()
         self.assertEqual(self.picking.df_process_code, 'E')
+        # Html field: compare content, not equality (see above).
         self.assertIn('No Stoqflow order ID or PO ID set on this picking',
                       self.picking.df_picking_syncresult_webship)

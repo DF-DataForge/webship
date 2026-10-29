@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from unittest import mock
 
+from odoo.exceptions import AccessError
 from odoo.tests.common import TransactionCase
 
 from odoo.addons.webship.models.picking import StockPicking
@@ -78,3 +79,52 @@ class TestVerboseLogging(TransactionCase):
         row = self.History.search(
             [('direction', '=', 'trace'), ('json_payload', 'like', 'tagged message')], limit=1)
         self.assertEqual(row.picking_id, picking)
+
+
+class TestDebugDump(TransactionCase):
+    """_debug_dump: the safe replacement for showDebugInfo(records.read()).
+    The read() only happens after the verbose check and over a field subset,
+    and an AccessError degrades to id/display_name instead of propagating -
+    debug output must never decide whether a sync may run."""
+
+    def setUp(self):
+        super().setUp()
+        self.param = self.env['ir.config_parameter'].sudo()
+        self.History = self.env['webship.json.history']
+        self.handler = WebShipHandler('u', 'p', 'http://test/')
+        self.handler.set_env(self.env)
+        self.partner = self.env['res.partner'].create({
+            'name': 'Dump Partner', 'street': 'Teststraat 1', 'city': 'Gent',
+        })
+
+    def _trace_payloads(self):
+        return self.History.search([('direction', '=', 'trace')]).mapped('json_payload')
+
+    def test_verbose_off_never_evaluates_read(self):
+        self.param.set_param('webship.verbose_logging', 'False')
+        with mock.patch.object(type(self.partner), 'read',
+                               side_effect=AssertionError('read() must not run')):
+            self.handler._debug_dump(self.partner, self.handler.PARTNER_DEBUG_FIELDS)
+        self.assertEqual(self._trace_payloads(), [])
+
+    def test_access_error_degrades_to_display_name(self):
+        self.param.set_param('webship.verbose_logging', 'True')
+        with mock.patch.object(type(self.partner), 'read',
+                               side_effect=AccessError('restricted field')):
+            self.handler._debug_dump(self.partner, self.handler.PARTNER_DEBUG_FIELDS,
+                                     'Delivery address')
+        payloads = self._trace_payloads()
+        self.assertEqual(len(payloads), 1)
+        self.assertIn('Dump Partner', payloads[0])
+        self.assertIn('Delivery address', payloads[0])
+
+    def test_dumps_only_field_subset(self):
+        self.param.set_param('webship.verbose_logging', 'True')
+        self.handler._debug_dump(self.partner, self.handler.PARTNER_DEBUG_FIELDS,
+                                 'Delivery address')
+        payloads = self._trace_payloads()
+        self.assertEqual(len(payloads), 1)
+        self.assertIn('Teststraat 1', payloads[0])
+        # Fields outside the subset are not read: 'active' exists on every
+        # partner but is not in PARTNER_DEBUG_FIELDS.
+        self.assertNotIn("'active'", payloads[0])

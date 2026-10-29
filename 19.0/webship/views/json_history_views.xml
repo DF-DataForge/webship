@@ -58,7 +58,7 @@
                 <group>
                     <filter name="group_method" string="HTTP Method" context="{'group_by': 'method'}"/>
                     <filter name="group_direction" string="Direction" context="{'group_by': 'direction'}"/>
-                    <filter name="group_picking" string="Picking" context="{'group_by': 'picking_id'}"/>
+                    <filter name="group_picking" string="Transfer" context="{'group_by': 'picking_id'}"/>
                 </group>
             </search>
         </field>

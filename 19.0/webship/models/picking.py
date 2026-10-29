@@ -18,6 +18,7 @@ from odoo.addons.webship.models.ws import (
 from odoo import models, fields, api, _
 from odoo.exceptions import UserError
 from markupsafe import Markup, escape
+from odoo.tools import html2plaintext
 from odoo.tools.safe_eval import safe_eval
 
 from collections import defaultdict
@@ -109,6 +110,8 @@ class StockPicking(models.Model):
 
     # Computed Stoqflow object type based on location directions:
     #   'Order' = outbound (source is Webship), 'Purchase order' = inbound (dest is Webship), 'Mutation' = other
+    # When both locations are Stoqflow locations the linked sale/purchase order
+    # (then the operation type) decides; see _find_object_webship.
     df_object_in_webship = fields.Char('Object in Stoqflow', compute="_find_object_webship", store=True)
 
     # Process code controlling the sync lifecycle:
@@ -453,6 +456,11 @@ class StockPicking(models.Model):
             return ''
         if field.type == 'many2one':
             return value.display_name or ''
+        if field.type == 'html':
+            # Html values (e.g. the sync result) carry their own markup; the
+            # trace line escapes what we return, so the raw tags would show
+            # up literally in the chatter. Log the text content only.
+            return html2plaintext(str(value)).strip()
         return str(value)
 
     def _log_process_code(self, reason):
@@ -514,21 +522,103 @@ class StockPicking(models.Model):
                 else:
                     record.df_picking_code_webship = ''
 
-    @api.depends('location_id', 'location_dest_id')
+    # The dependencies name the Stoqflow flag on the locations, not just the
+    # location ids: flagging a location as a Stoqflow location after pickings
+    # already exist must reclassify those pickings. Depending on the ids alone
+    # left such pickings stored as 'Mutation' forever.
+    @api.depends('location_id.df_is_webship_location', 'location_dest_id.df_is_webship_location',
+                 'sale_id', 'purchase_id', 'picking_type_code')
     def _find_object_webship(self):
         """Determine the Stoqflow object type based on source and destination locations:
         - 'Purchase order': destination is a Webship location (inbound goods -> POST /purchase-orders)
         - 'Order': source is a Webship location (outbound goods -> POST /orders)
-        - 'Mutation': internal transfer, not synced to Stoqflow"""
+        - 'Mutation': internal transfer, not synced to Stoqflow
+
+        When both locations are Webship locations (e.g. an operation type whose
+        default source and destination are the same Stoqflow stock location),
+        the locations say nothing about the direction, so the business document
+        behind the transfer decides: a sale order makes it an 'Order', a purchase
+        order a 'Purchase order', then the operation type (delivery/receipt).
+        Only a transfer with none of those is a real 'Mutation'."""
         for record in self:
-            if record.location_dest_id.df_is_webship_location and not record.location_id.df_is_webship_location:
+            src_is_ws = record.location_id.df_is_webship_location
+            dest_is_ws = record.location_dest_id.df_is_webship_location
+            if dest_is_ws and not src_is_ws:
                 record.df_object_in_webship = 'Purchase order'
-            elif record.location_id.df_is_webship_location and not record.location_dest_id.df_is_webship_location:
+            elif src_is_ws and not dest_is_ws:
                 record.df_object_in_webship = 'Order'
+            elif src_is_ws and dest_is_ws:
+                record.df_object_in_webship = record._webship_object_from_document()
             else:
                 record.df_object_in_webship = 'Mutation'
 
-    @api.depends('location_id', 'location_dest_id')
+    @api.model
+    def _ws_reclassify_object_types(self):
+        """Recompute 'Object in Stoqflow' and the Stoqflow tab flag on every
+        picking that touches a Stoqflow location, plus any picking still
+        carrying a non-'Mutation' value or a visible tab from a location that
+        has since been un-flagged.
+
+        Both are stored computes, so a value only goes stale when something
+        the compute could not see changed (historically: the location flag
+        itself). This is the safety net behind the 'Reclassify Stoqflow object
+        types' scheduled action and the 19.0.2.46 upgrade.
+
+        Returns (pickings, changed): the recordsets examined and corrected."""
+        # The selection below runs in SQL, so pending ORM writes (e.g. a
+        # location just flagged in the same transaction) must be flushed first.
+        self.env.flush_all()
+        self.env.cr.execute("""
+            SELECT sp.id
+            FROM stock_picking sp
+            LEFT JOIN stock_location sl_src ON sl_src.id = sp.location_id
+            LEFT JOIN stock_location sl_dst ON sl_dst.id = sp.location_dest_id
+            WHERE sl_src.df_is_webship_location = TRUE
+               OR sl_dst.df_is_webship_location = TRUE
+               OR sp.df_show_webship_page = TRUE
+               OR COALESCE(sp.df_object_in_webship, 'Mutation') != 'Mutation'
+            ORDER BY sp.id
+        """)
+        pickings = self.browse([row[0] for row in self.env.cr.fetchall()])
+        if not pickings:
+            return pickings, pickings
+
+        before = {p.id: (p.df_object_in_webship, p.df_show_webship_page) for p in pickings}
+
+        for fname in ('df_object_in_webship', 'df_show_webship_page'):
+            self.env.add_to_compute(self._fields[fname], pickings)
+        self.env.flush_all()
+
+        changed = pickings.filtered(
+            lambda p: (p.df_object_in_webship, p.df_show_webship_page) != before[p.id])
+        for p in changed:
+            old_object, old_show = before[p.id]
+            _logger.info(
+                "Stoqflow reclassify %s: object %r -> %r, show page %s -> %s",
+                p.name, old_object, p.df_object_in_webship, old_show, p.df_show_webship_page)
+            if old_object != p.df_object_in_webship:
+                p.message_post(
+                    body=Markup("Stoqflow object type corrected: <b>%s</b> → <b>%s</b>") % (
+                        old_object or '', p.df_object_in_webship),
+                    subtype_xmlid='mail.mt_note',
+                )
+        return pickings, changed
+
+    def _webship_object_from_document(self):
+        """Tie-break for a picking whose source and destination are both
+        Stoqflow locations: classify it by the document it fulfils."""
+        self.ensure_one()
+        if self.sale_id:
+            return 'Order'
+        if self.purchase_id:
+            return 'Purchase order'
+        if self.picking_type_code == 'outgoing':
+            return 'Order'
+        if self.picking_type_code == 'incoming':
+            return 'Purchase order'
+        return 'Mutation'
+
+    @api.depends('location_id.df_is_webship_location', 'location_dest_id.df_is_webship_location')
     def _show_webship_page(self):
         """Show the Webship tab on the picking form if either the source or
         destination location is a Webship-managed location."""
@@ -658,11 +748,45 @@ class StockPicking(models.Model):
         }
         return notification
 
+    def button_validate(self):
+        """Refuse MANUAL validation of transfers the Stoqflow sync owns.
+
+        A transfer that is waiting to be pushed ('P') or is being picked in
+        Stoqflow ('F') is validated by the sync itself when Stoqflow completes
+        the order; validating it by hand makes Odoo and Stoqflow diverge (the
+        sync then finds a done picking it can no longer update, or completes
+        it at the ordered instead of the picked quantities). 'M', 'E', 'C' and
+        'NA' stay validatable - those are exactly the states where a human is
+        supposed to take over. The sync itself validates through
+        _webship_validate(), which sets the bypass context flag."""
+        if not self.env.context.get('webship_internal_validate'):
+            for picking in self:
+                in_scope = (picking.df_is_webship_source
+                            or picking.df_is_webship_destination)
+                if in_scope and picking.df_process_code in ('P', 'F'):
+                    raise UserError(_(
+                        "Transfer %(name)s is managed by the Stoqflow sync "
+                        "(process code: %(code)s). It will be validated "
+                        "automatically when Stoqflow completes the order; "
+                        "validating it manually now would make Odoo and "
+                        "Stoqflow diverge.\n\n"
+                        "If you really need to complete it in Odoo, set its "
+                        "Stoqflow process code to 'Manual' first (Stoqflow "
+                        "tab on the transfer).",
+                        name=picking.name, code=picking.df_process_code))
+        return super().button_validate()
+
+    def _webship_validate(self):
+        """Validation entry point for the Stoqflow sync: bypasses the
+        manual-validation guard in button_validate()."""
+        return self.with_context(webship_internal_validate=True).button_validate()
+
     def setCompleted(self):
-        """Mark all selected pickings as done by triggering Odoo's standard validation."""
+        """Mark all selected pickings as done by triggering Odoo's standard validation.
+        Invoked by the sync tooling, so it uses the internal validation entry point."""
         for record in self:
             if record.state != 'done':
-                record.button_validate()
+                record._webship_validate()
 
     def ws_sync_allpickings(self):
         """Sync all selected pickings to Stoqflow one by one."""
@@ -671,8 +795,14 @@ class StockPicking(models.Model):
 
     def fetch_picking_code(self):
         """Fetch the human-readable order number from GET /orders/{id},
-        store it on the picking record and return it (the _fetch_picking_code
-        compute uses the return value)."""
+        store it on the picking record and RETURN it.
+
+        The return value matters: the stored compute _fetch_picking_code
+        assigns this method's result to df_picking_code_webship. Without a
+        return it stored '' - discarding the code the GET just fetched - and
+        the fallback in _ws_push_to_stoqflow (whose guard read is what
+        triggers the pending compute in the first place) then issued a second
+        GET /orders/{id} for the same picking."""
         if self.df_picking_id_webship != False and self.df_picking_id_webship != None:
             wsHandler = self.getHandler()
 
@@ -680,11 +810,11 @@ class StockPicking(models.Model):
 
             if pickingCode != None:
                 self.df_picking_code_webship = pickingCode
-            else:
-                self.df_picking_code_webship = ''
+                return pickingCode
+            self.df_picking_code_webship = ''
         else:
             self.df_picking_code_webship = ''
-        return self.df_picking_code_webship
+        return ''
 
     def fetch_po_code(self):
         """Fetch the human-readable PO number from GET /purchase-orders/{id}
@@ -845,7 +975,7 @@ class StockPicking(models.Model):
                 'Error while performing post request: reference must be unique '
                 '(url: ?)</li></ul>')
         elif error_type == 'no_id':
-            syncresult = 'No Stoqflow order ID or PO ID set on this picking'
+            syncresult = self._WS_NO_ID_MESSAGE
         else:
             raise UserError(_("Unknown test error type: %s") % error_type)
 
@@ -972,7 +1102,30 @@ class StockPicking(models.Model):
 
             self.df_picking_syncresult_webship = sOutput
 
+            # Optionally keep the failure detail in the chatter (the sync result
+            # field is overwritten on the next sync, the chatter message is not).
+            self._ws_log_errors_to_chatter(sResult)
+
         return sResult
+
+    def _ws_log_errors_to_chatter(self, errors):
+        """Post the given sync errors to the picking chatter when the
+        'Log sync errors in picking chatter' setting is enabled.
+
+        Controlled by webship.log_errors_chatter so it stays off by default and
+        does not add a chatter message on every failed sync unless requested."""
+        if not errors:
+            return
+        if self.env['ir.config_parameter'].sudo().get_param(
+                'webship.log_errors_chatter') != 'True':
+            return
+        items = Markup('').join(
+            Markup('<li>%s</li>') % escape(e) for e in errors
+        )
+        self.message_post(
+            body=Markup('<strong>Stoqflow sync errors:</strong><ul>%s</ul>') % items,
+            subtype_xmlid='mail.mt_note',
+        )
 
     def compare_lines_with_stoqflow(self):
         """Compare this picking's lines against its corresponding Stoqflow order
@@ -1786,6 +1939,19 @@ class StockPicking(models.Model):
             _logger.info(
                 "link_backorder: %s not linked - %s", self.name, found['reason'])
 
+    # Sync result written when a picking that was sent to Stoqflow ('F') no
+    # longer carries a Stoqflow order/PO id.
+    _WS_NO_ID_MESSAGE = 'No Stoqflow order ID or PO ID set on this picking'
+
+    def _ws_has_no_id_placeholder(self):
+        """Whether the sync result is (only) the generic 'no Stoqflow id'
+        placeholder, as opposed to a real error or warning text."""
+        self.ensure_one()
+        result = self.df_picking_syncresult_webship
+        if not result:
+            return False
+        return html2plaintext(str(result)).strip() == self._WS_NO_ID_MESSAGE
+
     def fetchQuantities(self):
         """Fetch the latest order/PO data from GET /orders/{id} or GET /purchase-orders/{id}
         and update move quantities on this picking.
@@ -1810,8 +1976,27 @@ class StockPicking(models.Model):
                         "fetchQuantities: skipping manual picking %s (no Stoqflow ID)",
                         record.name)
                     continue
-                record.df_picking_syncresult_webship = 'No Stoqflow order ID or PO ID set on this picking'
-                _logger.warning("fetchQuantities: picking %s has no Stoqflow ID", record.name)
+                if record.df_process_code != 'F':
+                    # Not sent to Stoqflow (yet): Pending pickings are still
+                    # queued for the push cron, Error ones carry the real
+                    # failure text, and NA/Cancelled ones are out of scope.
+                    # None of them is supposed to have a Stoqflow id, so the
+                    # missing id is not worth reporting. Only remove the
+                    # placeholder an earlier run may have left; never touch a
+                    # real error message.
+                    if record._ws_has_no_id_placeholder():
+                        record.df_picking_syncresult_webship = ''
+                    _logger.debug(
+                        "fetchQuantities: skipping %s picking %s (not sent to Stoqflow, no Stoqflow ID)",
+                        record.df_process_code, record.name)
+                    continue
+                # Sent to Stoqflow ('F') but the id is gone: that is a real
+                # inconsistency worth flagging. Only write the generic message
+                # on a blank result so an existing message is not overwritten
+                # before anyone has read it.
+                if not record.df_picking_syncresult_webship:
+                    record.df_picking_syncresult_webship = self._WS_NO_ID_MESSAGE
+                _logger.warning("fetchQuantities: picking %s was sent to Stoqflow but has no Stoqflow ID", record.name)
                 continue
 
             # Check outbound orders via GET /orders/{id}
@@ -1916,9 +2101,18 @@ class StockPicking(models.Model):
         """Create a backorder for partially fulfilled moves.
         Moves with zero quantity are included in the backorder picking."""
         for record in self:
-            moves = record.move_ids.filtered(lambda m: m.state not in ('done', 'cancel') and m.quantity != 0)
+            # Snapshot the zero-quantity moves BEFORE the split:
+            # _create_backorder() creates fresh zero-quantity moves on this
+            # same picking (and returns them), so a post-split re-read of
+            # move_ids would collect those split moves a second time - and,
+            # without the state filter, sweep done/cancelled moves into the
+            # backorder as well.
+            zero_moves = record.move_ids.filtered(
+                lambda m: m.state not in ('done', 'cancel') and m.quantity == 0)
+            moves = record.move_ids.filtered(
+                lambda m: m.state not in ('done', 'cancel') and m.quantity != 0)
             backorder_moves = moves._create_backorder()
-            backorder_moves += record.move_ids.filtered(lambda m: m.quantity == 0)
+            backorder_moves |= zero_moves
             _logger.debug("Backorder moves: %s", backorder_moves)
             if backorder_moves:
                 record._create_backorder(backorder_moves=backorder_moves)

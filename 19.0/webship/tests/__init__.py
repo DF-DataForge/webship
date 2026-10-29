@@ -26,6 +26,15 @@ from . import test_parcels_tracking
 from . import test_courier_mapping
 from . import test_backorder_on_complete
 from . import test_retours
+from . import test_query_encoding
+from . import test_partner_match_blank_sequence
+from . import test_retour_sale_order_match
+from . import test_connection_credentials
 from . import test_set_test_error
 from . import test_full_trace_chatter
+from . import test_error_chatter
+from . import test_ignored_skus
+from . import test_status_ws_to_odoo
+from . import test_manual_validation_guard
 from . import test_manual_no_id_blank
+from . import test_object_in_webship

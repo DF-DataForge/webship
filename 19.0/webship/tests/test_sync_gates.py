@@ -67,6 +67,9 @@ class TestSyncGates(TransactionCase):
         picking.action_assign()
         picking.move_ids.quantity = 1
         picking.move_ids.picked = True
+        # Manual validation of a sync-owned ('P') picking is refused; mark it
+        # Manual so this fixture can validate it by hand.
+        picking.df_process_code = 'M'
         picking.button_validate()
         self.assertEqual(picking.state, 'done')
         self.assertEqual(self.handler._sync_picking(picking),

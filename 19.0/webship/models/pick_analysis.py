@@ -6,7 +6,7 @@ class PickAnalysisLine(models.Model):
     _description = 'Stoqflow Pick Analysis Line'
     _order = 'sequence, id'
 
-    picking_id = fields.Many2one('stock.picking', string='Picking', ondelete='cascade')
+    picking_id = fields.Many2one('stock.picking', string='Transfer', ondelete='cascade')
     sequence = fields.Integer(string='#')
 
     # Raw Stoqflow IDs from the pick payload

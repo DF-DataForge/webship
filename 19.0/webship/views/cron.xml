@@ -54,6 +54,15 @@
             <field name="interval_type">minutes</field>
             <field name="active">False</field>
         </record>
+        <record id="ir_cron_reclassify_object_types" model="ir.cron">
+            <field name="name">Stoqflow reclassify object types</field>
+            <field name="model_id" ref="base.model_res_config_settings"/>
+            <field name="state">code</field>
+            <field name="code">model.ws_reclassify_object_types()</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="active">True</field>
+        </record>
         <record id="ir_cron_auto_delete_backorders" model="ir.cron">
             <field name="name">Stoqflow fetch backorders</field>
             <field name="model_id" ref="base.model_res_config_settings"/>

@@ -96,17 +96,19 @@ class ResConfigSettings(models.TransientModel):
                                    help="General synchronization mode. 'Sync required' enables automatic order syncing, 'Sync not required' disables it.")
 
     # --- Sync Toggle Flags ---
-    # Developer-only: validate completed PO receipts with Odoo's native backorder
-    # confirmation (only received quantities validated, backorder for the rest)
-    # instead of the legacy make_backorder/force-done flow.
-    webship_use_native_backorder = fields.Boolean(
-        string="Native backorder validation for receipts",
-        config_parameter='webship.use_native_backorder',
-        help="Technical / experimental (developer mode). When enabled, a completed purchase-order "
-             "receipt is validated using Odoo's native backorder confirmation: only the quantities "
-             "actually received in Stoqflow are validated, a backorder is created for the "
-             "not-yet-received items, and a receipt with 0 received units is left open. When "
-             "disabled, the previous validation behaviour is used.")
+    # Developer-only fallback: validate completed pickings with the legacy
+    # make_backorder/force-done flow instead of Odoo's native backorder
+    # confirmation (the default since 19.0.2.35). The legacy flow completed
+    # unreceived lines at their ordered quantities when it force-validated.
+    webship_use_legacy_backorder = fields.Boolean(
+        string="Legacy backorder validation (fallback)",
+        config_parameter='webship.use_legacy_backorder',
+        help="Technical (developer mode). By default, completed orders and purchase-order receipts "
+             "are validated with Odoo's native backorder confirmation: only the quantities actually "
+             "picked/received in Stoqflow are validated, a backorder is created for the rest, and a "
+             "receipt with 0 received units is left open. Enable this only to fall back to the "
+             "previous (legacy) validation flow, which could complete unreceived lines at their "
+             "ordered quantities when it force-validated a picking.")
     # Use the incremental status-update queue (edited_after) instead of polling every open picking
     webship_use_status_update_queue = fields.Boolean(
         string="Incremental status updates (edited_after)",
@@ -335,6 +337,15 @@ class ResConfigSettings(models.TransientModel):
         string='Additional notification emails',
         config_parameter='webship.error_notify_emails',
         help="Comma-separated list of additional email addresses to notify on queue errors.")
+    # Post the sync errors of a picking to its chatter, so the failure detail
+    # (the same list shown in "Result last sync") is kept in the message history.
+    webship_log_errors_chatter = fields.Boolean(
+        string='Log sync errors in picking chatter',
+        config_parameter='webship.log_errors_chatter',
+        help="When enabled, whenever a picking fails to sync to Stoqflow the list of "
+             "errors is also posted as a message in the picking's chatter, so the failure "
+             "detail stays in the message history instead of only in the 'Result last sync' "
+             "field (which is overwritten on the next sync).")
     # How many times the status cron retries a failed picking before it stops
     # auto-processing it (a manual sync is then required).
     webship_sync_retry_count = fields.Integer(
@@ -409,6 +420,12 @@ class ResConfigSettings(models.TransientModel):
         [('minutes', 'Minutes'), ('hours', 'Hours'), ('days', 'Days'), ('weeks', 'Weeks'), ('months', 'Months')],
         string='Auto delete backorders unit',
         default='minutes')
+    webship_cron_reclassify_object_types = fields.Boolean(string='Reclassify Stoqflow object types')
+    webship_cron_reclassify_object_types_interval_number = fields.Integer(string='Reclassify object types interval', default=1)
+    webship_cron_reclassify_object_types_interval_type = fields.Selection(
+        [('minutes', 'Minutes'), ('hours', 'Hours'), ('days', 'Days'), ('weeks', 'Weeks'), ('months', 'Months')],
+        string='Reclassify object types unit',
+        default='days')
 
     @api.depends('webship_domain')
     def _compute_webship_domain_text(self):
@@ -512,6 +529,11 @@ class ResConfigSettings(models.TransientModel):
                 'interval_number': self.webship_cron_auto_delete_backorders_interval_number,
                 'interval_type': self.webship_cron_auto_delete_backorders_interval_type,
             },
+            'ir_cron_reclassify_object_types': {
+                'active': self.webship_cron_reclassify_object_types,
+                'interval_number': self.webship_cron_reclassify_object_types_interval_number,
+                'interval_type': self.webship_cron_reclassify_object_types_interval_type,
+            },
         }
         for xml_id, config in cron_config.items():
             cron = self._ws_get_cron(xml_id)
@@ -558,6 +580,7 @@ class ResConfigSettings(models.TransientModel):
             ('ir_cron_daily_report', 'webship_cron_daily_report', 'webship_cron_daily_report_interval_number', 'webship_cron_daily_report_interval_type'),
             ('ir_cron_sync_retours_and_backorders', 'webship_cron_sync_retours', 'webship_cron_sync_retours_interval_number', 'webship_cron_sync_retours_interval_type'),
             ('ir_cron_auto_delete_backorders', 'webship_cron_auto_delete_backorders', 'webship_cron_auto_delete_backorders_interval_number', 'webship_cron_auto_delete_backorders_interval_type'),
+            ('ir_cron_reclassify_object_types', 'webship_cron_reclassify_object_types', 'webship_cron_reclassify_object_types_interval_number', 'webship_cron_reclassify_object_types_interval_type'),
         ]
         for xml_id, active_field, interval_num_field, interval_type_field in cron_field_map:
             cron = self._ws_get_cron(xml_id)
@@ -586,6 +609,12 @@ class ResConfigSettings(models.TransientModel):
             email_list += [e.strip() for e in extra_emails_param.split(',') if e.strip()]
 
         if not email_list:
+            # A silent skip here means nobody ever learns a sync is failing.
+            # Leave a clear trail in the server log at least.
+            _logger.warning(
+                "Stoqflow error on picking %s but no error notification "
+                "recipients are configured (Settings > Stoqflow); e-mail not "
+                "sent. Error: %s", picking_name, error_message)
             return
 
         self.env['mail.mail'].sudo().create({
@@ -864,14 +893,13 @@ class ResConfigSettings(models.TransientModel):
         Queries all confirmed/assigned pickings with Webship source or destination locations,
         fetches their latest data from the API, and updates the last check timestamps.
 
-        Skipped entirely when the incremental status-update queue is enabled
-        (webship.use_status_update_queue): that flow fetches only the changed
-        orders via edited_after instead of one API call per open picking."""
-        if self.env['ir.config_parameter'].sudo().get_param('webship.use_status_update_queue') == 'True':
-            _logger.info(
-                "Skipping full status sync: incremental status updates (edited_after queue) are enabled")
-            return
-
+        This is the full-sweep sync (one API call per open picking). It always
+        runs when triggered - whether on its own schedule or via "Run manually" -
+        so it stays available as a fallback when the incremental status-update
+        queue (webship.use_status_update_queue) is enabled but not keeping
+        pickings up to date. Because it is heavier than the incremental flow,
+        keep its cron inactive in normal operation and only enable/run it when
+        the incremental sync needs a full catch-up."""
         # Find all open pickings that involve Webship locations
         pickings = self.env['stock.picking'].search([
             ('state', 'in', ['confirmed', 'assigned']),
@@ -894,6 +922,19 @@ class ResConfigSettings(models.TransientModel):
 
         self.env['ir.config_parameter'].sudo().set_param('webship.last_check_date_status', lastDate)
         self.env['ir.config_parameter'].sudo().set_param('webship.last_check_po_date_status', lastDate)
+
+    def ws_reclassify_object_types(self):
+        """Cron job action: correct the 'Object in Stoqflow' type (Order /
+        Purchase order / Mutation) and the Stoqflow tab flag on pickings whose
+        stored value no longer matches their locations and documents, e.g.
+        pickings created before their location was flagged as a Stoqflow
+        location. Only a transfer between two Stoqflow locations without a
+        sale or purchase order remains a 'Mutation'."""
+        pickings, changed = self.env['stock.picking']._ws_reclassify_object_types()
+        _logger.info(
+            "ws_reclassify_object_types: examined %d picking(s), corrected %d",
+            len(pickings), len(changed))
+        return changed
 
     def ws_fetch_status_updates(self):
         """Manual action: run the incremental status-update queue once.
@@ -959,6 +1000,20 @@ class ResConfigSettings(models.TransientModel):
                 })
                 continue
 
+            # Only Ready pickings are announced to Stoqflow. A picking still
+            # waiting for stock or an earlier operation (draft/waiting/
+            # confirmed) is not a failure - it simply is not ready yet - so it
+            # stays 'P' with an untouched retry counter and is picked up on a
+            # later run, the moment Odoo's reservation flow makes it Ready.
+            # Announcing it anyway burned one retry per run on refusals like
+            # "Not all items are in stock" until the picking silently dropped
+            # out of this domain for good.
+            if p.state != 'assigned':
+                _logger.info(
+                    "df_process_code [%s]: stays %s (state %s, not Ready yet)",
+                    p.name, p.df_process_code, p.state)
+                continue
+
             try:
                 result = p._ws_push_to_stoqflow()
                 error_detail = ' / '.join(result) if result else ''
@@ -1014,7 +1069,40 @@ class ResConfigSettings(models.TransientModel):
         wsHandler = ws.WebShipHandler(login, pw, base_url)
         wsHandler.set_env(self.env)
 
-        wsHandler.importStock()
+        summary = wsHandler.importStock()
+        if not summary:
+            raise UserError("Fetching the stock from Stoqflow failed. Check the server log.")
+        lines = ["%d products updated at %s." % (
+            summary['updated'], ', '.join(sorted(summary['locations'])) or '-')]
+        if summary['adjusted']:
+            lines.append("Odoo stock adjusted for %d products." % summary['adjusted'])
+        if summary['unmatched_companies']:
+            lines.append(
+                "Not imported: no Stoqflow location linked to Stoqflow company %s. "
+                "Fill in 'Stoqflow company ID' on the location, or keep a single "
+                "Stoqflow location." % ', '.join(sorted(summary['unmatched_companies'])))
+        if summary['unknown_skus']:
+            lines.append("SKUs not found in Odoo: %s" % ', '.join(summary['unknown_skus'][:20])
+                         + (' …' if len(summary['unknown_skus']) > 20 else ''))
+        if summary['multi_quant_skus']:
+            lines.append("Several stock lines (lots), not adjusted: %s"
+                         % ', '.join(summary['multi_quant_skus'][:20]))
+        if summary['missing_reserved']:
+            lines.append("Stoqflow sent no reserved quantity.")
+        if summary['errors']:
+            lines.append("Errors: %s" % '; '.join(summary['errors'][:5]))
+        problems = (summary['unmatched_companies'] or summary['unknown_skus']
+                    or summary['errors'])
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': 'Stock import from Stoqflow',
+                'message': '\n'.join(lines),
+                'type': 'warning' if problems else 'success',
+                'sticky': bool(problems),
+            },
+        }
 
     def ws_sync_retours_and_backorders(self):
         """Cron job action: fetch retours from Stoqflow."""
@@ -1056,15 +1144,20 @@ class ResConfigSettings(models.TransientModel):
     def ws_test_verbinding(self):
         """Test the Stoqflow API connection by performing a simple GET /products request.
         Displays a success or error notification in the Odoo UI."""
-        # Validate that credentials are filled in before testing
-        if self.webship_login == False or self.webship_password == False or self.webship_url == False:
+        # Validate that credentials are filled in before testing. Use a
+        # strip()-based truthiness check, not '== False': an empty string or a
+        # whitespace-only value is not == False and would otherwise fall
+        # through to a real request with a blank URL (raising a raw traceback).
+        if not (self.webship_login or '').strip() \
+                or not (self.webship_password or '').strip() \
+                or not (self.webship_url or '').strip():
             return {
                 'type': 'ir.actions.client',
                 'tag': 'display_notification',
                 'params': {
                     'title': "Fout",
                     'type': 'danger',
-                    'message': 'Login en wachtwoord zijn nodig om te testen'
+                    'message': 'Login, wachtwoord en URL zijn nodig om te testen'
                 },
             }
 

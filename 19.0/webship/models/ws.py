@@ -47,6 +47,24 @@ class WebShipHandler:
     Manages authentication, CRUD operations, and data synchronization."""
     REQUEST_TIMEOUT = (10, 30)  # (connect, read) timeout in seconds
 
+    # Field subsets used by _debug_dump. Debug traces must never read every
+    # field on a record: a bare read() evaluates group-restricted fields too
+    # (e.g. the Belgian localisation's forms_281_50 on res.partner) and raises
+    # AccessError for users outside those groups, killing a sync on a log line.
+    # (no 'mobile': the field was removed from res.partner in Odoo 19)
+    PARTNER_DEBUG_FIELDS = ['name', 'type', 'parent_id', 'street', 'street2',
+                            'city', 'zip', 'country_id', 'email', 'phone',
+                            'vat']
+    PICKING_DEBUG_FIELDS = ['name', 'state', 'partner_id', 'origin',
+                            'picking_type_id', 'df_process_code',
+                            'df_status_webship', 'df_object_in_webship',
+                            'df_picking_id_webship', 'df_po_id_webship']
+    MOVE_DEBUG_FIELDS = ['product_id', 'state', 'picked', 'product_uom_qty',
+                         'quantity', 'location_id', 'location_dest_id']
+    MOVE_LINE_DEBUG_FIELDS = ['product_id', 'state', 'quantity',
+                              'quantity_product_uom', 'lot_id', 'lot_name',
+                              'move_id', 'location_id', 'location_dest_id']
+
     def __init__(self, ws_login, ws_password, ws_base_url):
         """Initialize the handler with Webship API credentials and base URL."""
         self.ws_login = ws_login
@@ -368,7 +386,13 @@ class WebShipHandler:
 
     def test(self):
         """Test the API connection and return a (status, message) tuple."""
-        response = self.session.get(self.baseUrl + 'products', timeout=self.REQUEST_TIMEOUT)
+        try:
+            response = self.session.get(self.baseUrl + 'products', timeout=self.REQUEST_TIMEOUT)
+        except requests.exceptions.RequestException as e:
+            # A blank/whitespace or malformed URL, or an unreachable host,
+            # raises here. Return a clean danger tuple instead of letting a
+            # raw traceback surface in the UI.
+            return ('danger', 'Fout bij verbinden: ' + str(e))
 
         if response.status_code != 200:
             sStatus = 'danger'
@@ -724,7 +748,7 @@ class WebShipHandler:
 
         self.sleep()
 
-        url = self.baseUrl + 'clients?vat=' + vatNr
+        url = self.baseUrl + 'clients?vat=' + quote(str(vatNr), safe='')
 
         _logger.debug("findClientByVat URL: %s", url)
 
@@ -752,7 +776,7 @@ class WebShipHandler:
 
         self.sleep()
 
-        url = self.baseUrl + 'suppliers?vat=' + vatNr
+        url = self.baseUrl + 'suppliers?vat=' + quote(str(vatNr), safe='')
 
         _logger.debug("findSupplierByVat URL: %s", url)
 
@@ -848,7 +872,7 @@ class WebShipHandler:
         if partner.email == False:
             return ['No e-mail address specified']
 
-        sReq = self.performGet('clients', "?email=" + partner.email)
+        sReq = self.performGet('clients', "?email=" + quote(str(partner.email), safe=''))
 
         if sReq['status'] == 'success':
             _logger.debug("match_partner result: %s", sReq)
@@ -871,7 +895,7 @@ class WebShipHandler:
         if not partner.vat:
             return False, ['No VAT number specified on the contact'], None
 
-        sReq = self.performGet('clients', "?vat=" + partner.vat)
+        sReq = self.performGet('clients', "?vat=" + quote(str(partner.vat), safe=''))
 
         if sReq['status'] == 'success':
             if len(sReq['data']) == 1:
@@ -893,7 +917,7 @@ class WebShipHandler:
         if not partner.email:
             return False, ['No e-mail address specified on the contact'], None
 
-        sReq = self.performGet('clients', "?email=" + partner.email)
+        sReq = self.performGet('clients', "?email=" + quote(str(partner.email), safe=''))
 
         if sReq['status'] == 'success':
             if len(sReq['data']) == 1:
@@ -1002,7 +1026,7 @@ class WebShipHandler:
         if partner.email == False:
             return ['No e-mail address specified']
 
-        sReq = self.performGet('suppliers', "?email=" + partner.email)
+        sReq = self.performGet('suppliers', "?email=" + quote(str(partner.email), safe=''))
 
         if sReq['status'] == 'success':
             _logger.debug("match_supplier result: %s", sReq)
@@ -1024,7 +1048,7 @@ class WebShipHandler:
         if not partner.vat:
             return False, ['No VAT number specified on the contact'], None
 
-        sReq = self.performGet('suppliers', "?vat=" + partner.vat)
+        sReq = self.performGet('suppliers', "?vat=" + quote(str(partner.vat), safe=''))
 
         if sReq['status'] == 'success':
             if len(sReq['data']) == 1:
@@ -1045,7 +1069,7 @@ class WebShipHandler:
         if not partner.email:
             return False, ['No e-mail address specified on the contact'], None
 
-        sReq = self.performGet('suppliers', "?email=" + partner.email)
+        sReq = self.performGet('suppliers', "?email=" + quote(str(partner.email), safe=''))
 
         if sReq['status'] == 'success':
             if len(sReq['data']) == 1:
@@ -1199,7 +1223,7 @@ class WebShipHandler:
                 match_sequence = self.env['ir.config_parameter'].sudo().get_param(
                     'webship.supplier_match_sequence', '') or ''
             if match_sequence and partner.email and partner.email != '':
-                existing = self.performGet('suppliers', "?email=" + partner.email)
+                existing = self.performGet('suppliers', "?email=" + quote(str(partner.email), safe=''))
                 if existing['status'] == 'success' and len(existing.get('data', [])) > 0:
                     return ['Email already exists in Stoqflow. Use the "Match" button to link this supplier.']
 
@@ -1399,7 +1423,8 @@ class WebShipHandler:
         # duplicates the billing address.
         has_delivery = bool(deliveryAdress) and deliveryAdress != partner
 
-        self.showDebugInfo(deliveryAdress.read())
+        self._debug_dump(deliveryAdress, self.PARTNER_DEBUG_FIELDS,
+                         'Delivery address')
 
         if has_delivery:
             sCountryCode = deliveryAdress.country_id.code
@@ -1459,7 +1484,7 @@ class WebShipHandler:
                     match_sequence = self.env['ir.config_parameter'].sudo().get_param(
                         'webship.contact_match_sequence', '') or ''
                 if match_sequence and effective_email and effective_email != '' and not email_from_fallback:
-                    existing = self.performGet('clients', "?email=" + effective_email)
+                    existing = self.performGet('clients', "?email=" + quote(str(effective_email), safe=''))
                     if existing['status'] == 'success' and len(existing.get('data', [])) > 0:
                         return ['Email already exists in Stoqflow. Use the "Match" button to link this client.']
 
@@ -1606,12 +1631,16 @@ class WebShipHandler:
                         if pickingId and len(pickingId) == 1:
                             if pickingId.state != 'done':
                                 _logger.info('Setting PO picking %s status to done', pickingId.name)
-                                # pickingId.state = 'done'
 
+                                # setPickingQuantities validates a completed PO
+                                # itself (native/legacy backorder handling). Do
+                                # not button_validate() again here: on an
+                                # already-done picking, or one intentionally left
+                                # open because nothing was received, a second
+                                # validate can raise and abort the rest of the
+                                # PO poll loop.
                                 self.setPickingQuantities(pickingId, po_order)
 
-                                pickingId.button_validate()
-                                _logger.info('Validate pressed for picking %s', pickingId.name)
                                 if 'edited' in po_order:
                                     datum = po_order['edited']
                                 else:
@@ -1689,11 +1718,19 @@ class WebShipHandler:
 
     def _filter_pmap_by_ignored_skus(self, pMap, sPicking):
         """Drop entries from pMap whose SKU appears in the 'Ignored SKUs' setting.
+
+        Called AFTER the allocation passes, on the leftover pMap only: at that
+        point every product that exists on the picking has already consumed its
+        entry, so what is filtered here are Stoqflow-only products (e.g.
+        packaging the warehouse adds). They are dropped entirely - no 'not
+        found on picking' warning, nothing sent back to Odoo. An ignored SKU
+        that IS on the picking is unaffected: its quantities were applied
+        normally before this runs.
+
         SKUs are resolved first via local Odoo products (df_product_id_webship),
         with a single batched Stoqflow GET /products?subset=... fallback for the
-        remainder. Skipped products are silently ignored so no 'not found on
-        picking' warning is produced for them."""
-        ignored = self._get_ignored_skus()
+        remainder. Matching is case- and whitespace-insensitive."""
+        ignored = {s.strip().casefold() for s in self._get_ignored_skus() if s and s.strip()}
         if not ignored or not pMap:
             return
 
@@ -1727,7 +1764,7 @@ class WebShipHandler:
 
         removed = []
         for pid, sku in sku_by_pid.items():
-            if sku in ignored and pid in pMap:
+            if sku and sku.strip().casefold() in ignored and pid in pMap:
                 removed.append((sku, pMap[pid]))
                 del pMap[pid]
 
@@ -1739,13 +1776,24 @@ class WebShipHandler:
             )
 
     def _use_native_backorder(self):
-        """Whether to validate completed receipts with Odoo's native backorder
-        confirmation (developer-mode setting webship.use_native_backorder).
-        Defaults to False -> the legacy make_backorder/force-done behaviour."""
+        """Whether to validate completed pickings with Odoo's native backorder
+        confirmation. This is the DEFAULT: only the quantities actually
+        picked/received in Stoqflow are validated and a receipt with 0 received
+        units is left open, instead of the legacy make_backorder/force-done
+        flow that completed unreceived lines at their ordered quantities.
+
+        The legacy flow remains available as a fallback via the
+        webship.use_legacy_backorder setting (developer mode) or an explicit
+        webship.use_native_backorder = 'False' system parameter (the pre-flip
+        opt-out, kept for backward compatibility)."""
         if not hasattr(self, 'env'):
+            return True
+        get_param = self.env['ir.config_parameter'].sudo().get_param
+        if get_param('webship.use_legacy_backorder') == 'True':
             return False
-        return self.env['ir.config_parameter'].sudo().get_param(
-            'webship.use_native_backorder') == 'True'
+        if get_param('webship.use_native_backorder') == 'False':
+            return False
+        return True
 
     def _validate_completed_picking_native(self, sPicking):
         """Validate a completed picking honouring the RECEIVED quantities that
@@ -1777,7 +1825,7 @@ class WebShipHandler:
             self.showDebugInfo('Validating picking with received quantities')
             try:
                 _logger.info('Calling button_validate for picking %s', sPicking.name)
-                validate_result = sPicking.button_validate()
+                validate_result = sPicking._webship_validate()
 
                 # When some lines were received short (or not at all), Odoo
                 # returns a backorder confirmation wizard for the remainder.
@@ -1786,8 +1834,13 @@ class WebShipHandler:
                 # done at the ordered quantities.
                 if isinstance(validate_result, dict) and \
                         validate_result.get('res_model') == 'stock.backorder.confirmation':
+                    # The wizard context REPLACES the current one and its
+                    # process() re-enters button_validate, so the internal
+                    # bypass flag must be merged in or the manual-validation
+                    # guard would refuse the sync's own validation.
                     backorder_wizard = self.env['stock.backorder.confirmation'] \
-                        .with_context(validate_result.get('context', {})).create({})
+                        .with_context(dict(validate_result.get('context') or {},
+                                           webship_internal_validate=True)).create({})
                     backorder_wizard.process()
                     _logger.info(
                         'Backorder created for unreceived items of picking %s', sPicking.name)
@@ -1823,7 +1876,7 @@ class WebShipHandler:
                             '%s: %s of %s %s' % (
                                 m.product_id.display_name,
                                 m.quantity, m.product_uom_qty,
-                                m.product_uom_id.name
+                                m.product_uom.name
                             )
                         )
                     msg = 'Picking not set to done. Quantity mismatch on: %s' % '; '.join(line_details)
@@ -1848,7 +1901,7 @@ class WebShipHandler:
             else:
                 try:
                     _logger.info('Calling button_validate for picking %s (no backorder needed)', sPicking.name)
-                    validate_result = sPicking.button_validate()
+                    validate_result = sPicking._webship_validate()
                     if isinstance(validate_result, dict) and validate_result.get('type') == 'ir.actions.act_window':
                         wizard_name = validate_result.get('res_model', 'unknown wizard')
                         _logger.warning(
@@ -1888,7 +1941,7 @@ class WebShipHandler:
 
                 _logger.info('Calling button_validate for picking %s', sPicking.name)
 
-                validate_result = sPicking.button_validate()
+                validate_result = sPicking._webship_validate()
 
                 # button_validate may return a wizard action instead of actually validating
                 if isinstance(validate_result, dict) and validate_result.get('type') == 'ir.actions.act_window':
@@ -1929,7 +1982,7 @@ class WebShipHandler:
                             '%s: %s of %s %s' % (
                                 m.product_id.display_name,
                                 m.quantity, m.product_uom_qty,
-                                m.product_uom_id.name
+                                m.product_uom.name
                             )
                         )
                     msg = 'Picking not set to done. Quantity mismatch on: %s' % '; '.join(line_details)
@@ -1959,7 +2012,7 @@ class WebShipHandler:
                 # All quantities match demand - safe to validate without backorder
                 try:
                     _logger.info('Calling button_validate for picking %s (no backorder needed)', sPicking.name)
-                    validate_result = sPicking.button_validate()
+                    validate_result = sPicking._webship_validate()
 
                     if isinstance(validate_result, dict) and validate_result.get('type') == 'ir.actions.act_window':
                         wizard_name = validate_result.get('res_model', 'unknown wizard')
@@ -2000,10 +2053,10 @@ class WebShipHandler:
         self.showDebugInfo('In picking quantites')
         warnings = []
 
-        _logger.debug('Picking got: %s', sPicking.read())
+        _logger.debug('Picking got: %s', sPicking)
         _logger.debug('Order got: %s', order)
 
-        self.showDebugInfo(sPicking.read())
+        self._debug_dump(sPicking, self.PICKING_DEBUG_FIELDS, 'Picking')
 
         parcels = order.get('parcels', [])
         if parcels:
@@ -2049,7 +2102,7 @@ class WebShipHandler:
             # Reset quantities first
             # ------------------------------------------------------------
             for m in sPicking.move_ids.filtered(lambda m: m.state not in ('cancel', 'done')):
-                self.showDebugInfo('Reading move: ' + str(m.read()))
+                self._debug_dump(m, self.MOVE_DEBUG_FIELDS, 'Reading move')
                 if m.product_id.df_product_id_webship == False:
                     sku = m.product_id.default_code
                     pId = self.findProductBySku(sku)
@@ -2067,7 +2120,8 @@ class WebShipHandler:
                 m.write({'quantity': 0.0})
 
             for pl in sPicking.move_line_ids.filtered(lambda pl: pl.state not in ('cancel', 'done')):
-                self.showDebugInfo('Reading picking line: ' + str(pl.read()))
+                self._debug_dump(pl, self.MOVE_LINE_DEBUG_FIELDS,
+                                 'Reading picking line')
                 self.showDebugInfo('Setting quantity for line: ' + str(pl.product_id.name))
                 pl.write({'quantity': 0.0, 'quantity_product_uom': 0.0})
 
@@ -2118,11 +2172,6 @@ class WebShipHandler:
             _logger.info('setPickingQuantities: pMap built: %s', pMap)
 
             self.showDebugInfo('pMap: ' + str(pMap))
-
-            # Drop products whose SKU is in the 'Ignored SKUs' setting so
-            # Stoqflow-only items (e.g. packaging) don't trigger
-            # "no matching product found on picking" warnings.
-            self._filter_pmap_by_ignored_skus(pMap, sPicking)
 
             # ------------------------------------------------------------
             # 1) Allocate quantities across MOVE LINES (best practice)
@@ -2200,6 +2249,16 @@ class WebShipHandler:
                 else:
                     pMap[webship_pid] = remaining
 
+            # After both allocation passes, whatever is left in pMap is either
+            # a Stoqflow-only product or overflow. Drop the entries whose SKU
+            # is on the 'Ignored SKUs' setting HERE - not before allocation -
+            # so an ignored SKU that legitimately is on the picking still gets
+            # its real quantities applied (filtering earlier left such a line
+            # zeroed, and the backorder split then turned it into a phantom
+            # backorder that could never be fulfilled or linked). Ignored SKUs
+            # never flow back into Odoo: no warning, no line, nothing.
+            self._filter_pmap_by_ignored_skus(pMap, sPicking)
+
             # Report any Webship product IDs that could not be matched to Odoo moves
             if pMap:
                 for webship_pid, remaining_qty in pMap.items():
@@ -2249,11 +2308,11 @@ class WebShipHandler:
 
         if newStatus == 'completed' and sPicking.state != 'done':
             # Two validation strategies, switched by a developer-mode setting:
-            # - native (webship.use_native_backorder = True): validate only the
-            #   received quantities and let Odoo's backorder confirmation create
-            #   a backorder for the not-yet-received items; a fully-unreceived
-            #   receipt is left open.
-            # - legacy (default): the previous make_backorder + force-done flow.
+            # - native (default): validate only the received quantities and let
+            #   Odoo's backorder confirmation create a backorder for the
+            #   not-yet-received items; a fully-unreceived receipt is left open.
+            # - legacy (webship.use_legacy_backorder = True): the previous
+            #   make_backorder + force-done flow, kept as a fallback.
             if self._use_native_backorder():
                 warnings += self._validate_completed_picking_native(sPicking)
             else:
@@ -2303,6 +2362,11 @@ class WebShipHandler:
             _logger.info("setPickingQuantities warnings for %s: %s", sPicking.name, '; '.join(warnings))
         else:
             sPicking.df_picking_syncresult_webship = 'success'
+
+        # The warnings are soft: the callers (statusWsToOdoo, the status
+        # crons, tests) surface them via _sync_warnings or assertions without
+        # treating the sync as failed.
+        return warnings
 
     def _sync_parcels(self, picking, parcels):
         """Store Stoqflow parcel data on the picking as webship.parcel records.
@@ -2799,7 +2863,10 @@ class WebShipHandler:
             'name': product.name,
             'price': product.standard_price,
             'retail_price': product.lst_price,
-            'has_stock': product.type == 'product',
+            # Odoo 18+ dropped the 'product' type; storable goods are flagged
+            # by is_storable. The old check was always False, so every product
+            # was pushed to Stoqflow as has_stock=False.
+            'has_stock': bool(product.is_storable),
         }
 
         # Description (from Odoo sale description)
@@ -3346,14 +3413,24 @@ class WebShipHandler:
 
                 if responseData['status'] == 'completed':
                     try:
-                        picking.button_validate()
+                        if responseData.get('picks') or responseData.get('order_items'):
+                            # Apply the ACTUAL picked quantities from the
+                            # payload; setPickingQuantities validates internally
+                            # according to the backorder settings. A bare
+                            # button_validate() completed every line at its
+                            # ordered quantity without looking at the picks.
+                            # Its return values are soft warnings - surface
+                            # them via _sync_warnings so they never mark the
+                            # sync itself as failed.
+                            self._sync_warnings.extend(
+                                self.setPickingQuantities(picking, responseData))
+                        elif picking.state != 'done':
+                            # Defensive fallback: a completed payload without
+                            # pick detail - keep the previous plain validation.
+                            picking._webship_validate()
                     except Exception as e:
                         _logger.exception("Error validating picking %s: %s", picking.name, e)
                         return ['Error while setting state to done on picking order: ' + str(e)]
-                    #try:
-                    #    picking.sale_id = 'done'
-                    #except:
-                    #    return ['Error while setting state to done on sale order']
 
                 return errors
             else:
@@ -3394,10 +3471,19 @@ class WebShipHandler:
                 picking.df_last_changedate_webship = date_object
 
                 if responseData['status'] == 'completed':
-                    #picking.state = 'done'
-                    picking.button_validate()
+                    if responseData.get('picks') or responseData.get('order_items'):
+                        # Apply the ACTUAL received quantities from the payload;
+                        # setPickingQuantities validates internally according to
+                        # the backorder settings. A bare button_validate()
+                        # completed every line at its ordered quantity. Its
+                        # return values are soft warnings - surface them via
+                        # _sync_warnings so they never mark the sync as failed.
+                        self._sync_warnings.extend(
+                            self.setPickingQuantities(picking, responseData))
+                    elif picking.state != 'done':
+                        picking._webship_validate()
 
-                return []
+                return errors
             else:
                 errors.append(response.text)
                 return errors
@@ -3673,6 +3759,28 @@ class WebShipHandler:
             # Never let verbose tracing break a real operation.
             _logger.exception("Failed to record Stoqflow verbose trace")
 
+    def _debug_dump(self, records, fields=None, label=''):
+        """Verbose-trace a compact read() of records.
+
+        Unlike showDebugInfo(records.read()) - whose read() argument is
+        evaluated eagerly on every call - the read here only happens after the
+        verbose check, so it can never cost anything (or raise AccessError)
+        in normal operation. Only the given field subset is read, and any
+        failure (an AccessError on a restricted field first and foremost)
+        degrades to id/display_name instead of raising: debug output must
+        never decide whether a sync may run."""
+        if not self._verbose_enabled():
+            return
+        try:
+            data = records.read(fields) if fields else records.read()
+        except Exception:
+            try:
+                data = [{'id': r.id, 'display_name': r.display_name}
+                        for r in records]
+            except Exception:
+                data = str(records)
+        self.showDebugInfo(('%s: ' % label if label else '') + str(data))
+
     def exportClients(self):
         """Export all clients from Webship, paginating through 50-record pages."""
         output = []
@@ -3706,15 +3814,40 @@ class WebShipHandler:
 
         return output
 
+    def _resolve_stock_location(self, company_id, locations):
+        """Return the Stoqflow location that holds the stock of Stoqflow
+        company ``company_id``, or an empty recordset when it can't be told.
+
+        A location linked to the company id (Stoqflow company ID on the
+        location form) wins. Without such a link the only Stoqflow location is
+        used; when there are several, nothing is guessed: picking the first
+        one wrote stock into an unrelated location (and company)."""
+        if company_id:
+            match = locations.filtered(lambda l: l.df_warehouse_id_webship == company_id)
+            if match:
+                return match[:1]
+        if len(locations) == 1:
+            return locations
+        return locations.browse()
+
     def importStock(self):
         """Import inventory levels from Webship and write them to Odoo stock quants
-        at locations flagged as Webship locations."""
+        at locations flagged as Webship locations.
+
+        Stoqflow reports one figure per product. When the product has several
+        quants at the location (lots, packages) every quant shows that same
+        product figure, and the stock is never adjusted automatically: how it
+        splits over the lots is unknown.
+
+        Returns a summary dict (also logged), or False when the API call failed."""
         adjust_odoo_stock = self.env['ir.config_parameter'].sudo().get_param(
             'webship.adjust_odoo_stock', 'False') == 'True'
 
         result = self.fetchInventory()
 
         if result.get("status") != "success":
+            _logger.error("importStock: fetching the Stoqflow inventory failed: %s",
+                          result.get('txt') or result)
             return False
 
         inventory_data = result.get("data", {})
@@ -3722,6 +3855,36 @@ class WebShipHandler:
 
         StockQuant = self.env["stock.quant"]
         Product = self.env["product.product"]
+        locations = self.env["stock.location"].search([
+            ("df_is_webship_location", "=", True),
+            ("usage", "=", "internal"),
+        ])
+        summary = {
+            'updated': 0,
+            'created': 0,
+            'adjusted': 0,
+            'locations': set(),
+            'unknown_skus': [],
+            'unmatched_companies': set(),
+            'multi_quant_skus': [],
+            'missing_reserved': False,
+            'errors': [],
+        }
+
+        # Kit products (phantom BoM) can never carry a stock.quant: mrp's
+        # _check_kits constraint forbids it, and one kit in the Stoqflow
+        # inventory would abort the whole import. The Stoqflow-side "composed"
+        # check below does not cover them (a kit can be a plain basic product
+        # in Stoqflow) and is_storable does not either (kits are storable
+        # products with a phantom BoM). Resolve the kit ids once up front -
+        # only when mrp is installed; this module does not depend on it.
+        kit_product_ids = set()
+        kit_template_ids = set()
+        if 'mrp.bom' in self.env:
+            phantom_boms = self.env['mrp.bom'].sudo().search([('type', '=', 'phantom')])
+            kit_product_ids = set(phantom_boms.product_id.ids)
+            kit_template_ids = set(
+                phantom_boms.filtered(lambda b: not b.product_id).product_tmpl_id.ids)
 
         # fetchAll returns paginated data: {page_nr: page_json, ...}
         # Each page is a list of inventory items.
@@ -3743,57 +3906,83 @@ class WebShipHandler:
                     limit=1
                 )
                 if not product:
+                    summary['unknown_skus'].append(sku)
                     continue
 
+                if (product.id in kit_product_ids
+                        or product.product_tmpl_id.id in kit_template_ids):
+                    _logger.info(
+                        "importStock: skipping kit product %s (phantom BoM) - "
+                        "quants cannot be created for kits", sku)
+                    continue
+
+                if "reserved" not in item:
+                    summary['missing_reserved'] = True
                 total = item.get("total", 0.0)
                 reserved = item.get("reserved", 0.0)
                 available = item.get("available", total - reserved)
 
-                # There is exactly one Webship location per shop, so resolve the
-                # location for this Stoqflow shop (company_id) and write the stock
-                # to that location's quant only. Writing to every Webship quant of
-                # the product (the previous behaviour) let one shop's totals
-                # overwrite another shop's.
-                loc_domain = [
-                    ("df_is_webship_location", "=", True),
-                    ("usage", "=", "internal"),
-                ]
-                webship_location = None
-                if company_id:
-                    webship_location = self.env["stock.location"].search(
-                        loc_domain + [("df_warehouse_id_webship", "=", company_id)], limit=1)
+                webship_location = self._resolve_stock_location(company_id, locations)
                 if not webship_location:
-                    # No shop match (or no company_id on the item): fall back to a
-                    # single Webship internal location.
-                    webship_location = self.env["stock.location"].search(loc_domain, limit=1)
-                if not webship_location:
+                    summary['unmatched_companies'].add(company_id or '(none)')
                     continue
 
-                quants = StockQuant.search([
-                    ("product_id", "=", product.id),
-                    ("location_id", "=", webship_location.id),
-                ])
+                # One bad product (a kit the guard missed, a constraint
+                # violation, an apply failure) must not abort the whole
+                # import: roll back that item's writes and continue. The
+                # savepoint keeps the cursor usable after SQL-level errors.
+                try:
+                    with self.env.cr.savepoint():
+                        quants = StockQuant.search([
+                            ("product_id", "=", product.id),
+                            ("location_id", "=", webship_location.id),
+                        ])
 
-                if not quants:
-                    # Only storable products can carry a stock.quant line.
-                    # (Odoo 19 no longer uses type == 'product'; use is_storable.)
-                    if not product.is_storable:
-                        continue
-                    quants = StockQuant.create({
-                        "product_id": product.id,
-                        "location_id": webship_location.id,
-                        "quantity": 0.0,
-                    })
+                        if not quants:
+                            # Nothing to compare against: only create a quant
+                            # when Stoqflow actually holds stock. Only storable
+                            # products can carry a stock.quant line.
+                            # (Odoo 19 no longer uses type == 'product'; use is_storable.)
+                            if not total or not product.is_storable:
+                                continue
+                            quants = StockQuant.create({
+                                "product_id": product.id,
+                                "location_id": webship_location.id,
+                                "quantity": 0.0,
+                            })
+                            summary['created'] += 1
 
-                quants.write({
-                    "df_webship_totalstock": total,
-                    "df_webship_reserved": reserved,
-                    "df_webship_available_stock": available,
-                    "df_last_check_webship": now,
-                })
+                        quants.write({
+                            "df_webship_totalstock": total,
+                            "df_webship_reserved": reserved,
+                            "df_webship_available_stock": available,
+                            "df_last_check_webship": now,
+                        })
+                        summary['updated'] += 1
+                        summary['locations'].add(webship_location.complete_name)
+                        if len(quants) > 1:
+                            summary['multi_quant_skus'].append(sku)
 
-                if adjust_odoo_stock:
-                    quants.inventory_quantity = total
-                    quants._apply_inventory()
+                        if adjust_odoo_stock and len(quants) == 1:
+                            quants.inventory_quantity = total
+                            quants._apply_inventory()
+                            summary['adjusted'] += 1
+                except Exception as e:
+                    _logger.exception(
+                        "importStock: failed to apply stock for SKU %s; "
+                        "continuing with the next item", sku)
+                    summary['errors'].append('%s: %s' % (sku, e))
+                    continue
 
-        return True
+        _logger.info(
+            "importStock: %d products updated (%d new quants, %d adjusted) at %s; "
+            "unknown SKUs: %s; unmatched Stoqflow companies: %s; "
+            "products with several quants (not adjusted): %s; "
+            "reserved missing in payload: %s; errors: %s",
+            summary['updated'], summary['created'], summary['adjusted'],
+            ', '.join(sorted(summary['locations'])) or '-',
+            ', '.join(summary['unknown_skus']) or '-',
+            ', '.join(sorted(summary['unmatched_companies'])) or '-',
+            ', '.join(summary['multi_quant_skus']) or '-',
+            summary['missing_reserved'], '; '.join(summary['errors']) or '-')
+        return summary

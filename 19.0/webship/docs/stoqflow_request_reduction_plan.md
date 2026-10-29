@@ -247,6 +247,14 @@ if self.env['ir.config_parameter'].sudo().get_param('webship.use_status_update_q
     return
 ```
 
+> **Update (later decision):** this gate was **removed**. The full-sweep sync
+> (`ws_sync_statusses_since_last`) now always runs when triggered, so it stays
+> available as a manual/scheduled **fallback** for when the incremental queue is
+> enabled but not keeping pickings up to date. Redundant load is avoided by
+> leaving its cron *inactive* in normal operation (the incremental cron does the
+> work); the operator activates or "Run manually"s the full sweep only when a
+> catch-up is needed.
+
 **Manual button** (bypasses the toggle — a click is explicit intent, useful for
 testing the flow before switching the cron over):
 

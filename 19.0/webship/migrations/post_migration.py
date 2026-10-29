@@ -58,6 +58,11 @@ def reclassify_process_codes(cr, label):
         _logger.info("%s: no Stoqflow pickings needed reclassification", label)
 
 
-def migrate(cr, registry):
-    """post_init_hook entry point (runs on fresh install)."""
-    reclassify_process_codes(cr, 'post_migration')
+def migrate(env):
+    """post_init_hook entry point (runs on fresh install).
+
+    Since Odoo 17 the post_init_hook receives a single ``env`` argument;
+    the old ``(cr, registry)`` signature made every fresh install crash
+    with "migrate() missing 1 required positional argument: 'registry'"
+    (existing databases never noticed - the hook does not run on upgrade)."""
+    reclassify_process_codes(env.cr, 'post_migration')

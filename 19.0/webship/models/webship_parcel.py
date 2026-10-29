@@ -6,7 +6,7 @@ class WebshipParcel(models.Model):
     _description = 'Stoqflow Parcel'
     _order = 'df_number'
 
-    picking_id = fields.Many2one('stock.picking', string='Picking', required=True, ondelete='cascade', index=True)
+    picking_id = fields.Many2one('stock.picking', string='Transfer', required=True, ondelete='cascade', index=True)
     df_stoqflow_id = fields.Char('Stoqflow Parcel ID')
     df_number = fields.Integer('Parcel #')
     df_tracking_number = fields.Char('Tracking Number')

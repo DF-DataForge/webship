@@ -189,16 +189,23 @@ class TestStatusUpdateQueue(TransactionCase):
             self.queue.cron_fetch_and_process()
         fetch_mock.assert_not_called()
 
-    def test_old_flow_skipped_when_toggle_enabled(self):
-        """With the setting on, the old per-picking status sync must not run
-        (no fetch per picking, checkpoint params untouched)."""
+    def test_full_sweep_runs_even_when_toggle_enabled(self):
+        """The full-sweep sync stays available as a fallback: even with the
+        incremental toggle on, running it no longer early-returns - it sweeps
+        the open pickings and advances the checkpoint. This lets it be triggered
+        manually (or on its own cron) when the incremental queue is not keeping
+        pickings up to date. The advancing checkpoint (which the old early-return
+        left untouched) proves the method ran through instead of being skipped."""
+        self.param.set_param('webship.use_status_update_queue', 'True')
         self.param.set_param('webship.last_check_date_status', '2026-07-01 00:00:00')
+        self.param.set_param('webship.last_check_po_date_status', '2026-07-01 00:00:00')
         with mock.patch.object(StockPicking, 'fetchQuantities',
-                               autospec=True) as fq_mock:
+                               autospec=True):
             self.env['res.config.settings'].ws_sync_statusses_since_last()
-        fq_mock.assert_not_called()
-        self.assertEqual(self.param.get_param('webship.last_check_date_status'),
-                         '2026-07-01 00:00:00')
+        self.assertNotEqual(self.param.get_param('webship.last_check_date_status'),
+                            '2026-07-01 00:00:00')
+        self.assertNotEqual(self.param.get_param('webship.last_check_po_date_status'),
+                            '2026-07-01 00:00:00')
 
     def test_settings_control_incremental_cron(self):
         """The incremental status-update cron is a first-class row in the
