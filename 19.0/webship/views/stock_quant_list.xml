@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ========================================================= -->
+    <!-- Stoqflow Stock Quant Tree View                             -->
+    <!-- ========================================================= -->
+    <record id="df_webship_stock_quant_tree_view" model="ir.ui.view">
+        <field name="name">df.webship.stock.quant.tree</field>
+        <field name="model">stock.quant</field>
+        <field name="priority">50</field>
+        <field name="arch" type="xml">
+
+            <list string="Stoqflow Stock"
+                  create="false"
+                  edit="false"
+                  default_order="product_id">
+
+                <!-- Header button (multi-select) -->
+                <header>
+                    <button name="action_apply_webship_stock"
+                            type="object"
+                            string="Apply Stoqflow Stock to Odoo"
+                            class="btn-primary"/>
+                </header>
+
+                <!-- Product & Location -->
+                <field name="product_id"/>
+                <field name="location_id" optional="hide"/>
+
+                <!-- Odoo stock -->
+                <field name="quantity"/>
+                <field name="reserved_quantity"/>
+                <field name="available_quantity"/>
+
+                <!-- Stoqflow stock (API filled) -->
+                <field name="df_webship_totalstock" optional="show"/>
+                <field name="df_webship_reserved" optional="show"/>
+                <field name="df_webship_available_stock" optional="show"/>
+
+                <!-- Differences Odoo vs Stoqflow (red when out of sync) -->
+                <field name="df_webship_diff_total"
+                       optional="show"
+                       decoration-danger="df_webship_diff_total != 0"/>
+                <field name="df_webship_diff_reserved"
+                       optional="show"
+                       decoration-danger="df_webship_diff_reserved != 0"/>
+                <field name="df_webship_diff_available"
+                       optional="show"
+                       decoration-danger="df_webship_diff_available != 0"/>
+
+                <!-- Stoqflow sync info -->
+                <field name="df_last_check_webship" optional="show"/>
+
+                <field name="company_id" optional="hide"/>
+
+            </list>
+
+        </field>
+    </record>
+
+    <!-- ========================================================= -->
+    <!-- Stoqflow Stock Search View                                 -->
+    <!-- ========================================================= -->
+    <record id="df_webship_stock_quant_search_view" model="ir.ui.view">
+        <field name="name">df.webship.stock.quant.search</field>
+        <field name="model">stock.quant</field>
+        <field name="arch" type="xml">
+            <search string="Stoqflow Stock">
+
+                <!-- Text search -->
+                <field name="product_id"/>
+                <field name="location_id"/>
+
+                <!-- Any difference between Odoo and Stoqflow -->
+                <filter string="Stock Differs" name="df_webship_any_diff"
+                        domain="['|', '|', ('df_webship_diff_total', '!=', 0), ('df_webship_diff_reserved', '!=', 0), ('df_webship_diff_available', '!=', 0)]"
+                        help="Products where Odoo and Stoqflow stock is out of sync"/>
+
+                <separator/>
+
+                <!-- Per-metric difference filters -->
+                <filter string="Total Differs" name="df_webship_diff_total_filter"
+                        domain="[('df_webship_diff_total', '!=', 0)]"/>
+                <filter string="Reserved Differs" name="df_webship_diff_reserved_filter"
+                        domain="[('df_webship_diff_reserved', '!=', 0)]"/>
+                <filter string="Available Differs" name="df_webship_diff_available_filter"
+                        domain="[('df_webship_diff_available', '!=', 0)]"/>
+
+                <separator/>
+
+                <!-- Grouping -->
+                <group>
+                    <filter string="Product" name="group_by_product"
+                            context="{'group_by': 'product_id'}"/>
+                    <filter string="Location" name="group_by_location"
+                            context="{'group_by': 'location_id'}"/>
+                </group>
+
+            </search>
+        </field>
+    </record>
+
+    <!-- ========================================================= -->
+    <!-- Stoqflow Stock Action                                      -->
+    <!-- ========================================================= -->
+    <record id="webship_stock_action" model="ir.actions.act_window">
+        <field name="name">Stoqflow Stock</field>
+        <field name="res_model">stock.quant</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="df_webship_stock_quant_tree_view"/>
+        <field name="search_view_id" ref="df_webship_stock_quant_search_view"/>
+        <field name="domain">
+            [
+                ('location_id.df_is_webship_location', '=', True),
+                ('location_id.usage', '=', 'internal')
+            ]
+        </field>
+    </record>
+
+    <!-- ========================================================= -->
+    <!-- Stoqflow Stock Menu                                        -->
+    <!-- ========================================================= -->
+    <menuitem
+        id="webship_stock_menu"
+        name="Stock"
+        parent="webship_root_menu"
+        action="webship_stock_action"
+        sequence="2"/>
+
+</odoo>

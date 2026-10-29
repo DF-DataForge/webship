@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="webship_test_set_error_form" model="ir.ui.view">
+        <field name="name">webship.test.set.error.form</field>
+        <field name="model">webship.test.set.error</field>
+        <field name="arch" type="xml">
+            <form string="TEST: set Stoqflow error state">
+                <div class="text-muted mb8">
+                    Testing tool (neutralized databases only): puts the selected
+                    picking(s) into a known Stoqflow error state so the sync and
+                    recovery paths can be reproduced. Clears the Stoqflow order/PO
+                    link and marks the picking as Error.
+                </div>
+                <group>
+                    <field name="error_type"/>
+                </group>
+                <footer>
+                    <button string="Apply" name="action_apply" type="object" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+</odoo>

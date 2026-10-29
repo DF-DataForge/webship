@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+     <record id="product_category_view_inherit_webship" model="ir.ui.view">
+        <field name="name">product.category.form.inherit.webship</field>
+        <field name="model">product.category</field>
+        <field name="inherit_id" ref="stock.product_category_form_view_inherit"/>
+        <field name="arch" type="xml">
+            <xpath expr="//group[@name='logistics']" position="inside">
+                <field name="df_cat_shop_id_webship"></field>
+            </xpath>
+        </field>
+    </record>
+</odoo>

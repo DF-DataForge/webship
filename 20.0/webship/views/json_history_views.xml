@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="webship_json_history_tree" model="ir.ui.view">
+        <field name="name">webship.json.history.tree</field>
+        <field name="model">webship.json.history</field>
+        <field name="arch" type="xml">
+            <list default_order="id desc">
+                <field name="id" string="ID"/>
+                <field name="create_date" string="Date"/>
+                <field name="direction"/>
+                <field name="method"/>
+                <field name="endpoint"/>
+                <field name="picking_id"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="webship_json_history_form" model="ir.ui.view">
+        <field name="name">webship.json.history.form</field>
+        <field name="model">webship.json.history</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="picking_id"/>
+                        <field name="direction"/>
+                        <field name="method"/>
+                        <field name="endpoint"/>
+                    </group>
+                    <notebook>
+                        <page string="JSON Payload">
+                            <field name="json_payload" readonly="1"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="webship_json_history_search" model="ir.ui.view">
+        <field name="name">webship.json.history.search</field>
+        <field name="model">webship.json.history</field>
+        <field name="arch" type="xml">
+            <search string="JSON History">
+                <field name="endpoint"/>
+                <field name="method"/>
+                <field name="picking_id"/>
+                <!-- Quick filters on the HTTP method. ilike so 'GET' also matches
+                     received rows logged as 'GET 200', etc. -->
+                <filter name="method_get" string="GET" domain="[('method', 'ilike', 'GET')]"/>
+                <filter name="method_post" string="POST" domain="[('method', 'ilike', 'POST')]"/>
+                <filter name="method_get_post" string="GET/POST"
+                        domain="['|', ('method', 'ilike', 'GET'), ('method', 'ilike', 'POST')]"/>
+                <filter name="method_trace" string="TRACE" domain="[('method', 'ilike', 'TRACE')]"/>
+                <separator/>
+                <filter name="dir_sent" string="Sent" domain="[('direction', '=', 'sent')]"/>
+                <filter name="dir_received" string="Received" domain="[('direction', '=', 'received')]"/>
+                <group>
+                    <filter name="group_method" string="HTTP Method" context="{'group_by': 'method'}"/>
+                    <filter name="group_direction" string="Direction" context="{'group_by': 'direction'}"/>
+                    <filter name="group_picking" string="Transfer" context="{'group_by': 'picking_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="webship_json_history_action" model="ir.actions.act_window">
+        <field name="name">JSON History</field>
+        <field name="res_model">webship.json.history</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="webship_json_history_search"/>
+    </record>
+
+    <menuitem id="webship_json_history_menu" name="JSON History"
+        parent="webship.webship_root_menu" sequence="20"
+        action="webship_json_history_action"/>
+</odoo>
