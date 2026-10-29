@@ -42,6 +42,15 @@ class TestSyncRetry(TransactionCase):
         # Make sure it is a pending Webship picking.
         self.picking.df_process_code = 'P'
 
+    def _make_ready(self):
+        """Bring the fixture picking to Ready ('assigned'): the push cron only
+        announces Ready pickings, everything else stays pending untouched.
+        The product is a consumable, so confirming makes it available."""
+        self.picking.action_confirm()
+        self.picking.action_assign()
+        self.assertEqual(self.picking.state, 'assigned')
+        self.picking.df_process_code = 'P'
+
     def _run(self, push_return=None, email_side_effect=None):
         with mock.patch.object(StockPicking, '_ws_push_to_stoqflow', return_value=push_return), \
                 mock.patch.object(type(self.settings), '_ws_send_error_email',
@@ -58,6 +67,7 @@ class TestSyncRetry(TransactionCase):
         return sum(1 for c in email_mock.call_args_list if c.args and c.args[0] == name)
 
     def test_error_marks_E_retries_then_stops(self):
+        self._make_ready()
         # Attempt 1: fails -> E, count 1, email once.
         email = self._run(push_return=['boom'])
         self.assertEqual(self.picking.df_process_code, 'E')
@@ -75,6 +85,7 @@ class TestSyncRetry(TransactionCase):
         self.assertEqual(self._emails_for_picking(email), 0)
 
     def test_success_resets_counter(self):
+        self._make_ready()
         self._run(push_return=['boom'])
         self.assertEqual(self.picking.df_sync_retry_count, 1)
         self.assertEqual(self.picking.df_process_code, 'E')
@@ -89,11 +100,64 @@ class TestSyncRetry(TransactionCase):
         self.assertEqual(self._emails_for_picking(email), 0)
 
     def test_mail_failure_does_not_abort_queue(self):
+        self._make_ready()
         # Even if the error e-mail raises, the picking is still marked 'E' and
         # the cron does not propagate the exception.
         self._run(push_return=['boom'], email_side_effect=Exception('smtp down'))
         self.assertEqual(self.picking.df_process_code, 'E')
         self.assertEqual(self.picking.df_sync_retry_count, 1)
+
+    def test_not_ready_picking_left_pending(self):
+        # A picking waiting for stock (state 'confirmed') is not announced and
+        # not treated as a failure: it stays 'P' with an untouched retry
+        # counter and no e-mail, and is picked up once it becomes Ready.
+        # Previously every run pushed it, Stoqflow refused ("Not all items are
+        # in stock"), and the refusals burned the retry budget until the
+        # picking silently dropped out of the cron domain for good.
+        storable = self.env['product.product'].create({
+            'name': 'Stored Widget', 'default_code': 'SKU-ST', 'is_storable': True})
+        waiting = self.env['stock.picking'].create({
+            'picking_type_id': self.env.ref('stock.picking_type_out').id,
+            'location_id': self.ws_loc.id,
+            'location_dest_id': self.customers.id,
+            'move_ids': [(0, 0, {
+                'product_id': storable.id,
+                'product_uom_qty': 3,
+                'uom_id': storable.uom_id.id,
+                'location_id': self.ws_loc.id, 'location_dest_id': self.customers.id,
+            })],
+        })
+        waiting.action_confirm()
+        waiting.action_assign()
+        self.assertNotEqual(waiting.state, 'assigned',
+                            "picking with no stock must not be Ready")
+        waiting.df_process_code = 'P'
+
+        with mock.patch.object(
+                StockPicking, '_ws_push_to_stoqflow',
+                side_effect=AssertionError('not-ready picking must not be pushed')) as push, \
+                mock.patch.object(type(self.settings), '_ws_send_error_email') as email:
+            self.settings.ws_sync_all_pickings_statusP()
+
+        self.assertEqual(waiting.df_process_code, 'P')
+        self.assertEqual(waiting.df_sync_retry_count, 0)
+        push.assert_not_called()
+        self.assertFalse(
+            any(c.args and c.args[0] == waiting.name for c in email.call_args_list),
+            'no error e-mail should be sent for a not-ready picking')
+
+    def test_no_recipients_logs_warning(self):
+        # With no recipients configured the error e-mail cannot be sent; that
+        # must leave a warning in the log instead of a silent no-op.
+        self.param.set_str('webship.error_notify_user_ids', '')
+        self.param.set_str('webship.error_notify_emails', '')
+        with self.assertLogs(
+                'odoo.addons.webship.models.res_config_settings',
+                level='WARNING') as logs:
+            self.settings._ws_send_error_email('WS/OUT/TEST', 'boom')
+        self.assertTrue(
+            any('no error notification recipients' in line for line in logs.output),
+            logs.output)
 
     def _done_receipt(self):
         # Inbound receipt validated to 'done' (supplier locations have infinite
@@ -114,6 +178,10 @@ class TestSyncRetry(TransactionCase):
         picking.action_assign()
         picking.move_ids.quantity = 1
         picking.move_ids.picked = True
+        # Manual validation of a sync-owned ('P') picking is refused; this
+        # fixture simulates a user validating a picking they own, so mark it
+        # Manual first (the test re-sets the code afterwards).
+        picking.df_process_code = 'M'
         picking.button_validate()
         return picking
 
@@ -126,15 +194,14 @@ class TestSyncRetry(TransactionCase):
         done.df_process_code = 'P'
 
         with mock.patch.object(
-                StockPicking, '_ws_push_to_stoqflow', autospec=True,
-                return_value=[]) as push, \
+                StockPicking, '_ws_push_to_stoqflow',
+                side_effect=AssertionError('done picking must not be pushed')) as push, \
                 mock.patch.object(type(self.settings), '_ws_send_error_email') as email:
             self.settings.ws_sync_all_pickings_statusP()
 
         self.assertEqual(done.df_process_code, 'NA')
         self.assertEqual(done.df_sync_retry_count, 0)
-        self.assertNotIn(done, [c.args[0] for c in push.call_args_list],
-                         'done picking must not be pushed')
+        push.assert_not_called()
         self.assertFalse(
             any(c.args and c.args[0] == done.name for c in email.call_args_list),
             'no error e-mail should be sent for a done picking')

@@ -37,7 +37,7 @@ class StatusUpdate(models.Model):
     # Full order/PO payload from the poll (detail=high), reused when processing
     # so no extra per-record GET is needed.
     df_order_payload = fields.Json("Stoqflow payload", readonly=True)
-    picking_id = fields.Many2one('stock.picking', string="Picking",
+    picking_id = fields.Many2one('stock.picking', string="Transfer",
                                  ondelete='set null', index=True, readonly=True)
     state = fields.Selection([
         ('pending', 'Pending'),

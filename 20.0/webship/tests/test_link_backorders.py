@@ -522,6 +522,10 @@ class TestLinkBackorders(TransactionCase):
         picking.action_assign()
         picking.move_ids.quantity = 6
         picking.move_ids.picked = True
+        # Manual validation of a sync-owned ('P') picking is refused; mark it
+        # Manual so this fixture can validate it by hand (the guard checks the
+        # picking's process code, so the wizard's process() passes too).
+        picking.df_process_code = 'M'
         with mock.patch.object(StockPicking, '_link_stoqflow_backorder') as spy:
             res = picking.button_validate()
             # Partial receipt -> Odoo asks to create a backorder; process it.

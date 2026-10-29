@@ -204,7 +204,7 @@ c) A completed PO with 0 received across all lines must leave the picking open (
 
 d) With "auto create backorder on complete" enabled, the unreceived remainder must be split into a backorder via Odoo's backorder confirmation, not force-completed at ordered quantities.
 
-e) The developer-mode "Native backorder validation for receipts" toggle must switch between the native path (a-d) and the legacy path, and default OFF (legacy) so behaviour is unchanged until it is enabled.
+e) Native validation (a-d) is the DEFAULT. The developer-mode "Legacy backorder validation (fallback)" toggle must switch back to the legacy make_backorder/force-done path, and an explicitly stored webship.use_native_backorder = 'False' system parameter (the pre-flip opt-out) must still select the legacy path.
 
 22. Picking <-> Stoqflow line comparison
 
@@ -257,3 +257,71 @@ a) SKUs and Stoqflow ids containing spaces or special characters must be URL-enc
 b) A parent_order_id or order id containing special characters must be safely quoted in the parent_order_id query and the by-id lookups.
 
 c) The shared requests session's automatic retry (429/5xx) must not multiply a write once the redundant-call suppression (19) is in place — only meaningful PUT/POST calls should ever be retried.
+
+25. Debug output must never decide who may sync
+
+a) A user without access to group-restricted partner fields (e.g. the Belgian localisation's forms_281_50, readable by accounting groups only) must be able to sync a picking by hand. Debug dumps of the delivery address read only a fixed subset of address fields, never every field on res.partner.
+
+b) With "Verbose logging" disabled, the debug dump helper must not evaluate any read() at all — debug tracing may cost nothing and may not raise when it is off.
+
+c) With "Verbose logging" enabled and a read that raises (AccessError first and foremost), the trace must degrade to the record's id/display_name and no exception may propagate into the sync.
+
+d) A verbose trace of a picking, move or move line must contain only the intended field subset, not a full-record dump.
+
+26. Kit products in stock import
+
+a) A kit product (phantom BoM, mrp installed) that Stoqflow reports as a plain basic product must be skipped before the stock.quant lookup — mrp forbids quants on kit products, and the Stoqflow-side "composed" check (9e) does not cover kits registered as basic products.
+
+b) One failing product must not abort the whole stock import: the item is logged and skipped (its writes rolled back), and every remaining item in the same run must still be imported.
+
+c) Without mrp installed the import must behave exactly as before — the kit guard only activates when mrp.bom exists.
+
+27. Backorder split integrity (make_backorder, legacy path)
+
+a) On the legacy validation path, a partial receipt must produce exactly one clean backorder: the zero-quantity moves are snapshotted BEFORE the split, so the freshly split moves are never collected a second time.
+
+b) A done or cancelled zero-quantity move must never be dragged into the backorder picking — it stays on its original picking in its original state.
+
+28. Push cron announces only Ready pickings
+
+a) Only pickings in state 'assigned' (Ready) are pushed to Stoqflow. A picking in draft/waiting/confirmed is not a failure — it stays at process code P with an untouched retry counter and is announced automatically on a later run, the moment Odoo's reservation flow makes it Ready.
+
+b) A not-Ready picking must not consume retry budget, must not be marked 'E', and must not trigger an error e-mail. (Previously every 30-minute run pushed it, Stoqflow refused with "Not all items are in stock", and the refusals burned the retry budget until the picking silently dropped out of the cron domain for good.)
+
+c) When a sync fails and no error-notification recipients are configured, a warning naming the picking and the error must be logged — never a silent no-op.
+
+d) The real push-failure text stored on an 'E' picking must never be overwritten by the status cron's generic "No Stoqflow order ID or PO ID set on this picking" placeholder; the generic message is only written when the result column is blank (relates to 12e).
+
+29. Ignored SKUs never touch Odoo quantities
+
+a) A product whose SKU is on the Ignored SKUs list but which legitimately IS on the picking must still receive its real picked/received quantities. (Previously the filter ran before allocation, so the line stayed at the zero the reset loop wrote and the backorder split turned it into a phantom backorder that could never be fulfilled or linked.)
+
+b) A fully received receipt that includes an ignored-SKU line must validate as done with NO backorder.
+
+c) A Stoqflow-only pick (product absent from the picking) whose SKU is ignored must produce no warning and nothing else in Odoo — ignored SKUs are never sent back to Odoo.
+
+d) A Stoqflow-only pick whose SKU is NOT ignored must still produce the "no matching product found on picking" warning — the fix must not silence real mismatches.
+
+e) Ignore-list matching must be case- and whitespace-insensitive, consistent with the line comparison (22e).
+
+30. Completed status applies real quantities (statusWsToOdoo)
+
+a) When statusWsToOdoo fetches a completed outbound order, the picking must be completed at the ACTUAL picked quantities from the payload (via setPickingQuantities), never blindly validated at the ordered quantities.
+
+b) The same for a completed purchase order: the receipt must reflect the received quantities from the payload.
+
+c) A completed payload without any pick detail (no picks, no order_items) may fall back to a plain validation of a not-yet-done picking.
+
+d) The PO status poll must never force-validate a short receipt after the quantities were applied: with auto-backorder off, a receipt of 6 of 10 stays open at 6.
+
+e) Soft warnings from the quantity application (e.g. an unmatched product) must be surfaced as sync warnings and must never mark an otherwise successful sync as failed.
+
+31. Manual validation of Stoqflow-managed transfers is blocked
+
+a) Manually validating an in-scope picking with process code P (waiting to be pushed) or F (pushed / being picked in Stoqflow) must raise a clear error naming the process code and pointing to setting the picking to Manual first. The picking stays open.
+
+b) Pickings with process code M, E, C or NA, and pickings outside Stoqflow scope, must validate normally — those are exactly the states where a human is supposed to take over.
+
+c) The sync itself must validate without tripping the guard, including when it processes Odoo's backorder confirmation wizard (whose re-entry into button_validate runs with a replaced context).
+
+d) The internal completion helpers (setCompleted and the sync's validation entry point) must keep working on F pickings.

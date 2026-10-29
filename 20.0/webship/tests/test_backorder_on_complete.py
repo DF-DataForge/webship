@@ -103,3 +103,89 @@ class TestBackorderOnComplete(TransactionCase):
         self.assertNotEqual(picking.state, 'done', "state=%s" % picking.state)
         self.assertFalse(backorder,
                          "unexpected backorder(s): %s" % backorder.mapped('name'))
+
+
+class TestMakeBackorderLegacy(TransactionCase):
+    """Legacy validation path (webship.use_native_backorder off):
+    make_backorder must snapshot its zero-quantity moves BEFORE the split.
+    A post-split re-read of move_ids collects the freshly split moves a second
+    time and, without a state filter, sweeps done/cancelled moves into the
+    backorder picking."""
+
+    def setUp(self):
+        super().setUp()
+        patcher = mock.patch.object(StockPicking, 'fetch_picking_code', return_value='X')
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
+        self.param = self.env['ir.config_parameter'].sudo()
+        self.param.set_str('webship.use_native_backorder', 'False')
+        self.param.set_str('webship.auto_create_backorder', 'True')
+
+        self.ws_loc = self.env['stock.location'].create({
+            'name': 'WS Stock', 'usage': 'internal',
+            'location_id': self.env.ref('stock.stock_location_stock').location_id.id,
+            'df_is_webship_location': True,
+        })
+        self.suppliers = self.env.ref('stock.stock_location_suppliers')
+        self.product = self.env['product.product'].create({
+            'name': 'Widget', 'default_code': 'SKU1', 'df_product_id_webship': 'WS1'})
+        self.product2 = self.env['product.product'].create({
+            'name': 'Gadget', 'default_code': 'SKU2', 'df_product_id_webship': 'WS2'})
+
+        self.handler = WebShipHandler('u', 'p', 'http://test/')
+        self.handler.set_env(self.env)
+
+    def _receipt(self, products):
+        return self.env['stock.picking'].create({
+            'picking_type_id': self.env.ref('stock.picking_type_in').id,
+            'location_id': self.suppliers.id, 'location_dest_id': self.ws_loc.id,
+            'move_ids': [(0, 0, {
+                'product_id': product.id, 'product_uom_qty': demand,
+                'uom_id': product.uom_id.id,
+                'location_id': self.suppliers.id, 'location_dest_id': self.ws_loc.id,
+            }) for product, demand in products],
+        })
+
+    def test_legacy_partial_creates_single_clean_backorder(self):
+        # Partial receipt (6 of 10) through the full legacy flow: the picking
+        # validates at 6 and exactly one backorder carries the remaining 4.
+        picking = self._receipt([(self.product, 10)])
+        picking.action_confirm()
+        picking.action_assign()
+        picking.move_ids.picked = True
+
+        self.handler.setPickingQuantities(picking, {
+            'status': 'completed', 'edited': EDITED,
+            'order_items': [{'product_id': 'WS1', 'quantity': 10, 'received': 6}]})
+
+        backorder = self.env['stock.picking'].search([('backorder_id', '=', picking.id)])
+        self.assertEqual(picking.state, 'done',
+                         "state=%s syncresult=%r" % (picking.state, picking.df_picking_syncresult_webship))
+        self.assertEqual(len(backorder), 1,
+                         "n_backorders=%s names=%s" % (len(backorder), backorder.mapped('name')))
+        self.assertEqual(sum(backorder.move_ids.mapped('product_uom_qty')), 4.0,
+                         "backorder demands=%s" % backorder.move_ids.mapped('product_uom_qty'))
+        self.assertTrue(all(m.state not in ('done', 'cancel') for m in backorder.move_ids),
+                        "backorder move states=%s" % backorder.move_ids.mapped('state'))
+
+    def test_cancelled_move_not_dragged_into_backorder(self):
+        # A cancelled move has quantity 0 but must never be swept into the
+        # backorder: before the snapshot fix the post-split quantity==0 filter
+        # had no state filter and moved it to a spurious backorder picking.
+        picking = self._receipt([(self.product, 10), (self.product2, 5)])
+        picking.action_confirm()
+        cancelled = picking.move_ids.filtered(lambda m: m.product_id == self.product2)
+        cancelled._action_cancel()
+        kept = picking.move_ids - cancelled
+        kept.quantity = 10.0
+
+        picking.make_backorder()
+
+        backorder = self.env['stock.picking'].search([('backorder_id', '=', picking.id)])
+        self.assertFalse(backorder,
+                         "unexpected backorder(s): %s with moves %s" % (
+                             backorder.mapped('name'), backorder.move_ids.mapped('state')))
+        self.assertEqual(cancelled.picking_id, picking,
+                         "cancelled move left its picking")
+        self.assertEqual(cancelled.state, 'cancel')

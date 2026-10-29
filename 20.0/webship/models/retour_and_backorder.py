@@ -102,9 +102,16 @@ class WebshipRetourAndBackorder(models.Model):
         for rec in self:
             order = False
             if rec.df_original_order_ref:
-                order = self.env['sale.order'].search(
-                    [('name', 'ilike', rec.df_original_order_ref)], limit=1,
+                # Exact match only, and only accept a unique result. An 'ilike'
+                # substring with limit=1 could match SO120/SO123/... for a ref
+                # of "SO12" and pick an arbitrary (first-by-id) wrong order.
+                # On 0 or multiple matches, fall through to picking_id.sale_id
+                # rather than guessing between sale orders.
+                orders = self.env['sale.order'].search(
+                    [('name', '=', rec.df_original_order_ref)],
                 )
+                if len(orders) == 1:
+                    order = orders
             if not order and rec.picking_id:
                 order = rec.picking_id.sale_id
             rec.sale_order_id = order

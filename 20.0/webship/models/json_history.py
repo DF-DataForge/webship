@@ -6,7 +6,7 @@ class JsonHistory(models.Model):
     _description = 'Webship JSON History'
     _order = 'create_date desc'
 
-    picking_id = fields.Many2one('stock.picking', string='Picking', ondelete='cascade', index=True)
+    picking_id = fields.Many2one('stock.picking', string='Transfer', ondelete='cascade', index=True)
     direction = fields.Selection([
         ('sent', 'Sent'),
         ('received', 'Received'),

@@ -8,6 +8,9 @@
              <xpath expr="//field[@name='replenish_location']" position="after">
                 <field name="df_is_webship_location"></field>
                  <field name="df_warehouse_webship"/>
+                 <field name="df_warehouse_id_webship" string="Stoqflow company ID"
+                        invisible="not df_is_webship_location"
+                        help="Stoqflow company whose stock is imported into this location. Only needed when there are several Stoqflow locations."/>
              </xpath>
         </field>
     </record>

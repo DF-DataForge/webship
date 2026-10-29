@@ -1,4 +1,4 @@
-# Post-upgrade migration for webship 19.0.2.31.
+# Post-upgrade migration for webship 19.0.2.41.
 #
 # Until now the status sync wrote "No Stoqflow order ID or PO ID set on this
 # picking" on every picking without a Stoqflow id, including the Manual ('M')
@@ -21,9 +21,9 @@ def migrate(cr, version):
     """)
     if cr.rowcount:
         _logger.info(
-            "post_migration 19.0.2.31: cleared the 'no Stoqflow id' sync result "
+            "post_migration 19.0.2.41: cleared the 'no Stoqflow id' sync result "
             "on %d manual picking(s)", cr.rowcount)
     else:
         _logger.info(
-            "post_migration 19.0.2.31: no manual pickings carried the "
+            "post_migration 19.0.2.41: no manual pickings carried the "
             "'no Stoqflow id' sync result")

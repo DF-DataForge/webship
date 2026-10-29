@@ -174,7 +174,19 @@ class Partner(models.Model):
 
             # Display success or format errors as an HTML list
             if sResult == []:
-                self.df_partner_syncresult_webship = 'Success'
+                # An empty error list does not by itself mean a match happened:
+                # a blank/absent matching sequence skips matching and links
+                # nothing (by design, so a new contact is created on sync).
+                # Only report "Success" when the contact is actually linked,
+                # otherwise the manual Match button misleads the user.
+                linked = (record.df_is_client_in_webship and record.df_client_id_webship) or \
+                         (record.df_is_supplier_in_webship and record.df_supplier_id_webship)
+                if linked:
+                    record.df_partner_syncresult_webship = 'Success'
+                else:
+                    record.df_partner_syncresult_webship = (
+                        'No matching contact found in Stoqflow - nothing was linked. '
+                        'Check the matching sequence in Settings, or use Sync to create the contact.')
             else:
                 sOutput = '<p>Errors occured:</p>'
                 sOutput = sOutput + '<ul>'
@@ -182,7 +194,7 @@ class Partner(models.Model):
                     sOutput += '<li>' + e + '</li>'
                 sOutput = sOutput + '</ul>'
 
-                self.df_partner_syncresult_webship = sOutput
+                record.df_partner_syncresult_webship = sOutput
 
     def ws_sync_partner(self):
         """Push this partner's data to Webship (create or update).

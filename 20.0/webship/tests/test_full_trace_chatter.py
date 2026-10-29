@@ -60,6 +60,21 @@ class TestFullTraceChatter(TransactionCase):
         self.picking.write({'df_picking_code_webship': ''})
         self.assertEqual(self._count(), before)
 
+    def test_html_field_is_logged_as_plain_text(self):
+        """Html field values (like the sync result) must not leak their markup
+        into the trace line — only the text content is readable there."""
+        self._set('True')
+        self.picking.write({
+            'df_picking_syncresult_webship':
+                '<span style="color:#5cb85c;font-weight:bold;">'
+                'Linked to Stoqflow backorder PO00029-01</span>',
+        })
+        body = self.picking.message_ids[0].body
+        self.assertIn('Stoqflow full trace', body)
+        self.assertIn('Linked to Stoqflow backorder PO00029-01', body)
+        self.assertNotIn('5cb85c', body)
+        self.assertNotIn('&lt;span', body)
+
     def test_no_message_when_value_unchanged(self):
         self.picking.write({'df_picking_id_webship': 'WS9'})
         self._set('True')

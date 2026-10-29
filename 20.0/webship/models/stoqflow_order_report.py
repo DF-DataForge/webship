@@ -10,7 +10,7 @@ class StoqflowOrderReport(models.Model):
     _order = 'date desc'
 
     date = fields.Date(string="Date", readonly=True)
-    name = fields.Char(string="Picking", readonly=True)
+    name = fields.Char(string="Transfer", readonly=True)
     partner_id = fields.Many2one('res.partner', string="Customer", readonly=True)
     order_type = fields.Selection([
         ('order', 'Outbound Order'),

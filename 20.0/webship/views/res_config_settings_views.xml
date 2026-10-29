@@ -189,6 +189,9 @@
                             <setting string="Sync retry count" help="Number of times the status cron retries a picking that fails to sync. After this many failed attempts the picking stays in the 'E' (error) state and is no longer auto-processed; a manual sync is required.">
                                 <field name="webship_sync_retry_count"/>
                             </setting>
+                            <setting string="Log errors in picking chatter" help="When enabled, whenever a picking fails to sync to Stoqflow the list of errors is also posted as a message in the picking's chatter, so the failure detail stays in the message history instead of only in the 'Result last sync' field (which is overwritten on the next sync).">
+                                <field name="webship_log_errors_chatter"/>
+                            </setting>
                         </block>
 
                         <!-- Daily report: configure who gets the daily processing summary -->
@@ -356,6 +359,26 @@
                                             </div>
                                         </div>
                                     </div>
+                                    <!-- Reclassify object types (Order / Purchase order / Mutation) -->
+                                    <div class="row mt8 align-items-center">
+                                        <div class="col-md-6">
+                                            <span>Reclassify Stoqflow object types</span>
+                                            <div class="text-muted">Corrects pickings wrongly shown as 'Mutation' (e.g. created before their location became a Stoqflow location).</div>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <field name="webship_cron_reclassify_object_types" class="d-inline-block"/>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="d-flex gap-2 align-items-center">
+                                                <field name="webship_cron_reclassify_object_types_interval_number" style="width: 60px" class="text-center"/>
+                                                <field name="webship_cron_reclassify_object_types_interval_type" style="width: 100px"/>
+                                                <button name="ws_run_cron_manually" type="object" string="Run manually"
+                                                        confirm="Run manually?"
+                                                        context="{'cron_xml_id': 'ir_cron_reclassify_object_types'}"
+                                                        class="btn btn-link"/>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </setting>
                         </block>
@@ -413,9 +436,9 @@
                             <setting string="Incremental status updates" help="Fetch statuses and quantities from Stoqflow incrementally: only the orders/purchase orders changed since the last check (edited_after) are polled and processed through the status update queue. Disable to fall back to the old method (one API call per open picking on every run).">
                                 <field name="webship_use_status_update_queue"/>
                             </setting>
-                            <setting string="Native backorder validation for receipts" groups="base.group_no_one"
-                                     help="Developer/experimental. When enabled, completed purchase-order receipts are validated with Odoo's native backorder confirmation: only the received quantities are validated and a backorder is created for the not-yet-received items (a receipt with 0 received is left open). When disabled, the previous behaviour is used.">
-                                <field name="webship_use_native_backorder"/>
+                            <setting string="Legacy backorder validation (fallback)" groups="base.group_no_one"
+                                     help="Developer fallback. By default completed pickings are validated with Odoo's native backorder confirmation: only the quantities actually picked/received in Stoqflow are validated and a backorder is created for the rest (a receipt with 0 received is left open). Enable this only to fall back to the previous legacy validation flow.">
+                                <field name="webship_use_legacy_backorder"/>
                             </setting>
                             <setting string="Link backorders"
                                      help="When enabled, the moment a backorder is created in Odoo the matching Stoqflow child order (same parent_order_id) is looked up and compared line by line. If the contents match the backorder is linked to that Stoqflow order; if they differ it is left unlinked and the differences are shown on its sync result.">

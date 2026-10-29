@@ -133,6 +133,37 @@ class TestProductSync(TransactionCase):
             normal.ws_sync_product()
         sync.assert_called_once()
 
+    # --- has_stock: storable vs. non-storable --------------------------------
+
+    def _posted_product_payload(self, product):
+        """Run sync_product as a create and return the payload POSTed to
+        /products."""
+        with mock.patch.object(self.handler, 'findProductBySku', return_value=[]), \
+                mock.patch.object(self.handler, 'get_brand', return_value='BRAND'), \
+                mock.patch.object(self.handler, 'showDebugInfo'), \
+                mock.patch.object(self.handler, 'performPost',
+                                  return_value={'status': 'success',
+                                                'data': {'_id': 'WS1'}}) as post:
+            errors = self.handler.sync_product(product)
+        self.assertEqual(errors, [])
+        post.assert_called_once()
+        return post.call_args[0][1]
+
+    def test_storable_product_has_stock(self):
+        # Odoo 18+ has no 'product' type any more: the storable flag is
+        # is_storable. Checking type == 'product' was always False, so every
+        # product reached Stoqflow with has_stock=False.
+        storable = self.env['product.product'].create({
+            'name': 'Storable', 'default_code': 'STOR', 'is_storable': True,
+        })
+        self.assertIs(self._posted_product_payload(storable)['has_stock'], True)
+
+    def test_non_storable_product_has_no_stock(self):
+        consumable = self.env['product.product'].create({
+            'name': 'Consumable', 'default_code': 'CONS', 'is_storable': False,
+        })
+        self.assertIs(self._posted_product_payload(consumable)['has_stock'], False)
+
     def test_template_flag_mirrors_variant(self):
         # Setting the flag on the template (single variant) writes through to
         # the variant, so the template form checkbox actually excludes it.

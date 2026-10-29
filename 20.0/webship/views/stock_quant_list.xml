@@ -37,6 +37,17 @@
                 <field name="df_webship_reserved" optional="show"/>
                 <field name="df_webship_available_stock" optional="show"/>
 
+                <!-- Differences Odoo vs Stoqflow (red when out of sync) -->
+                <field name="df_webship_diff_total"
+                       optional="show"
+                       decoration-danger="df_webship_diff_total != 0"/>
+                <field name="df_webship_diff_reserved"
+                       optional="show"
+                       decoration-danger="df_webship_diff_reserved != 0"/>
+                <field name="df_webship_diff_available"
+                       optional="show"
+                       decoration-danger="df_webship_diff_available != 0"/>
+
                 <!-- Stoqflow sync info -->
                 <field name="df_last_check_webship" optional="show"/>
 
@@ -48,6 +59,48 @@
     </record>
 
     <!-- ========================================================= -->
+    <!-- Stoqflow Stock Search View                                 -->
+    <!-- ========================================================= -->
+    <record id="df_webship_stock_quant_search_view" model="ir.ui.view">
+        <field name="name">df.webship.stock.quant.search</field>
+        <field name="model">stock.quant</field>
+        <field name="arch" type="xml">
+            <search string="Stoqflow Stock">
+
+                <!-- Text search -->
+                <field name="product_id"/>
+                <field name="location_id"/>
+
+                <!-- Any difference between Odoo and Stoqflow -->
+                <filter string="Stock Differs" name="df_webship_any_diff"
+                        domain="['|', '|', ('df_webship_diff_total', '!=', 0), ('df_webship_diff_reserved', '!=', 0), ('df_webship_diff_available', '!=', 0)]"
+                        help="Products where Odoo and Stoqflow stock is out of sync"/>
+
+                <separator/>
+
+                <!-- Per-metric difference filters -->
+                <filter string="Total Differs" name="df_webship_diff_total_filter"
+                        domain="[('df_webship_diff_total', '!=', 0)]"/>
+                <filter string="Reserved Differs" name="df_webship_diff_reserved_filter"
+                        domain="[('df_webship_diff_reserved', '!=', 0)]"/>
+                <filter string="Available Differs" name="df_webship_diff_available_filter"
+                        domain="[('df_webship_diff_available', '!=', 0)]"/>
+
+                <separator/>
+
+                <!-- Grouping -->
+                <group>
+                    <filter string="Product" name="group_by_product"
+                            context="{'group_by': 'product_id'}"/>
+                    <filter string="Location" name="group_by_location"
+                            context="{'group_by': 'location_id'}"/>
+                </group>
+
+            </search>
+        </field>
+    </record>
+
+    <!-- ========================================================= -->
     <!-- Stoqflow Stock Action                                      -->
     <!-- ========================================================= -->
     <record id="webship_stock_action" model="ir.actions.act_window">
@@ -55,6 +108,7 @@
         <field name="res_model">stock.quant</field>
         <field name="view_mode">list,form</field>
         <field name="view_id" ref="df_webship_stock_quant_tree_view"/>
+        <field name="search_view_id" ref="df_webship_stock_quant_search_view"/>
         <field name="domain">
             [
                 ('location_id.df_is_webship_location', '=', True),
