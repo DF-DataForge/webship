@@ -1,0 +1,166 @@
+1
+00:00:06,000 --> 00:00:11,400
+Stoqflow moet elk product kennen voordat
+het een order kan picken.
+
+2
+00:00:11,450 --> 00:00:14,950
+In deze video zetten we de producten
+klaar.
+
+3
+00:00:15,000 --> 00:00:18,843
+De sleutel tussen Odoo en Stoqflow is de
+SKU:
+
+4
+00:00:18,893 --> 00:00:23,428
+in Odoo is dat de interne referentie van
+het product.
+
+5
+00:00:23,478 --> 00:00:30,348
+Zonder interne referentie kan Odoo het
+product niet doorsturen, en een order met
+
+6
+00:00:30,398 --> 00:00:32,857
+zo'n product wordt geweigerd.
+
+7
+00:00:32,907 --> 00:00:39,431
+Zorg dus dat elk product dat Stoqflow
+verzendt een unieke interne referentie
+
+8
+00:00:39,481 --> 00:00:39,950
+heeft.
+
+9
+00:00:40,000 --> 00:00:46,275
+Op elk product staat een tabblad Stoqflow.
+
+10
+00:00:46,325 --> 00:00:50,191
+Bovenaan ziet u de status:
+
+11
+00:00:50,241 --> 00:01:02,089
+de link naar het product in Stoqflow,
+wanneer het laatst gesynchroniseerd is en
+
+12
+00:01:02,139 --> 00:01:04,950
+met welk resultaat.
+
+13
+00:01:05,000 --> 00:01:08,627
+Daaronder vult u de gegevens in die
+Stoqflow nodig heeft:
+
+14
+00:01:08,677 --> 00:01:14,047
+het merk en het voorraadtype, minimum- en
+maximumvoorraad, afmetingen, de HS-code en
+
+15
+00:01:14,097 --> 00:01:19,144
+het land van oorsprong voor de douane, en
+vlaggen zoals breekbaar of koelketen.
+
+16
+00:01:19,194 --> 00:01:24,176
+Bij Controles kiest u of het magazijn
+vervaldata, batches of serienummers moet
+
+17
+00:01:24,226 --> 00:01:24,950
+registreren.
+
+18
+00:01:25,000 --> 00:01:29,617
+Bestaat het product al in Stoqflow?
+
+19
+00:01:29,667 --> 00:01:34,017
+Klik dan op Matchen met Stoqflow.
+
+20
+00:01:34,067 --> 00:01:44,950
+Odoo zoekt het product op SKU en koppelt
+het, zonder iets te wijzigen in Stoqflow.
+
+21
+00:01:45,000 --> 00:01:49,871
+Is het product nieuw, klik dan op
+Synchroniseren met Stoqflow.
+
+22
+00:01:49,921 --> 00:01:56,299
+Odoo maakt het aan in Stoqflow, met naam,
+SKU, barcode, prijzen en de details van
+
+23
+00:01:56,349 --> 00:01:56,934
+daarnet.
+
+24
+00:01:56,984 --> 00:01:59,950
+Een latere klik werkt het product bij.
+
+25
+00:02:00,000 --> 00:02:05,779
+Producten die nooit in het
+Stoqflow-magazijn komen, zoals onderdelen
+
+26
+00:02:05,829 --> 00:02:12,036
+voor uw eigen productie, vinkt u aan als
+Dit product niet synchroniseren.
+
+27
+00:02:12,086 --> 00:02:14,950
+Odoo slaat ze over, ook op orders.
+
+28
+00:02:15,000 --> 00:02:18,135
+Een product met varianten synchroniseert u
+per variant:
+
+29
+00:02:18,185 --> 00:02:22,189
+elke maat en kleur is in Stoqflow een
+apart product met een eigen SKU.
+
+30
+00:02:22,239 --> 00:02:26,533
+In de lijst met productvarianten
+selecteert u er meerdere tegelijk en klikt
+
+31
+00:02:26,583 --> 00:02:29,950
+u op Syncen met Stoqflow of Producten
+matchen met Stoqflow.
+
+32
+00:02:30,000 --> 00:02:37,819
+Het overzicht Producten in Stoqflow toont
+alle producten met hun status.
+
+33
+00:02:37,869 --> 00:02:46,343
+Met de filters vindt u snel wat nog nooit
+gesynchroniseerd is of een fout gaf.
+
+34
+00:02:46,393 --> 00:02:49,950
+Los die op voor het eerste order.
+
+35
+00:02:50,000 --> 00:02:51,416
+Geen fouten meer?
+
+36
+00:02:51,466 --> 00:02:54,950
+Dan is alles klaar voor de eerste orders.
+

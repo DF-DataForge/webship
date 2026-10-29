@@ -1,0 +1,193 @@
+1
+00:00:06,000 --> 00:00:13,483
+Tot nu toe hebben we alles ingesteld, maar
+nog niets automatisch laten lopen.
+
+2
+00:00:13,533 --> 00:00:14,950
+Dat doen we nu.
+
+3
+00:00:15,000 --> 00:00:15,709
+Eerst:
+
+4
+00:00:15,759 --> 00:00:22,292
+hoe komen statussen en hoeveelheden terug
+naar Odoo?
+
+5
+00:00:22,342 --> 00:00:31,912
+Met Incrementele statusupdates vraagt Odoo
+aan Stoqflow alleen de orders die
+
+6
+00:00:31,962 --> 00:00:36,469
+gewijzigd zijn sinds de vorige keer.
+
+7
+00:00:36,519 --> 00:00:42,418
+Dat is snel en licht, ook bij duizenden
+orders.
+
+8
+00:00:42,468 --> 00:00:44,950
+Laat deze optie aan.
+
+9
+00:00:45,000 --> 00:00:53,392
+In het blok Geplande taken zet u elke taak
+aan of uit en kiest u hoe vaak ze draait.
+
+10
+00:00:53,442 --> 00:01:01,533
+Wachtende orders verwerken stuurt nieuwe
+leveringen en ontvangsten naar Stoqflow.
+
+11
+00:01:01,583 --> 00:01:04,950
+Om het kwartier is een goed ritme.
+
+12
+00:01:05,000 --> 00:01:09,525
+Gewijzigde orders ophalen haalt de
+statussen, gepickte hoeveelheden en
+
+13
+00:01:09,575 --> 00:01:12,858
+trackinglinks op en valideert voltooide
+leveringen.
+
+14
+00:01:12,908 --> 00:01:14,623
+Zet die om de tien minuten.
+
+15
+00:01:14,673 --> 00:01:19,721
+Orderinfo en hoeveelheden ophalen is de
+oude, zware methode die elk open order
+
+16
+00:01:19,771 --> 00:01:20,702
+apart opvraagt:
+
+17
+00:01:20,752 --> 00:01:24,950
+laat ze uit en gebruik ze alleen om
+eenmalig alles bij te werken.
+
+18
+00:01:25,000 --> 00:01:26,728
+De andere taken:
+
+19
+00:01:26,778 --> 00:01:34,506
+de voorraad elke dag vergelijken, en
+desgewenst automatisch aanpassen.
+
+20
+00:01:34,556 --> 00:01:37,283
+Het dagrapport versturen.
+
+21
+00:01:37,333 --> 00:01:40,617
+Retours en backorders ophalen.
+
+22
+00:01:40,667 --> 00:01:49,283
+En de herclassificatie, die nakijkt of
+elke overboeking het juiste type heeft.
+
+23
+00:01:49,333 --> 00:01:54,950
+Over retours, backorders en voorraad gaat
+video 10.
+
+24
+00:01:55,000 --> 00:02:03,269
+Wilt u niet wachten, klik dan op Manueel
+uitvoeren naast een taak.
+
+25
+00:02:03,319 --> 00:02:09,950
+Handig na de eerste configuratie of
+tijdens een test.
+
+26
+00:02:10,000 --> 00:02:17,477
+Bij Foutnotificaties kiest u wie een
+e-mail krijgt als een levering of
+
+27
+00:02:17,527 --> 00:02:21,670
+ontvangst niet doorgestuurd kan worden.
+
+28
+00:02:21,720 --> 00:02:29,950
+Kies gebruikers, en vul eventueel extra
+adressen in, gescheiden door komma's.
+
+29
+00:02:30,000 --> 00:02:36,356
+Mislukt het doorsturen, dan probeert Odoo
+het opnieuw, tot het aantal syncpogingen
+
+30
+00:02:36,406 --> 00:02:37,216
+bereikt is.
+
+31
+00:02:37,266 --> 00:02:42,919
+Daarna krijgt de levering de processcode
+Fout en moet iemand ze bekijken.
+
+32
+00:02:42,969 --> 00:02:48,778
+Met Fouten loggen in de chatter blijft
+elke fout ook in de historiek van de
+
+33
+00:02:48,828 --> 00:02:49,950
+levering staan.
+
+34
+00:02:50,000 --> 00:03:00,136
+Het dagelijks rapport vat elke dag samen
+welke overboekingen verwerkt zijn, gelukt
+
+35
+00:03:00,186 --> 00:03:01,503
+en mislukt.
+
+36
+00:03:01,553 --> 00:03:09,950
+Kies de ontvangers en klik op Rapport nu
+versturen om het te testen.
+
+37
+00:03:10,000 --> 00:03:10,492
+Sla op.
+
+38
+00:03:10,542 --> 00:03:16,840
+Onderaan bij Tijdstippen laatste controle
+ziet u wanneer Odoo het laatst statussen
+
+39
+00:03:16,890 --> 00:03:18,079
+heeft opgehaald.
+
+40
+00:03:18,129 --> 00:03:21,950
+Staat dat tijdstip stil, dan draait een
+taak niet.
+
+41
+00:03:22,000 --> 00:03:24,759
+Daarmee is de configuratie klaar.
+
+42
+00:03:24,809 --> 00:03:29,950
+In de volgende video's volgen we de flows
+van begin tot eind.
+

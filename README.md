@@ -42,3 +42,10 @@ What it sets up:
 - **Documents**: received and delivered history, plus open documents that are pending for Stoqflow (process code `P`): a clothing restock PO, a resupply of complete boards from the workshop, and webshop and B2B orders.
 
 Stoqflow API credentials are not set and the Stoqflow crons are switched off. To sync for real, enter sandbox credentials under Settings > Stoqflow, run *Fetch companies and warehouses*, link the `SQF/Stock` location to the Stoqflow warehouse, and switch the crons back on.
+
+## Instructievideo's
+
+Scripts, openings- en eindkaarten (Data Forge-huisstijl) en ondertitels voor
+een reeks instructievideo's over installatie, configuratie en de basisflows
+(verkooporder → levering, inkooporder → ontvangst, bevoorrading, retours) staan
+in [`docs/instructievideos/`](docs/instructievideos/README.md).

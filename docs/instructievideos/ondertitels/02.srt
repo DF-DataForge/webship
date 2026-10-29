@@ -1,0 +1,163 @@
+1
+00:00:06,000 --> 00:00:11,103
+In deze video installeren we de
+Stoqflow-koppeling en verbinden we Odoo
+
+2
+00:00:11,153 --> 00:00:12,845
+met uw Stoqflow-account.
+
+3
+00:00:12,895 --> 00:00:14,950
+Reken op een tiental minuten.
+
+4
+00:00:15,000 --> 00:00:21,423
+De module staat in één repository, met een
+map per Odoo-versie.
+
+5
+00:00:21,473 --> 00:00:29,745
+Kies de map die past bij uw versie, hier
+19.0, en voeg die toe aan het addons-pad
+
+6
+00:00:29,795 --> 00:00:31,697
+van uw Odoo-server.
+
+7
+00:00:31,747 --> 00:00:36,936
+Op Odoo.sh voegt u de repository toe als
+submodule.
+
+8
+00:00:36,986 --> 00:00:41,046
+De module gebruikt alleen standaardapps:
+
+9
+00:00:41,096 --> 00:00:44,950
+Verkoop, Inkoop, Voorraad en Levering.
+
+10
+00:00:45,000 --> 00:00:46,792
+Herstart Odoo.
+
+11
+00:00:46,842 --> 00:00:57,450
+Zet daarna de ontwikkelaarsmodus aan en
+werk de lijst met apps bij, zodat Odoo de
+
+12
+00:00:57,500 --> 00:00:59,950
+nieuwe module ziet.
+
+13
+00:01:00,000 --> 00:01:08,409
+Zoek op Stoqflow en klik bij Koppeling
+Stoqflow by Data Forge op Activeren.
+
+14
+00:01:08,459 --> 00:01:14,950
+Na de installatie staat de app Stoqflow op
+uw startscherm.
+
+15
+00:01:15,000 --> 00:01:22,590
+Maak in Stoqflow een API-sleutel aan, of
+vraag die aan uw Stoqflow-contactpersoon.
+
+16
+00:01:22,640 --> 00:01:25,478
+U krijgt een Key en een Secret.
+
+17
+00:01:25,528 --> 00:01:27,621
+Bewaar het Secret goed:
+
+18
+00:01:27,671 --> 00:01:29,950
+u ziet het maar één keer.
+
+19
+00:01:30,000 --> 00:01:34,362
+Ga in Odoo naar Stoqflow, Instellingen.
+
+20
+00:01:34,412 --> 00:01:43,185
+In het blok Login vult u de Key en het
+Secret in, de Base URL van de API en de
+
+21
+00:01:43,235 --> 00:01:44,090
+App URL.
+
+22
+00:01:44,140 --> 00:01:53,140
+Die laatste gebruikt Odoo om klikbare
+links naar orders en producten in Stoqflow
+
+23
+00:01:53,190 --> 00:01:54,158
+te maken.
+
+24
+00:01:54,208 --> 00:01:54,950
+Sla op.
+
+25
+00:01:55,000 --> 00:01:56,555
+Klik op Verbinding testen.
+
+26
+00:01:56,605 --> 00:01:59,888
+Een groene melding betekent dat Odoo
+Stoqflow bereikt.
+
+27
+00:01:59,938 --> 00:02:04,950
+Een rode melding toont wat er misloopt,
+bijvoorbeeld een verkeerde sleutel of URL.
+
+28
+00:02:05,000 --> 00:02:11,173
+Nu laden we de structuur van uw
+Stoqflow-account in Odoo.
+
+29
+00:02:11,223 --> 00:02:17,832
+Klik bij Merk en Shop op Bedrijven,
+merken, magazijnen laden.
+
+30
+00:02:17,882 --> 00:02:23,946
+Odoo haalt uw bedrijven, merken, shops en
+magazijnen op.
+
+31
+00:02:23,996 --> 00:02:29,950
+Dat is nodig voordat er orders verstuurd
+kunnen worden.
+
+32
+00:02:30,000 --> 00:02:35,675
+Kies daarna het standaardmerk en de
+standaardshop.
+
+33
+00:02:35,725 --> 00:02:44,950
+Elk order en elk product dat Odoo naar
+Stoqflow stuurt, komt in die shop terecht.
+
+34
+00:02:45,000 --> 00:02:47,977
+Odoo en Stoqflow praten nu met elkaar.
+
+35
+00:02:48,027 --> 00:02:50,286
+Er wordt nog niets verstuurd:
+
+36
+00:02:50,336 --> 00:02:53,950
+eerst richten we het magazijn en de routes
+in.
+
