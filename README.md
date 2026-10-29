@@ -10,6 +10,7 @@ One branch per Odoo version, each with the addons at the repository root:
 
 | Branch | Odoo |
 |--------|------|
+| `19.0` | 19.0 |
 | `20.0` | 20.0 (this branch) |
 | `main` | all versions in folders `18.0/`, `19.0/`, `20.0/` |
 
