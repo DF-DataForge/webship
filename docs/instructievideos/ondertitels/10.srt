@@ -1,221 +1,221 @@
 1
-00:00:06,000 --> 00:00:09,029
+00:00:06,000 --> 00:00:09,056
 Sommige dingen gebeuren in het magazijn
 zelf:
 
 2
-00:00:09,079 --> 00:00:14,503
+00:00:09,106 --> 00:00:14,577
 een klant stuurt iets terug, een order
 wordt maar deels geleverd, of de voorraad
 
 3
-00:00:14,553 --> 00:00:15,392
+00:00:14,627 --> 00:00:15,475
 wordt geteld.
 
 4
-00:00:15,442 --> 00:00:16,966
+00:00:15,525 --> 00:00:17,062
 Zo houdt u Odoo gelijk.
 
 5
-00:00:17,416 --> 00:00:21,340
+00:00:17,512 --> 00:00:21,295
 Stoqflow legt een retour vast als een
 inkooporder, met in de
 
 6
-00:00:21,390 --> 00:00:26,043
+00:00:21,345 --> 00:00:25,831
 leveranciersreferentie het woord Retour
 gevolgd door het nummer van het
 
 7
-00:00:26,093 --> 00:00:27,964
+00:00:25,881 --> 00:00:27,683
 oorspronkelijke verkooporder.
 
 8
-00:00:28,014 --> 00:00:30,878
+00:00:27,733 --> 00:00:30,494
 Zo weet Odoo bij welk order de retour
 hoort.
 
 9
-00:00:40,000 --> 00:00:44,137
+00:00:40,000 --> 00:00:44,161
 In Odoo haalt u de retours op via
 Stoqflow, Retours.
 
 10
-00:00:44,187 --> 00:00:48,566
+00:00:44,211 --> 00:00:48,614
 De lijst toont elke retour met zijn status
 in Stoqflow.
 
 11
-00:00:55,000 --> 00:00:56,005
+00:00:55,000 --> 00:00:55,982
 Open een retour:
 
 12
-00:00:56,055 --> 00:01:00,686
+00:00:56,032 --> 00:01:00,563
 u ziet het oorspronkelijke verkooporder en
 de teruggestuurde producten.
 
 13
-00:01:00,736 --> 00:01:02,796
+00:01:00,613 --> 00:01:02,628
 Klik op Retourlevering aanmaken:
 
 14
-00:01:02,846 --> 00:01:07,543
+00:01:02,678 --> 00:01:07,273
 Odoo maakt een retour op basis van de
 oorspronkelijke levering, zodat de
 
 15
-00:01:07,593 --> 00:01:11,630
+00:01:07,323 --> 00:01:11,273
 verkooporder, de voorraad en een eventuele
 creditnota kloppen.
 
 16
-00:01:11,680 --> 00:01:16,773
+00:01:11,323 --> 00:01:16,305
 Is de retour in Stoqflow nog niet binnen,
 dan vraagt Odoo eerst of u toch wilt
 
 17
-00:01:16,823 --> 00:01:17,366
+00:01:16,355 --> 00:01:16,886
 doorgaan.
 
 18
-00:01:30,000 --> 00:01:34,968
+00:01:30,000 --> 00:01:35,153
 Wilt u dat niet per retour doen, vink dan
 Retours automatisch invoegen aan.
 
 19
-00:01:35,018 --> 00:01:39,718
+00:01:35,203 --> 00:01:40,078
 De geplande taak haalt de retours op en
 maakt de retourleveringen zelf.
 
 20
-00:01:45,000 --> 00:01:51,044
+00:01:45,000 --> 00:01:50,950
 Levert Stoqflow een order maar deels, dan
 maakt Odoo een backorder voor de rest,
 
 21
-00:01:51,094 --> 00:01:52,872
+00:01:51,000 --> 00:01:52,750
 zoals u zag in video 07.
 
 22
-00:01:52,922 --> 00:01:56,757
+00:01:52,800 --> 00:01:56,575
 Maar Stoqflow maakt vaak zelf ook een
 vervolgorder.
 
 23
-00:01:56,807 --> 00:01:58,966
+00:01:56,625 --> 00:01:58,750
 U kiest hoe u daarmee omgaat.
 
 24
-00:02:15,000 --> 00:02:15,595
+00:02:15,000 --> 00:02:15,578
 Manier A:
 
 25
-00:02:15,645 --> 00:02:17,315
+00:02:15,628 --> 00:02:17,253
 Stoqflow levert de rest.
 
 26
-00:02:17,365 --> 00:02:22,832
+00:02:17,303 --> 00:02:22,626
 Met Backorders koppelen verbindt Odoo zijn
 backorder met het vervolgorder van
 
 27
-00:02:22,882 --> 00:02:26,343
+00:02:22,676 --> 00:02:26,045
 Stoqflow, en volgt het verder op zoals elk
 order.
 
 28
-00:02:26,393 --> 00:02:26,988
+00:02:26,095 --> 00:02:26,673
 Manier B:
 
 29
-00:02:27,038 --> 00:02:28,994
+00:02:26,723 --> 00:02:28,627
 u beslist zelf over de rest.
 
 30
-00:02:29,044 --> 00:02:34,726
+00:02:28,677 --> 00:02:34,209
 Met Backorders automatisch verwijderen in
 Stoqflow wist Odoo de vervolgorders in
 
 31
-00:02:34,776 --> 00:02:39,742
+00:02:34,259 --> 00:02:39,094
 Stoqflow, en stuurt u de backorder in Odoo
 zelf door wanneer het past.
 
 32
-00:02:40,192 --> 00:02:45,128
+00:02:40,000 --> 00:02:44,994
 In Stoqflow, Backorders ziet u alle
 vervolgorders uit Stoqflow, met het
 
 33
-00:02:45,178 --> 00:02:48,359
+00:02:45,044 --> 00:02:48,262
 oorspronkelijke order en de backorder in
 Odoo.
 
 34
-00:02:48,409 --> 00:02:52,502
+00:02:48,312 --> 00:02:52,454
 Hier verwijdert u ze ook manueel, één voor
 één of in groep.
 
 35
-00:03:00,000 --> 00:03:01,508
+00:03:00,000 --> 00:03:01,500
 Tot slot de voorraad.
 
 36
-00:03:01,558 --> 00:03:07,441
+00:03:01,550 --> 00:03:07,407
 Met Voorraad laden uit Stoqflow, of elke
 dag via de geplande taak, haalt Odoo de
 
 37
-00:03:07,491 --> 00:03:09,296
+00:03:07,457 --> 00:03:09,252
 voorraad van Stoqflow op.
 
 38
-00:03:09,346 --> 00:03:14,933
+00:03:09,302 --> 00:03:14,863
 Het scherm Stoqflow, Voorraad zet die
 naast de voorraad in Odoo, product per
 
 39
-00:03:14,983 --> 00:03:15,526
+00:03:14,913 --> 00:03:15,454
 product.
 
 40
-00:03:20,000 --> 00:03:25,438
+00:03:20,000 --> 00:03:25,443
 Met het filter Voorraad wijkt af ziet u
 meteen waar Odoo en Stoqflow verschillen.
 
 41
-00:03:25,488 --> 00:03:26,928
+00:03:25,493 --> 00:03:26,935
 Zoek eerst de oorzaak:
 
 42
-00:03:26,978 --> 00:03:29,977
+00:03:26,985 --> 00:03:29,987
 een levering die nog open staat
 bijvoorbeeld.
 
 43
-00:03:30,027 --> 00:03:35,193
+00:03:30,037 --> 00:03:35,209
 Klopt de telling van Stoqflow, selecteer
 de lijn en klik op Stoqflow-voorraad
 
 44
-00:03:35,243 --> 00:03:36,413
+00:03:35,259 --> 00:03:36,430
 toepassen op Odoo.
 
 45
-00:03:36,463 --> 00:03:41,833
+00:03:36,480 --> 00:03:41,856
 Vertrouwt u Stoqflow volledig, laat de
 geplande taak de voorraad dan automatisch
 
 46
-00:03:41,883 --> 00:03:42,510
+00:03:41,906 --> 00:03:42,534
 aanpassen.
 
 47
-00:03:45,000 --> 00:03:47,437
+00:03:45,000 --> 00:03:47,492
 Retours, backorders en voorraad:
 
 48
-00:03:47,487 --> 00:03:51,478
+00:03:47,542 --> 00:03:51,622
 zo blijven Odoo en het magazijn op elkaar
 afgestemd.
 

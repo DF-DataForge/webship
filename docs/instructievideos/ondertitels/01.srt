@@ -1,10 +1,10 @@
 1
-00:00:06,000 --> 00:00:10,505
+00:00:06,000 --> 00:00:10,463
 Laat u uw voorraad bewaren en uw orders
 verzenden door Stoqflow?
 
 2
-00:00:10,555 --> 00:00:16,270
+00:00:10,513 --> 00:00:16,174
 Met de koppeling van Data Forge werkt u
 gewoon in Odoo, en Stoqflow doet de rest.
 
@@ -28,45 +28,45 @@ Alles wat er binnenkomt, wordt een
 aangekondigde inkooporder.
 
 7
-00:00:40,000 --> 00:00:45,846
+00:00:40,000 --> 00:00:45,806
 Bevestigt u een verkooporder, dan stuurt
 Odoo de levering, de klant en de producten
 
 8
-00:00:45,896 --> 00:00:47,693
+00:00:45,856 --> 00:00:47,640
 automatisch naar Stoqflow.
 
 9
-00:00:47,743 --> 00:00:50,534
+00:00:47,690 --> 00:00:50,462
 U volgt de status op vanuit de levering.
 
 10
-00:00:55,000 --> 00:01:00,287
+00:00:55,000 --> 00:01:00,266
 Zodra Stoqflow het order verzonden heeft,
 haalt Odoo de gepickte hoeveelheden en de
 
 11
-00:01:00,337 --> 00:01:03,567
+00:01:00,316 --> 00:01:03,532
 trackinglinks op en valideert het de
 levering zelf.
 
 12
-00:01:03,617 --> 00:01:06,782
+00:01:03,582 --> 00:01:06,734
 Wat niet geleverd kon worden, wordt een
 backorder.
 
 13
-00:01:10,000 --> 00:01:14,801
+00:01:10,000 --> 00:01:14,770
 Daarnaast vergelijkt de koppeling de
 voorraad, haalt ze retours en backorders
 
 14
-00:01:14,851 --> 00:01:17,510
+00:01:14,820 --> 00:01:17,462
 op en geeft een dashboard met al uw
 orders.
 
 15
-00:01:22,000 --> 00:01:27,662
+00:01:22,000 --> 00:01:27,638
 In de volgende video's ziet u hoe u alles
 installeert, instelt en gebruikt.
 

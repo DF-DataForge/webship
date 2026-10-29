@@ -2,11 +2,11 @@
 """Generate the voice-over of the instruction videos with a neural Flemish voice.
 
     pip install edge-tts
-    python3 docs/instructievideos/tools/make_voiceover.py [--voice nl-BE-DenaNeural] [--rate -5%] [NN ...]
+    python3 docs/instructievideos/tools/make_voiceover.py [--voice nl-BE-ArnaudNeural] [--rate -5%] [NN ...]
     python3 docs/instructievideos/tools/make_voiceover.py --sample
 
 Reads the voice-over column of every NN_*.md script, speaks each scene with a
-Microsoft neural voice (default nl-BE-ArnaudNeural, via the edge-tts package)
+Microsoft neural voice (default nl-BE-DenaNeural, via the edge-tts package)
 and lays the scenes out on one track per video, each starting at its timecode
 from the draaiboek (or right after the previous scene when that one ran long).
 
@@ -43,7 +43,7 @@ from make_subtitles import chunks, scenes, srt_time  # noqa: E402
 FFMPEG = shutil.which('ffmpeg')
 FFPROBE = shutil.which('ffprobe')
 
-VOICES = ['nl-BE-ArnaudNeural', 'nl-BE-DenaNeural']
+VOICES = ['nl-BE-DenaNeural', 'nl-BE-ArnaudNeural']
 GAP = 0.4          # minimum silence between two scenes, in seconds
 TAIL = 1.0         # silence after the last scene
 

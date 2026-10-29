@@ -1,139 +1,139 @@
 1
-00:00:06,000 --> 00:00:09,411
+00:00:06,000 --> 00:00:09,205
 Niet alles komt rechtstreeks van een
 leverancier.
 
 2
-00:00:09,461 --> 00:00:15,133
+00:00:09,255 --> 00:00:14,586
 Bij Woody's worden de complete boards in
 de eigen werkplaats gemonteerd en daarna
 
 3
-00:00:15,183 --> 00:00:16,758
+00:00:14,636 --> 00:00:16,114
 naar Stoqflow gestuurd.
 
 4
-00:00:16,808 --> 00:00:19,654
+00:00:16,164 --> 00:00:18,838
 Ook die zending moet Stoqflow verwachten.
 
 5
-00:00:20,104 --> 00:00:24,184
+00:00:20,000 --> 00:00:23,994
 Op het product vinkt u de
 bevoorradingsroute aan die Odoo maakte
 
 6
-00:00:24,234 --> 00:00:28,120
+00:00:24,044 --> 00:00:27,848
 toen u bij het Stoqflow-magazijn
 Bevoorraden vanuit instelde.
 
 7
-00:00:28,170 --> 00:00:32,702
+00:00:27,898 --> 00:00:32,334
 Hier staat ook Produceren aan, want de
 werkplaats maakt de boards zelf.
 
 8
-00:00:45,000 --> 00:00:48,468
+00:00:45,000 --> 00:00:48,394
 Start de bevoorrading vanuit het scherm
 Bevoorrading:
 
 9
-00:00:48,518 --> 00:00:53,246
+00:00:48,444 --> 00:00:53,073
 kies het product voor de locatie
 SQF/Stock, de bevoorradingsroute en het
 
 10
-00:00:53,296 --> 00:00:55,171
+00:00:53,123 --> 00:00:54,958
 aantal, en klik op Bestellen.
 
 11
-00:00:55,221 --> 00:01:00,680
+00:00:55,008 --> 00:01:00,351
 Met een aanvulregel met minimum en maximum
 doet Odoo dat zelf, zodra de voorraad in
 
 12
-00:01:00,730 --> 00:01:02,206
+00:01:00,401 --> 00:01:01,846
 Stoqflow te laag wordt.
 
 13
-00:01:15,000 --> 00:01:17,188
+00:01:15,000 --> 00:01:17,207
 Odoo maakt twee overboekingen.
 
 14
-00:01:17,238 --> 00:01:21,886
+00:01:17,257 --> 00:01:21,946
 De eerste, van de werkplaats naar transit,
 raakt Stoqflow niet:
 
 15
-00:01:21,936 --> 00:01:24,273
+00:01:21,996 --> 00:01:24,354
 die handelt u gewoon in Odoo af.
 
 16
-00:01:24,323 --> 00:01:30,389
+00:01:24,404 --> 00:01:30,523
 De tweede, van transit naar SQF, komt in
 de Stoqflow-locatie aan, en wordt dus een
 
 17
-00:01:30,439 --> 00:01:34,342
+00:01:30,573 --> 00:01:34,510
 inkooporder in Stoqflow, net als bij een
 leverancier.
 
 18
-00:01:45,000 --> 00:01:50,956
+00:01:45,000 --> 00:01:50,973
 In de werkplaats pakt u de boards in en
 valideert u de eerste overboeking, zoals
 
 19
-00:01:51,006 --> 00:01:51,482
+00:01:51,023 --> 00:01:51,500
 altijd.
 
 20
-00:01:51,532 --> 00:01:53,734
+00:01:51,550 --> 00:01:53,758
 Daarmee staat de tweede klaar.
 
 21
-00:02:10,000 --> 00:02:14,203
+00:02:10,000 --> 00:02:14,054
 De geplande taak kondigt de tweede
 overboeking aan in Stoqflow.
 
 22
-00:02:14,253 --> 00:02:19,739
+00:02:14,104 --> 00:02:19,396
 Het contact op deze overboeking wordt de
 leverancier in Stoqflow; zorg dat daar uw
 
 23
-00:02:19,789 --> 00:02:23,654
+00:02:19,446 --> 00:02:23,174
 eigen bedrijf of werkplaats staat, met een
 volledig adres.
 
 24
-00:02:35,000 --> 00:02:39,616
+00:02:35,000 --> 00:02:39,570
 Komen de boards toe, dan telt Stoqflow ze
 en voltooit de inkooporder.
 
 25
-00:02:39,666 --> 00:02:45,026
+00:02:39,620 --> 00:02:44,927
 Odoo valideert de tweede overboeking met
 de getelde aantallen, en de boards zijn
 
 26
-00:02:45,076 --> 00:02:47,190
+00:02:44,977 --> 00:02:47,070
 meteen verkoopbaar via Stoqflow.
 
 27
-00:02:55,000 --> 00:02:55,498
+00:02:55,000 --> 00:02:55,507
 Kortom:
 
 28
-00:02:55,548 --> 00:03:01,602
+00:02:55,557 --> 00:03:01,713
 wat uit uw eigen magazijn vertrekt, regelt
 u in Odoo; wat in Stoqflow aankomt,
 
 29
-00:03:01,652 --> 00:03:02,932
+00:03:01,763 --> 00:03:03,065
 kondigt Odoo aan.
 
 30
-00:03:02,982 --> 00:03:07,862
+00:03:03,115 --> 00:03:08,078
 En verkocht wordt er daarna vanuit
 Stoqflow, zoals in video 07.
 

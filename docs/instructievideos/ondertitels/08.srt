@@ -1,73 +1,73 @@
 1
-00:00:06,000 --> 00:00:11,142
+00:00:06,000 --> 00:00:11,062
 Bestelt u goederen die rechtstreeks in het
 Stoqflow-magazijn toekomen, dan moet
 
 2
-00:00:11,192 --> 00:00:13,376
+00:00:11,112 --> 00:00:13,262
 Stoqflow weten wat er onderweg is.
 
 3
-00:00:13,426 --> 00:00:18,502
+00:00:13,312 --> 00:00:18,310
 Odoo kondigt de levering aan, en neemt na
 ontvangst de getelde aantallen over.
 
 4
-00:00:20,000 --> 00:00:22,536
+00:00:20,000 --> 00:00:22,512
 Maak de inkooporder zoals altijd.
 
 5
-00:00:22,586 --> 00:00:25,279
+00:00:22,562 --> 00:00:25,229
 Belangrijk is het veld Leveren aan:
 
 6
-00:00:25,329 --> 00:00:28,728
+00:00:25,279 --> 00:00:28,644
 kies de ontvangsten van Stoqflow
 Fulfilment.
 
 7
-00:00:28,778 --> 00:00:35,389
+00:00:28,694 --> 00:00:35,243
 Een inkooporder die Odoo zelf maakt vanuit
 een aanvulregel op SQF/Stock, heeft dat al
 
 8
-00:00:35,439 --> 00:00:36,251
+00:00:35,293 --> 00:00:36,097
 goed staan.
 
 9
-00:00:36,301 --> 00:00:37,662
+00:00:36,147 --> 00:00:37,494
 Bevestig de order.
 
 10
-00:00:50,000 --> 00:00:53,064
+00:00:50,000 --> 00:00:53,021
 Odoo maakt een ontvangst naar SQF/Stock.
 
 11
-00:00:53,114 --> 00:00:59,136
+00:00:53,071 --> 00:00:59,009
 Omdat ze in de Stoqflow-locatie aankomt,
 wordt ze een inkooporder in Stoqflow.
 
 12
-00:00:59,186 --> 00:01:02,094
+00:00:59,059 --> 00:01:01,926
 Ze wacht nu om doorgestuurd te worden.
 
 13
-00:01:10,000 --> 00:01:14,384
+00:01:10,000 --> 00:01:14,258
 De geplande taak stuurt de ontvangst door;
 hier doen we het manueel.
 
 14
-00:01:14,434 --> 00:01:19,666
+00:01:14,308 --> 00:01:19,389
 Odoo maakt de leverancier aan in Stoqflow
 als die nog niet bestond, of matcht hem
 
 15
-00:01:19,716 --> 00:01:24,557
+00:01:19,439 --> 00:01:24,140
 met een bestaande, en kondigt de
 inkooporder aan met status Besteld, in het
 
 16
-00:01:24,607 --> 00:01:26,774
+00:01:24,190 --> 00:01:26,294
 magazijn dat u op de locatie koos.
 
 17
@@ -89,49 +89,49 @@ Odoo volgt de status mee:
 onderweg, geleverd, uitpakken, voltooid.
 
 21
-00:02:20,000 --> 00:02:25,484
+00:02:20,000 --> 00:02:25,538
 Zodra Stoqflow de inkooporder voltooit,
 neemt Odoo de ontvangen aantallen over en
 
 22
-00:02:25,534 --> 00:02:27,328
+00:02:25,588 --> 00:02:27,400
 valideert het de ontvangst.
 
 23
-00:02:27,378 --> 00:02:32,930
+00:02:27,450 --> 00:02:33,057
 De voorraad in SQF staat meteen goed, en
 de leveranciersfactuur kunt u controleren
 
 24
-00:02:32,980 --> 00:02:34,638
+00:02:33,107 --> 00:02:34,782
 op wat echt ontvangen is.
 
 25
-00:02:50,000 --> 00:02:54,985
+00:02:50,000 --> 00:02:54,911
 Komt er minder binnen dan besteld, dan
 valideert Odoo de ontvangst met wat er
 
 26
-00:02:55,035 --> 00:02:58,385
+00:02:54,961 --> 00:02:58,262
 echt geteld is, en maakt een backorder
 voor de rest.
 
 27
-00:02:58,435 --> 00:03:03,094
+00:02:58,312 --> 00:03:02,901
 Werd er niets ontvangen, dan laat Odoo de
 ontvangst open en zegt waarom.
 
 28
-00:03:03,144 --> 00:03:07,998
+00:03:02,951 --> 00:03:07,734
 Zo blijft uw voorraad altijd gelijk met
 wat er fysiek in het magazijn ligt.
 
 29
-00:03:25,000 --> 00:03:25,796
+00:03:25,000 --> 00:03:25,811
 Samengevat:
 
 30
-00:03:25,846 --> 00:03:31,718
+00:03:25,861 --> 00:03:31,838
 bestellen in Odoo, Stoqflow ontvangt en
 telt, Odoo boekt de juiste aantallen.
 

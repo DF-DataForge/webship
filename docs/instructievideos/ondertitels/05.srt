@@ -1,166 +1,166 @@
 1
-00:00:06,000 --> 00:00:10,702
+00:00:06,000 --> 00:00:10,557
 Stoqflow moet elk product kennen voordat
 het een order kan picken.
 
 2
-00:00:10,752 --> 00:00:13,798
+00:00:10,607 --> 00:00:13,558
 In deze video zetten we de producten
 klaar.
 
 3
-00:00:15,000 --> 00:00:18,141
+00:00:15,000 --> 00:00:18,059
 De sleutel tussen Odoo en Stoqflow is de
 SKU:
 
 4
-00:00:18,191 --> 00:00:21,900
+00:00:18,109 --> 00:00:21,721
 in Odoo is dat de interne referentie van
 het product.
 
 5
-00:00:21,950 --> 00:00:27,574
+00:00:21,771 --> 00:00:27,249
 Zonder interne referentie kan Odoo het
 product niet doorsturen, en een order met
 
 6
-00:00:27,624 --> 00:00:29,631
+00:00:27,299 --> 00:00:29,252
 zo'n product wordt geweigerd.
 
 7
-00:00:29,681 --> 00:00:35,020
+00:00:29,302 --> 00:00:34,503
 Zorg dus dat elk product dat Stoqflow
 verzendt een unieke interne referentie
 
 8
-00:00:35,070 --> 00:00:35,446
+00:00:34,553 --> 00:00:34,918
 heeft.
 
 9
-00:00:40,000 --> 00:00:42,962
+00:00:40,000 --> 00:00:42,877
 Op elk product staat een tabblad Stoqflow.
 
 10
-00:00:43,012 --> 00:00:44,826
+00:00:42,927 --> 00:00:44,689
 Bovenaan ziet u de status:
 
 11
-00:00:44,876 --> 00:00:50,491
+00:00:44,739 --> 00:00:50,194
 de link naar het product in Stoqflow,
 wanneer het laatst gesynchroniseerd is en
 
 12
-00:00:50,541 --> 00:00:51,854
+00:00:50,244 --> 00:00:51,518
 met welk resultaat.
 
 13
-00:01:05,000 --> 00:01:08,838
+00:01:05,000 --> 00:01:08,697
 Daaronder vult u de gegevens in die
 Stoqflow nodig heeft:
 
 14
-00:01:08,888 --> 00:01:14,567
+00:01:08,747 --> 00:01:14,218
 het merk en het voorraadtype, minimum- en
 maximumvoorraad, afmetingen, de HS-code en
 
 15
-00:01:14,617 --> 00:01:19,955
+00:01:14,268 --> 00:01:19,410
 het land van oorsprong voor de douane, en
 vlaggen zoals breekbaar of koelketen.
 
 16
-00:01:20,005 --> 00:01:25,276
+00:01:19,460 --> 00:01:24,537
 Bij Controles kiest u of het magazijn
 vervaldata, batches of serienummers moet
 
 17
-00:01:25,326 --> 00:01:26,094
+00:01:24,587 --> 00:01:25,326
 registreren.
 
 18
-00:01:26,544 --> 00:01:29,244
+00:01:25,776 --> 00:01:28,425
 Bestaat het product al in Stoqflow?
 
 19
-00:01:29,294 --> 00:01:31,836
+00:01:28,475 --> 00:01:30,970
 Klik dan op Matchen met Stoqflow.
 
 20
-00:01:31,886 --> 00:01:38,278
+00:01:31,020 --> 00:01:37,294
 Odoo zoekt het product op SKU en koppelt
 het, zonder iets te wijzigen in Stoqflow.
 
 21
-00:01:45,000 --> 00:01:49,745
+00:01:45,000 --> 00:01:49,831
 Is het product nieuw, klik dan op
 Synchroniseren met Stoqflow.
 
 22
-00:01:49,795 --> 00:01:56,009
+00:01:49,881 --> 00:01:56,208
 Odoo maakt het aan in Stoqflow, met naam,
 SKU, barcode, prijzen en de details van
 
 23
-00:01:56,059 --> 00:01:56,627
+00:01:56,258 --> 00:01:56,838
 daarnet.
 
 24
-00:01:56,677 --> 00:01:59,566
+00:01:56,888 --> 00:01:59,830
 Een latere klik werkt het product bij.
 
 25
-00:02:00,016 --> 00:02:04,899
+00:02:00,280 --> 00:02:04,949
 Producten die nooit in het
 Stoqflow-magazijn komen, zoals onderdelen
 
 26
-00:02:04,949 --> 00:02:10,195
+00:02:04,999 --> 00:02:10,015
 voor uw eigen productie, vinkt u aan als
 Dit product niet synchroniseren.
 
 27
-00:02:10,245 --> 00:02:12,662
+00:02:10,065 --> 00:02:12,374
 Odoo slaat ze over, ook op orders.
 
 28
-00:02:15,000 --> 00:02:18,665
+00:02:15,000 --> 00:02:18,390
 Een product met varianten synchroniseert u
 per variant:
 
 29
-00:02:18,715 --> 00:02:23,394
+00:02:18,440 --> 00:02:22,769
 elke maat en kleur is in Stoqflow een
 apart product met een eigen SKU.
 
 30
-00:02:23,444 --> 00:02:28,460
+00:02:22,819 --> 00:02:27,460
 In de lijst met productvarianten
 selecteert u er meerdere tegelijk en klikt
 
 31
-00:02:28,510 --> 00:02:32,446
+00:02:27,510 --> 00:02:31,150
 u op Syncen met Stoqflow of Producten
 matchen met Stoqflow.
 
 32
-00:02:32,896 --> 00:02:37,992
+00:02:31,600 --> 00:02:36,536
 Het overzicht Producten in Stoqflow toont
 alle producten met hun status.
 
 33
-00:02:38,042 --> 00:02:43,567
+00:02:36,586 --> 00:02:41,937
 Met de filters vindt u snel wat nog nooit
 gesynchroniseerd is of een fout gaf.
 
 34
-00:02:43,617 --> 00:02:45,926
+00:02:41,987 --> 00:02:44,222
 Los die op voor het eerste order.
 
 35
-00:02:50,000 --> 00:02:51,526
+00:02:50,000 --> 00:02:51,519
 Geen fouten meer?
 
 36
-00:02:51,576 --> 00:02:55,326
+00:02:51,569 --> 00:02:55,302
 Dan is alles klaar voor de eerste orders.
 

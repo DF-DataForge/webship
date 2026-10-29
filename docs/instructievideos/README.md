@@ -115,7 +115,7 @@ kantoor, magazijn), en ze maken de video doorzoekbaar.
 **Computerstem (klaar in `voiceover/`)**
 
 De voice-over van alle video's is gegenereerd met een neurale Vlaamse stem
-van Microsoft (*nl-BE-ArnaudNeural*), via
+van Microsoft (*nl-BE-DenaNeural*, vrouwelijk), via
 [`tools/make_voiceover.py`](tools/make_voiceover.py):
 
 | Bestand | Inhoud |
@@ -125,13 +125,13 @@ van Microsoft (*nl-BE-ArnaudNeural*), via
 | `ondertitels/NN.srt` | ondertitels, afgestemd op die gegenereerde stem |
 | `voiceover/stemproef_arnaud.mp3`, `stemproef_dena.mp3` | dezelfde testzin met de mannelijke en de vrouwelijke Vlaamse stem |
 
-Liever de vrouwelijke stem, of trager of sneller? Na een wijziging in een
+Liever de mannelijke stem (Arnaud), of trager of sneller? Na een wijziging in een
 script of in de uitspraaklijst genereert u alles (of één video) opnieuw:
 
 ```bash
 pip install edge-tts
 python3 docs/instructievideos/tools/make_voiceover.py
-python3 docs/instructievideos/tools/make_voiceover.py --voice nl-BE-DenaNeural --rate -8% 07
+python3 docs/instructievideos/tools/make_voiceover.py --voice nl-BE-ArnaudNeural --rate -8% 07
 ```
 
 *Uitspraak.* Vóór de stem spreekt, gaat de tekst door een uitspraaklijst
