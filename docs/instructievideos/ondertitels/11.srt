@@ -1,245 +1,245 @@
 1
-00:00:06,000 --> 00:00:08,635
+00:00:06,000 --> 00:00:08,686
 Elke ochtend krijgt u het dagrapport:
 
 2
-00:00:08,685 --> 00:00:11,902
+00:00:08,736 --> 00:00:12,013
 wat gisteren naar Stoqflow ging, en wat
 niet.
 
 3
-00:00:11,952 --> 00:00:14,950
+00:00:12,063 --> 00:00:15,118
 Hier ziet u hoe u de rest opvolgt in Odoo.
 
 4
-00:00:15,000 --> 00:00:18,974
+00:00:15,568 --> 00:00:17,825
 Stoqflow, Orders is uw werklijst:
 
 5
-00:00:19,024 --> 00:00:25,560
+00:00:17,875 --> 00:00:21,600
 alle leveringen en ontvangsten die via
 Stoqflow lopen.
 
 6
-00:00:25,610 --> 00:00:35,072
+00:00:21,650 --> 00:00:27,053
 Filter op Fout om te zien wat aandacht
 vraagt, of groepeer op processcode voor
 
 7
-00:00:35,122 --> 00:00:37,023
+00:00:27,103 --> 00:00:28,172
 een totaalbeeld.
 
 8
-00:00:37,073 --> 00:00:46,048
+00:00:28,222 --> 00:00:33,345
 Met de knoppen bovenaan stuurt u
 geselecteerde overboekingen opnieuw door,
 
 9
-00:00:46,098 --> 00:00:49,950
+00:00:33,395 --> 00:00:35,582
 of haalt u hun status meteen op.
 
 10
-00:00:50,000 --> 00:01:01,892
+00:00:50,000 --> 00:00:55,955
 Het dashboard toont hoeveel orders er per
 dag via Stoqflow gingen, met hun omzet en
 
 11
-00:01:01,942 --> 00:01:02,756
+00:00:56,005 --> 00:00:56,389
 marge.
 
 12
-00:01:02,806 --> 00:01:09,950
+00:00:56,439 --> 00:01:00,006
 Handig voor de opvolging van uw
 fulfilmentpartner.
 
 13
-00:01:10,000 --> 00:01:13,706
+00:01:10,000 --> 00:01:12,020
 Open een overboeking in fout.
 
 14
-00:01:13,756 --> 00:01:23,292
+00:01:12,070 --> 00:01:17,302
 Op het tabblad Stoqflow staat bij
 Resultaat laatste synchronisatie precies
 
 15
-00:01:23,342 --> 00:01:25,235
+00:01:17,352 --> 00:01:18,373
 wat er misliep.
 
 16
-00:01:25,285 --> 00:01:34,950
+00:01:18,423 --> 00:01:23,726
 Als u de fouten ook in de chatter laat
 loggen, blijft de historiek bewaard.
 
 17
-00:01:35,000 --> 00:01:36,021
+00:01:35,000 --> 00:01:35,701
 Fout één:
 
 18
-00:01:36,071 --> 00:01:39,593
+00:01:35,751 --> 00:01:38,204
 SKU niet gevonden in Stoqflow.
 
 19
-00:01:39,643 --> 00:01:48,521
+00:01:38,254 --> 00:01:44,461
 Het product bestaat nog niet in Stoqflow,
 of heeft geen interne referentie.
 
 20
-00:01:48,571 --> 00:01:54,950
+00:01:44,511 --> 00:01:48,966
 Synchroniseer of match het product, zoals
 in video 05.
 
 21
-00:01:55,000 --> 00:01:56,021
+00:01:55,000 --> 00:01:55,749
 Fout twee:
 
 22
-00:01:56,071 --> 00:02:02,664
+00:01:55,799 --> 00:02:00,702
 een verplicht adresveld ontbreekt bij de
 klant of leverancier:
 
 23
-00:02:02,714 --> 00:02:07,057
+00:02:00,752 --> 00:02:03,977
 naam, straat, postcode, gemeente of land.
 
 24
-00:02:07,107 --> 00:02:09,950
+00:02:04,027 --> 00:02:06,134
 Vul het aan op het contact.
 
 25
-00:02:10,000 --> 00:02:10,779
+00:02:10,000 --> 00:02:10,634
 Fout drie:
 
 26
-00:02:10,829 --> 00:02:15,088
+00:02:10,684 --> 00:02:14,192
 meerdere klanten in Stoqflow passen bij
 dit contact.
 
 27
-00:02:15,138 --> 00:02:19,315
+00:02:14,242 --> 00:02:17,681
 Odoo maakt dan geen dubbel aan, maar laat
 u kiezen:
 
 28
-00:02:19,365 --> 00:02:24,950
+00:02:17,731 --> 00:02:22,334
 klik op het contact op Matchen met
 Stoqflow en kies de juiste klant.
 
 29
-00:02:25,000 --> 00:02:25,328
+00:02:25,000 --> 00:02:25,353
 Vier:
 
 30
-00:02:25,378 --> 00:02:27,293
+00:02:25,403 --> 00:02:27,446
 niet alles is op voorraad.
 
 31
-00:02:27,343 --> 00:02:32,659
+00:02:27,496 --> 00:02:33,162
 Met Volledige beschikbaarheid vereist
 wacht Odoo tot alles in SQF ligt.
 
 32
-00:02:32,709 --> 00:02:33,944
+00:02:33,212 --> 00:02:34,531
 Dat is geen fout:
 
 33
-00:02:33,994 --> 00:02:37,950
+00:02:34,581 --> 00:02:38,798
 de levering vertrekt vanzelf zodra de
 voorraad er is.
 
 34
-00:02:38,000 --> 00:02:38,373
+00:02:39,248 --> 00:02:39,744
 En vijf:
 
 35
-00:02:38,423 --> 00:02:42,655
+00:02:39,794 --> 00:02:45,277
 een levering in Manueel valt buiten uw
 domeinfilter of is een backorder; stuur ze
 
 36
-00:02:42,705 --> 00:02:44,452
+00:02:45,327 --> 00:02:47,599
 zelf door als dat de bedoeling is.
 
 37
-00:02:44,502 --> 00:02:48,523
+00:02:47,649 --> 00:02:52,858
 Een waarschuwing over een vervoerder
 betekent dat een verzendmethode nog niet
 
 38
-00:02:48,573 --> 00:02:49,950
+00:02:52,908 --> 00:02:54,702
 gekoppeld is, zie video 04.
 
 39
-00:02:50,000 --> 00:02:50,888
+00:02:55,152 --> 00:02:55,810
 Opgelost?
 
 40
-00:02:50,938 --> 00:02:54,117
+00:02:55,860 --> 00:02:58,249
 Klik op Manueel synchroniseren.
 
 41
-00:02:54,167 --> 00:03:02,762
+00:02:58,299 --> 00:03:04,778
 Lukt het, dan gaat de levering verder in
 de gewone flow, en begint de teller van de
 
 42
-00:03:02,812 --> 00:03:04,950
+00:03:04,828 --> 00:03:06,430
 syncpogingen opnieuw.
 
 43
-00:03:05,000 --> 00:03:06,971
+00:03:06,880 --> 00:03:08,799
 Komt een status niet door?
 
 44
-00:03:07,021 --> 00:03:13,188
+00:03:08,849 --> 00:03:14,857
 In Stoqflow, Statusupdates ziet u elke
 wijziging die Odoo uit Stoqflow ophaalde,
 
 45
-00:03:13,238 --> 00:03:14,820
+00:03:14,907 --> 00:03:16,448
 en of ze verwerkt is.
 
 46
-00:03:14,870 --> 00:03:19,950
+00:03:16,498 --> 00:03:21,446
 Een update in fout kunt u hier opnieuw
 verwerken met Nu verwerken.
 
 47
-00:03:20,000 --> 00:03:26,636
+00:03:21,896 --> 00:03:27,098
 De JSON-historiek toont de berichten
 tussen Odoo en Stoqflow, per overboeking.
 
 48
-00:03:26,686 --> 00:03:33,236
+00:03:27,148 --> 00:03:32,283
 Die logging zet u in de ontwikkelaarsmodus
 aan bij Debug, alleen zolang u een
 
 49
-00:03:33,286 --> 00:03:34,950
+00:03:32,333 --> 00:03:33,630
 probleem onderzoekt.
 
 50
-00:03:35,000 --> 00:03:41,099
+00:03:35,000 --> 00:03:39,545
 Komt u er niet uit, klik dan in de
 ontwikkelaarsmodus op Volledige
 
 51
-00:03:41,149 --> 00:03:46,037
+00:03:39,595 --> 00:03:43,234
 Stoqflow-trace kopiëren en stuur die naar
 Data Forge.
 
 52
-00:03:46,087 --> 00:03:49,950
+00:03:43,284 --> 00:03:46,158
 Daarmee zien wij meteen wat er gebeurd is.
 
 53
-00:03:50,000 --> 00:03:53,283
+00:03:50,000 --> 00:03:52,270
 Een lege lijst met fouten:
 
 54
-00:03:53,333 --> 00:03:54,950
+00:03:52,320 --> 00:03:53,430
 zo hoort het.
 
 55
-00:03:55,000 --> 00:03:59,950
+00:03:55,000 --> 00:03:57,206
 Bedankt voor het kijken.
 

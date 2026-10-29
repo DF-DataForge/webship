@@ -1,227 +1,227 @@
 1
-00:00:06,000 --> 00:00:09,959
+00:00:06,000 --> 00:00:09,681
 Alle regels van de koppeling staan op één
 pagina:
 
 2
-00:00:10,009 --> 00:00:11,841
+00:00:09,731 --> 00:00:11,432
 Stoqflow, Instellingen.
 
 3
-00:00:11,891 --> 00:00:14,950
+00:00:11,482 --> 00:00:14,326
 We lopen ze van boven naar onder door.
 
 4
-00:00:15,000 --> 00:00:17,841
+00:00:15,000 --> 00:00:17,472
 Vink eerst Orders synchroniseren aan:
 
 5
-00:00:17,891 --> 00:00:22,372
+00:00:17,522 --> 00:00:21,425
 dat is de hoofdschakelaar voor leveringen
 en inkooporders.
 
 6
-00:00:22,422 --> 00:00:28,622
+00:00:21,475 --> 00:00:26,877
 Met Volledige beschikbaarheid vereist
 stuurt Odoo een levering pas door als alle
 
 7
-00:00:28,672 --> 00:00:32,528
+00:00:26,927 --> 00:00:30,285
 producten op voorraad zijn in de
 Stoqflow-locatie.
 
 8
-00:00:32,578 --> 00:00:34,950
+00:00:30,335 --> 00:00:32,398
 Anders blijft ze in afwachting.
 
 9
-00:00:35,000 --> 00:00:39,426
+00:00:35,000 --> 00:00:39,517
 Met Automatisch backorder aanmaken
 valideert Odoo een levering ook als
 
 10
-00:00:39,476 --> 00:00:44,093
+00:00:39,567 --> 00:00:44,280
 Stoqflow niet alles kon leveren, en maakt
 het een backorder voor de rest.
 
 11
-00:00:44,143 --> 00:00:46,907
+00:00:44,330 --> 00:00:47,151
 Zonder dit vinkje blijft zo'n levering
 open.
 
 12
-00:00:46,957 --> 00:00:51,638
+00:00:47,201 --> 00:00:51,980
 Terugvallen op het contact van de
 verkooporder vult telefoon en e-mail aan
 
 13
-00:00:51,688 --> 00:00:53,812
+00:00:52,030 --> 00:00:54,198
 als het leveradres die niet heeft.
 
 14
-00:00:53,862 --> 00:00:58,991
+00:00:54,248 --> 00:00:59,483
 En met de laatste optie annuleert Odoo het
 order in Stoqflow als u de levering in
 
 15
-00:00:59,041 --> 00:00:59,950
+00:00:59,533 --> 00:01:00,462
 Odoo annuleert.
 
 16
-00:01:00,000 --> 00:01:04,261
+00:01:00,912 --> 00:01:06,187
 De standaardstatussen bepalen hoe een
 nieuw order in Stoqflow binnenkomt.
 
 17
-00:01:04,311 --> 00:01:05,915
+00:01:06,237 --> 00:01:08,229
 Klaar om te picken betekent:
 
 18
-00:01:05,965 --> 00:01:07,863
+00:01:08,279 --> 00:01:10,637
 het magazijn mag meteen beginnen.
 
 19
-00:01:07,913 --> 00:01:12,115
+00:01:10,687 --> 00:01:15,889
 Kies Concept of Gepauzeerd als u orders
 eerst in Stoqflow wilt nakijken.
 
 20
-00:01:12,165 --> 00:01:14,950
+00:01:15,939 --> 00:01:19,390
 Inkooporders komen standaard binnen als
 Besteld.
 
 21
-00:01:15,000 --> 00:01:21,964
+00:01:19,840 --> 00:01:25,197
 Wilt u maar een deel van de leveringen
 automatisch doorsturen, gebruik dan het
 
 22
-00:01:22,014 --> 00:01:23,133
+00:01:25,247 --> 00:01:26,098
 domeinfilter.
 
 23
-00:01:23,183 --> 00:01:27,900
+00:01:26,148 --> 00:01:29,773
 Hier sturen we alleen webshoporders
 automatisch door.
 
 24
-00:01:27,950 --> 00:01:34,554
+00:01:29,823 --> 00:01:34,903
 Leveringen die niet aan het filter voldoen
 krijgen de processcode Manueel:
 
 25
-00:01:34,604 --> 00:01:36,533
+00:01:34,953 --> 00:01:36,428
 u stuurt ze zelf door.
 
 26
-00:01:36,583 --> 00:01:39,950
+00:01:36,478 --> 00:01:39,062
 Laat het leeg om alles door te sturen.
 
 27
-00:01:40,000 --> 00:01:46,156
+00:01:40,000 --> 00:01:44,710
 Bij Weergave kiest u welke extra tabbladen
 op de levering verschijnen:
 
 28
-00:01:46,206 --> 00:01:50,500
+00:01:44,760 --> 00:01:48,042
 de pakketten met trackinglinks en de
 pickanalyse.
 
 29
-00:01:50,550 --> 00:01:57,060
+00:01:48,092 --> 00:01:53,074
 Bij Genegeerde SKU's zet u producten die
 alleen in Stoqflow bestaan, zoals
 
 30
-00:01:57,110 --> 00:01:58,922
+00:01:53,124 --> 00:01:54,502
 verpakkingsmateriaal.
 
 31
-00:01:58,972 --> 00:02:04,950
+00:01:54,552 --> 00:01:59,126
 Odoo slaat die over bij het ophalen van
 orders, zonder waarschuwing.
 
 32
-00:02:05,000 --> 00:02:11,968
+00:02:05,000 --> 00:02:08,899
 In het blok Vervoerders laadt u de
 vervoerders uit Stoqflow.
 
 33
-00:02:12,018 --> 00:02:21,558
+00:02:08,949 --> 00:02:14,297
 Met Vervoerder koppelen vanuit Stoqflow
 neemt Odoo de vervoerder over die Stoqflow
 
 34
-00:02:21,608 --> 00:02:24,950
+00:02:14,347 --> 00:02:16,206
 voor een order gekozen heeft.
 
 35
-00:02:25,000 --> 00:02:33,090
+00:02:25,000 --> 00:02:29,648
 Koppel daarna elke verzendmethode in Odoo
 aan een Stoqflow-vervoerder.
 
 36
-00:02:33,140 --> 00:02:42,392
+00:02:29,698 --> 00:02:35,017
 Ontbreekt een koppeling, dan toont de
 levering een waarschuwing in het resultaat
 
 37
-00:02:42,442 --> 00:02:44,950
+00:02:35,067 --> 00:02:36,494
 van de synchronisatie.
 
 38
-00:02:45,000 --> 00:02:50,602
+00:02:45,000 --> 00:02:50,235
 Bij het eerste order van een klant zoekt
 Odoo eerst of die klant al bestaat in
 
 39
-00:02:50,652 --> 00:02:53,573
+00:02:50,285 --> 00:02:53,013
 Stoqflow, zodat er geen dubbels ontstaan.
 
 40
-00:02:53,623 --> 00:02:55,964
+00:02:53,063 --> 00:02:55,249
 De matchingsequentie bepaalt hoe:
 
 41
-00:02:56,014 --> 00:02:59,660
+00:02:55,299 --> 00:02:58,705
 eerst op btw-nummer en dan op e-mail,
 bijvoorbeeld.
 
 42
-00:02:59,710 --> 00:03:04,950
+00:02:58,755 --> 00:03:03,651
 Vink Klant matchen bij het synchroniseren
 aan om dat automatisch te doen.
 
 43
-00:03:05,000 --> 00:03:09,950
+00:03:03,701 --> 00:03:08,326
 Laat u de sequentie leeg, dan maakt Odoo
 altijd een nieuwe klant aan.
 
 44
-00:03:10,000 --> 00:03:29,950
+00:03:10,000 --> 00:03:15,254
 Voor leveranciers werkt het net zo, bij
 het doorsturen van een inkooporder.
 
 45
-00:03:30,000 --> 00:03:34,746
+00:03:30,000 --> 00:03:33,985
 Stoqflow weigert contacten zonder geldig
 e-mailadres.
 
 46
-00:03:34,796 --> 00:03:42,077
+00:03:34,035 --> 00:03:40,151
 Kies hier of Odoo zulke contacten toch
 doorstuurt, en of een ongeldig e-mailadres
 
 47
-00:03:42,127 --> 00:03:44,249
+00:03:40,201 --> 00:03:41,978
 gewoon weggelaten wordt.
 
 48
-00:03:44,299 --> 00:03:49,950
+00:03:42,028 --> 00:03:46,774
 Naam, straat, postcode, gemeente en land
 zijn altijd verplicht.
 
 49
-00:03:50,000 --> 00:03:54,950
+00:03:50,000 --> 00:03:52,494
 Vergeet niet op te slaan.
 

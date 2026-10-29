@@ -98,10 +98,10 @@ welke route welk Stoqflow-document maakt.
 
 ## Ondertitels
 
-`ondertitels/NN.srt` bevat de voice-over van elk script als ondertitels, met
-de tijdcodes uit het draaiboek. Na de opname schuift of rekt u ze in de
-montage gelijk met de echte voice-over. Opnieuw genereren na een wijziging in
-een script:
+`ondertitels/NN.srt` bevat de voice-over van elk script als ondertitels,
+afgestemd op de gegenereerde computerstem (zie hieronder). Neemt u met een
+echte stem op, maak ze dan opnieuw uit de tijdcodes van het draaiboek en
+schuif ze in de montage gelijk met de opname:
 
 ```bash
 python3 docs/instructievideos/tools/make_subtitles.py
@@ -112,11 +112,42 @@ kantoor, magazijn), en ze maken de video doorzoekbaar.
 
 ## Voice-over: advies
 
-**Wie spreekt in?** Eén vaste stem voor de hele reeks, iemand die de
-module kent en vlot Vlaams-Nederlands spreekt. Een echte stem werkt beter dan
-een computerstem (TTS) voor uitleg: de klemtonen vallen op de juiste
-knopnamen. Kiest u toch voor TTS, neem dan een *nl-BE*-stem en laat de
-knopnamen en vaktermen eerst proeflezen.
+**Computerstem (klaar in `voiceover/`)**
+
+De voice-over van alle video's is gegenereerd met een neurale Vlaamse stem
+van Microsoft (*nl-BE-ArnaudNeural*), via
+[`tools/make_voiceover.py`](tools/make_voiceover.py):
+
+| Bestand | Inhoud |
+|---|---|
+| `voiceover/NN.mp3` | volledige voice-over van video NN, elke scène op haar tijdcode uit het draaiboek, genormaliseerd op −16 LUFS |
+| `voiceover/NN_scenes.csv` | per scène het begin en einde in dat spoor: neem het scherm op tegen deze tijden |
+| `ondertitels/NN.srt` | ondertitels, afgestemd op die gegenereerde stem |
+| `voiceover/stemproef_arnaud.mp3`, `stemproef_dena.mp3` | dezelfde testzin met de mannelijke en de vrouwelijke Vlaamse stem |
+
+Liever de vrouwelijke stem, of trager of sneller? Na een wijziging in een
+script of in de uitspraaklijst genereert u alles (of één video) opnieuw:
+
+```bash
+pip install edge-tts
+python3 docs/instructievideos/tools/make_voiceover.py
+python3 docs/instructievideos/tools/make_voiceover.py --voice nl-BE-DenaNeural --rate -8% 07
+```
+
+*Uitspraak.* Vóór de stem spreekt, gaat de tekst door een uitspraaklijst
+(`LEXICON` in het script): *video* wordt "vie-dee-joo" (niet Engels),
+*Stoqflow* "stok-flow", *SKU* en *SQF* letter per letter, *video 07* wordt
+"video zeven". Hoort u een woord fout, voeg het daar toe en genereer opnieuw;
+de ondertitels houden de geschreven vorm.
+
+*Gebruiksrecht.* Het script gebruikt de gratis voorleesdienst van Microsoft
+Edge (pakket `edge-tts`). Prima voor concepten en interne video's; voor
+video's die publiek gaan (website, YouTube, klanten) gebruikt u dezelfde stem
+via een betaald account bij **Azure AI Speech** (enkele euro's voor de hele
+reeks), of **ElevenLabs** voor een nog natuurlijkere, eventueel eigen stem.
+
+**Echte stem?** Een vaste menselijke stem, iemand die de module kent, blijft
+het warmst. De tips hieronder gelden dan.
 
 **Werkwijze: eerst de stem, dan het beeld.**
 

@@ -66,7 +66,7 @@ def chunks(text):
 
 
 def scenes(path):
-    """Yield (start, end, voice-over) for each row of the draaiboek table."""
+    """Yield (scene, start, end, voice-over) for each row of the draaiboek table."""
     for row in open(path, encoding='utf-8'):
         cells = [c.strip() for c in row.strip().strip('|').split('|')]
         if len(cells) < 4 or not re.fullmatch(r'\d+', cells[0]):
@@ -76,7 +76,7 @@ def scenes(path):
             continue
         voice = plain(cells[3])
         if voice and voice != '—':
-            yield seconds(match.group(1)), seconds(match.group(2)), voice
+            yield int(cells[0]), seconds(match.group(1)), seconds(match.group(2)), voice
 
 
 def main():
@@ -84,7 +84,7 @@ def main():
     for path in sorted(glob.glob(os.path.join(ROOT, '[0-9][0-9]_*.md'))):
         number = os.path.basename(path)[:2]
         entries = []
-        for start, end, voice in scenes(path):
+        for _scene, start, end, voice in scenes(path):
             parts = chunks(voice)
             total = sum(len(p) for p in parts)
             t = float(start)
