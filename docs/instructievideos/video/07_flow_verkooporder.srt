@@ -1,0 +1,217 @@
+1
+00:00:05,500 --> 00:00:07,514
+Dit is de belangrijkste flow:
+
+2
+00:00:07,564 --> 00:00:10,147
+een klant bestelt, Stoqflow verzendt.
+
+3
+00:00:10,197 --> 00:00:12,923
+In Odoo maakt u alleen de verkooporder.
+
+4
+00:00:12,973 --> 00:00:18,475
+De levering gaat vanzelf naar Stoqflow, en
+wanneer Stoqflow klaar is, komen de
+
+5
+00:00:18,525 --> 00:00:21,962
+geleverde aantallen en de tracking vanzelf
+terug.
+
+6
+00:00:24,133 --> 00:00:26,694
+Maak een verkooporder zoals altijd.
+
+7
+00:00:26,744 --> 00:00:32,511
+Controleer bij Overige info dat het
+magazijn Stoqflow Fulfilment is; als u dat
+
+8
+00:00:32,561 --> 00:00:35,495
+als standaard instelde, staat het er al.
+
+9
+00:00:35,545 --> 00:00:39,298
+Webshoporders komen hier op dezelfde
+manier binnen.
+
+10
+00:00:39,348 --> 00:00:40,715
+Bevestig het order.
+
+11
+00:00:55,800 --> 00:00:58,591
+Odoo maakt een levering uit SQF/Voorraad.
+
+12
+00:00:58,641 --> 00:01:04,272
+Omdat die locatie een Stoqflow-locatie is,
+verschijnt er een tabblad Stoqflow, met
+
+13
+00:01:04,322 --> 00:01:06,074
+processcode In afwachting:
+
+14
+00:01:06,124 --> 00:01:09,122
+de levering wacht om doorgestuurd te
+worden.
+
+15
+00:01:09,172 --> 00:01:14,942
+In het menu Stoqflow, Orders vindt u alle
+leveringen en ontvangsten die via Stoqflow
+
+16
+00:01:14,992 --> 00:01:15,358
+lopen.
+
+17
+00:01:16,708 --> 00:01:21,270
+De geplande taak Wachtende orders
+verwerken stuurt de levering door.
+
+18
+00:01:21,320 --> 00:01:25,068
+Om niet te wachten klikken we hier op
+Manueel uitvoeren.
+
+19
+00:01:25,118 --> 00:01:29,138
+Op de levering zelf kan het ook, met
+Manueel synchroniseren.
+
+20
+00:01:30,488 --> 00:01:32,527
+Het order staat in Stoqflow.
+
+21
+00:01:32,577 --> 00:01:36,778
+U ziet de link, het tijdstip, het
+resultaat en de status:
+
+22
+00:01:36,828 --> 00:01:38,196
+Klaar om te picken.
+
+23
+00:01:38,246 --> 00:01:44,312
+Lotte bestond nog niet in Stoqflow; Odoo
+heeft haar eerst als klant aangemaakt, of
+
+24
+00:01:44,362 --> 00:01:46,326
+gematcht als ze al bestond.
+
+25
+00:01:47,676 --> 00:01:50,355
+In Stoqflow staat nu hetzelfde order:
+
+26
+00:01:50,405 --> 00:01:54,634
+dezelfde klant en dezelfde producten,
+herkend aan hun SKU.
+
+27
+00:01:54,684 --> 00:01:57,585
+Het magazijn pickt, pakt in en verzendt.
+
+28
+00:01:57,635 --> 00:02:01,642
+Bij het verzenden krijgt het pakket een
+trackingnummer.
+
+29
+00:02:02,992 --> 00:02:06,462
+Bij de volgende ronde haalt Odoo het
+voltooide order op.
+
+30
+00:02:06,512 --> 00:02:10,674
+Het neemt de gepickte aantallen over en
+valideert de levering zelf.
+
+31
+00:02:10,724 --> 00:02:15,451
+Op het tabblad Pakketten staat de
+trackinglink voor de klant, op Pickanalyse
+
+32
+00:02:15,501 --> 00:02:17,211
+wat er precies gepickt werd.
+
+33
+00:02:17,261 --> 00:02:21,674
+Op de verkooporder staan de geleverde
+aantallen goed, dus u kunt meteen
+
+34
+00:02:21,724 --> 00:02:24,566
+factureren op basis van wat echt verzonden
+is.
+
+35
+00:02:25,916 --> 00:02:28,620
+Valideer zulke leveringen nooit zelf:
+
+36
+00:02:28,670 --> 00:02:33,532
+Odoo houdt u tegen, want anders lopen Odoo
+en Stoqflow uit elkaar.
+
+37
+00:02:33,582 --> 00:02:37,626
+Moet het toch, zet dan eerst de
+processcode op Manueel.
+
+38
+00:02:38,976 --> 00:02:43,825
+Kan Stoqflow niet alles leveren, dan
+valideert Odoo de levering met wat er echt
+
+39
+00:02:43,875 --> 00:02:46,863
+verzonden is en maakt een backorder voor
+de rest.
+
+40
+00:02:46,913 --> 00:02:50,087
+Die backorder stuurt Odoo niet als nieuw
+order door:
+
+41
+00:02:50,137 --> 00:02:55,048
+met Backorders koppelen zoekt Odoo het
+vervolgorder dat Stoqflow zelf aanmaakte,
+
+42
+00:02:55,098 --> 00:02:56,350
+en koppelt het eraan.
+
+43
+00:02:57,700 --> 00:03:02,950
+Annuleert u een order dat al in Stoqflow
+staat, dan annuleert Odoo het daar ook, op
+
+44
+00:03:03,000 --> 00:03:06,462
+voorwaarde dat u die optie aanzette in de
+instellingen.
+
+45
+00:03:06,512 --> 00:03:11,570
+Is het order in Stoqflow al gepickt, neem
+dan eerst contact op met het magazijn.
+
+46
+00:03:12,920 --> 00:03:13,824
+Samengevat:
+
+47
+00:03:13,874 --> 00:03:19,374
+u verkoopt in Odoo, Stoqflow levert, en
+Odoo werkt zichzelf bij.
+

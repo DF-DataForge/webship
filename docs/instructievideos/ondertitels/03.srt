@@ -1,219 +1,229 @@
 1
-00:00:06,000 --> 00:00:08,433
+00:00:05,500 --> 00:00:07,933
 De koppeling kijkt naar één ding:
 
 2
-00:00:08,483 --> 00:00:09,260
+00:00:07,983 --> 00:00:08,760
 de locatie.
 
 3
-00:00:09,310 --> 00:00:13,849
+00:00:08,810 --> 00:00:13,349
 U duidt in Odoo één voorraadlocatie aan
 als Stoqflow-locatie.
 
 4
-00:00:13,899 --> 00:00:19,417
+00:00:13,399 --> 00:00:18,917
 Een overboeking die uit die locatie
 vertrekt, wordt een order in Stoqflow.
 
 5
-00:00:19,467 --> 00:00:24,984
+00:00:18,967 --> 00:00:24,484
 Een overboeking die erin aankomt, wordt
 een inkooporder, een aangekondigde
 
 6
-00:00:25,034 --> 00:00:25,661
+00:00:24,534 --> 00:00:25,161
 levering.
 
 7
-00:00:25,711 --> 00:00:27,617
+00:00:25,211 --> 00:00:27,117
 Al de rest blijft in Odoo.
 
 8
-00:00:27,667 --> 00:00:32,206
+00:00:27,167 --> 00:00:31,706
 Daarom is de inrichting van magazijn en
 routes zo belangrijk.
 
 9
-00:00:35,000 --> 00:00:40,420
+00:00:33,056 --> 00:00:38,476
 Zet eerst in de Voorraad-instellingen de
 opslaglocaties en de routes met meerdere
 
 10
-00:00:40,470 --> 00:00:41,230
+00:00:38,526 --> 00:00:39,286
 stappen aan.
 
 11
-00:00:41,280 --> 00:00:44,742
+00:00:39,336 --> 00:00:42,798
 Zonder die opties ziet u de locaties en
 routes niet.
 
 12
-00:00:55,000 --> 00:00:59,716
-Maak een apart magazijn voor Stoqflow, los
-van uw eigen magazijn.
+00:00:44,148 --> 00:00:49,594
+Maak met Nieuw een apart magazijn voor
+Stoqflow, los van uw eigen magazijn.
 
 13
-00:00:59,766 --> 00:01:05,582
-Hier noemen we het Stoqflow Fulfilment,
-met korte naam SQF, en het adres van het
+00:00:49,644 --> 00:00:55,091
+Hier heet het Stoqflow Fulfilment, met
+korte naam SQF, en het adres van het
 
 14
-00:01:05,632 --> 00:01:06,902
+00:00:55,141 --> 00:00:56,410
 fulfilmentcentrum.
 
 15
-00:01:20,000 --> 00:01:23,075
+00:00:57,760 --> 00:01:00,835
 Zet ontvangst en levering allebei op één
 stap.
 
 16
-00:01:23,125 --> 00:01:25,861
+00:01:00,885 --> 00:01:03,621
 Stoqflow pickt, pakt in en verzendt zelf:
 
 17
-00:01:25,911 --> 00:01:31,500
+00:01:03,671 --> 00:01:09,260
 extra stappen in Odoo zouden alleen dubbel
 werk geven, en de laatste stap zou nooit
 
 18
-00:01:31,550 --> 00:01:33,607
+00:01:09,310 --> 00:01:11,367
 automatisch gevalideerd worden.
 
 19
-00:01:33,657 --> 00:01:38,770
+00:01:11,417 --> 00:01:16,530
 Komen uw producten deels uit uw eigen
 magazijn, kies dat dan bij Bevoorraden
 
 20
-00:01:38,820 --> 00:01:39,246
+00:01:16,580 --> 00:01:17,006
 vanuit.
 
 21
-00:01:40,000 --> 00:01:45,336
+00:01:18,356 --> 00:01:23,268
 Open nu de voorraadlocatie van dat
-magazijn, SQF/Stock, en vink Is Stoqflow
+magazijn, SQF/Voorraad, en vink Is
 
 22
-00:01:45,386 --> 00:01:46,198
-locatie aan.
+00:01:23,318 --> 00:01:24,778
+Stoqflow locatie aan.
 
 23
-00:01:46,248 --> 00:01:51,368
+00:01:24,828 --> 00:01:29,955
 Kies in het veld Stoqflow-magazijn het
 magazijn uit uw Stoqflow-account.
 
 24
-00:01:51,418 --> 00:01:54,528
+00:01:30,005 --> 00:01:33,119
 Dat veld is nodig voor inkomende
 leveringen:
 
 25
-00:01:54,578 --> 00:01:58,478
+00:01:33,169 --> 00:01:37,074
 zo weet Stoqflow in welk magazijn de
 goederen aankomen.
 
 26
-00:02:05,000 --> 00:02:10,883
+00:01:38,424 --> 00:01:44,307
 Werkt u met meer dan één Stoqflow-bedrijf,
 dan vult u bij elke locatie het Stoqflow
 
 27
-00:02:10,933 --> 00:02:15,600
+00:01:44,357 --> 00:01:49,024
 company ID in, zodat de voorraad in de
 juiste locatie terechtkomt.
 
 28
-00:02:15,650 --> 00:02:17,888
+00:01:49,074 --> 00:01:51,312
 Met één locatie laat u het leeg.
 
 29
-00:02:17,938 --> 00:02:21,390
+00:01:51,362 --> 00:01:54,814
 Duid nooit de locaties van uw eigen
 magazijn aan.
 
 30
-00:02:25,000 --> 00:02:30,126
+00:01:56,164 --> 00:02:01,354
 Voor de verkoop bepaalt het magazijn op de
 verkooporder van waar geleverd wordt.
 
 31
-00:02:30,176 --> 00:02:34,784
+00:02:01,404 --> 00:02:06,070
 Zet het Stoqflow-magazijn als
 standaardmagazijn bij de verkopers en, als
 
 32
-00:02:34,834 --> 00:02:38,213
+00:02:06,120 --> 00:02:09,541
 u een Odoo-webshop heeft, in de
 website-instellingen.
 
 33
-00:02:38,263 --> 00:02:42,806
-Zo vertrekt elke levering uit SQF/Stock en
-wordt ze een Stoqflow-order.
+00:02:09,591 --> 00:02:14,388
+Zodra u de klant kiest, neemt de
+verkooporder het magazijn van de verkoper
 
 34
-00:02:55,000 --> 00:03:00,191
-Voor de aankoop kiest u op de inkooporder
-bij Leveren aan de ontvangsten van
+00:02:14,438 --> 00:02:14,715
+over.
 
 35
-00:03:00,241 --> 00:03:01,571
-Stoqflow Fulfilment.
+00:02:14,765 --> 00:02:19,562
+Zo vertrekt elke levering uit SQF/Voorraad
+en wordt ze een Stoqflow-order.
 
 36
-00:03:01,621 --> 00:03:06,950
-Werkt u met aanvulregels, maak ze dan aan
-op de locatie SQF/Stock met de route
+00:02:20,912 --> 00:02:24,464
+Voor de aankoop staat de route Kopen op
+het product.
 
 37
-00:03:07,000 --> 00:03:07,502
-Inkopen.
+00:02:24,514 --> 00:02:30,076
+Op de inkooporder kiest u bij Leveren aan
+de ontvangsten van Stoqflow Fulfilment.
 
 38
-00:03:07,552 --> 00:03:12,398
+00:02:30,126 --> 00:02:35,688
+Werkt u met aanvulregels, maak ze dan aan
+op de locatie SQF/Voorraad met de route
+
+39
+00:02:35,738 --> 00:02:36,103
+Kopen.
+
+40
+00:02:36,153 --> 00:02:41,022
 Odoo maakt dan zelf inkooporders die in
 het Stoqflow-magazijn toekomen.
 
-39
-00:03:20,000 --> 00:03:24,943
+41
+00:02:42,372 --> 00:02:47,315
 Wordt een product in uw eigen magazijn
 gemaakt of bewaard, gebruik dan de
 
-40
-00:03:24,993 --> 00:03:29,935
+42
+00:02:47,365 --> 00:02:52,307
 bevoorradingsroute die Odoo aanmaakte toen
 u Bevoorraden vanuit instelde.
 
-41
-00:03:29,985 --> 00:03:34,107
+43
+00:02:52,357 --> 00:02:56,479
 De eerste stap, van uw magazijn naar
 transit, blijft in Odoo.
 
-42
-00:03:34,157 --> 00:03:39,032
+44
+00:02:56,529 --> 00:03:01,404
 De tweede stap, van transit naar SQF,
 wordt een inkooporder in Stoqflow:
 
-43
-00:03:39,082 --> 00:03:42,246
+45
+00:03:01,454 --> 00:03:04,618
 zo weet Stoqflow dat er goederen onderweg
 zijn.
 
-44
-00:03:45,000 --> 00:03:45,510
+46
+00:03:05,968 --> 00:03:06,478
 Kortom:
 
-45
-00:03:45,560 --> 00:03:51,985
+47
+00:03:06,528 --> 00:03:12,953
 één magazijn op één stap, één aangevinkte
 locatie, en routes die naar die locatie
 
-46
-00:03:52,035 --> 00:03:52,544
+48
+00:03:13,003 --> 00:03:13,512
 wijzen.
 
-47
-00:03:52,594 --> 00:03:55,582
+49
+00:03:13,562 --> 00:03:16,550
 In de flowvideo's ziet u dit in actie.
 

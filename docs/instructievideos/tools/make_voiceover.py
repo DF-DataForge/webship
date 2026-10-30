@@ -49,8 +49,8 @@ TAIL = 1.0         # silence after the last scene
 
 # Written form -> how the voice should say it. Whole words only, applied in order.
 LEXICON = [
-    (r'SQF/Stock', 'S Q F Stock'),
-    (r'H800/Stock', 'H achthonderd Stock'),
+    (r'SQF/Voorraad', 'S Q F Voorraad'),
+    (r'H800/Voorraad', 'H achthonderd Voorraad'),
     (r'Stoqflow', 'Stokflow'),
     (r"SKU's", "S K U's"),
     (r'SKU', 'S K U'),
@@ -70,7 +70,7 @@ LEXICON = [
 ]
 
 SAMPLE = ('In deze video ziet u hoe het werkt. Ga in Odoo naar Stoqflow, Instellingen. Vul de Key en het Secret in, '
-          'en klik op Verbinding testen. Elke levering uit SQF/Stock wordt een order in Stoqflow, '
+          'en klik op Verbinding testen. Elke levering uit SQF/Voorraad wordt een order in Stoqflow, '
           'en zonder SKU kan Odoo het product niet doorsturen.')
 
 

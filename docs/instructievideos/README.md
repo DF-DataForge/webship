@@ -1,32 +1,40 @@
 # Instructievideo's — Koppeling Stoqflow by Data Forge
 
-Scripts voor een reeks uitlegvideo's over de module **Koppeling Stoqflow by
-Data Forge** (`webship`): installeren, configureren en de basisflows tussen
-Odoo en Stoqflow (Webship). Elke video behandelt één thema of één flow
-volledig, van begin tot eind; de duur volgt wat er te tonen is (1:30 tot
-4:30). Alle schermteksten, knoppen en menu's in de scripts komen uit de module
-zelf (Odoo 19.0, taal Nederlands; geldt ook voor 20.0).
+Een reeks van 11 uitlegvideo's (samen ± 31 minuten) over de module
+**Koppeling Stoqflow by Data Forge** (`webship`): installeren, configureren en
+de basisflows tussen Odoo en Stoqflow (Webship). Elke video behandelt één
+thema of één flow volledig, van begin tot eind.
+
+De video's zijn opgenomen in **Odoo 20**, in het Nederlands, in de
+demodatabase *Woody's Skate Supply*, met de Vlaamse computerstem *Dena*,
+tekst in beeld, openings- en eindkaarten in de Data Forge-huisstijl en
+ingebouwde ondertitels. Ze staan in [`video/`](video/); per video staat het
+script (draaiboek) hieronder gelinkt.
 
 ## Reeks A — Installatie en configuratie
 
-| #  | Video | Duur | Voor wie |
-|----|-------|------|----------|
-| 01 | [De Stoqflow-koppeling in een notendop](01_overzicht.md) | 1:30 | iedereen, prospecten |
-| 02 | [Installeren en verbinden met Stoqflow](02_installeren_en_verbinden.md) | 3:00 | Odoo-beheerder |
-| 03 | [Magazijn, locatie en routes](03_magazijn_locatie_routes.md) | 4:00 | Odoo-beheerder, logistiek |
-| 04 | [Synchronisatieregels: orders, klanten en vervoerders](04_synchronisatieregels.md) | 4:00 | Odoo-beheerder |
-| 05 | [Producten klaarzetten voor Stoqflow](05_producten.md) | 3:00 | productbeheer |
-| 06 | [Automatisering en bewaking](06_automatisering_en_bewaking.md) | 3:30 | Odoo-beheerder |
+| #  | Video | Script | Duur | Voor wie |
+|----|-------|--------|------|----------|
+| 01 | [De Stoqflow-koppeling in een notendop](video/01_overzicht.mp4) | [script](01_overzicht.md) | 1:19 | iedereen, prospecten |
+| 02 | [Installeren en verbinden met Stoqflow](video/02_installeren_en_verbinden.mp4) | [script](02_installeren_en_verbinden.md) | 2:42 | Odoo-beheerder |
+| 03 | [Magazijn, locatie en routes](video/03_magazijn_locatie_routes.mp4) | [script](03_magazijn_locatie_routes.md) | 3:22 | Odoo-beheerder, logistiek |
+| 04 | [Synchronisatieregels: orders, klanten en vervoerders](video/04_synchronisatieregels.mp4) | [script](04_synchronisatieregels.md) | 3:24 | Odoo-beheerder |
+| 05 | [Producten klaarzetten voor Stoqflow](video/05_producten.mp4) | [script](05_producten.md) | 2:37 | productbeheer |
+| 06 | [Automatisering en bewaking](video/06_automatisering_en_bewaking.mp4) | [script](06_automatisering_en_bewaking.md) | 2:47 | Odoo-beheerder |
 
 ## Reeks B — Basisflows met Stoqflow
 
-| #  | Video | Duur | Voor wie |
-|----|-------|------|----------|
-| 07 | [Van verkooporder tot uitgaande levering](07_flow_verkooporder.md) | 4:30 | verkoop, logistiek |
-| 08 | [Van inkooporder tot inkomende levering](08_flow_inkooporder.md) | 3:45 | aankoop, logistiek |
-| 09 | [Bevoorraden vanuit het eigen magazijn](09_flow_bevoorrading.md) | 3:15 | logistiek, productie |
-| 10 | [Retours, backorders en voorraad](10_retours_backorders_voorraad.md) | 4:00 | logistiek |
-| 11 | [Opvolgen en fouten oplossen](11_opvolgen_en_fouten.md) | 4:00 | logistiek, Odoo-beheerder |
+| #  | Video | Script | Duur | Voor wie |
+|----|-------|--------|------|----------|
+| 07 | [Van verkooporder tot uitgaande levering](video/07_flow_verkooporder.mp4) | [script](07_flow_verkooporder.md) | 3:34 | verkoop, logistiek |
+| 08 | [Van inkooporder tot inkomende levering](video/08_flow_inkooporder.mp4) | [script](08_flow_inkooporder.md) | 2:53 | aankoop, logistiek |
+| 09 | [Bevoorraden vanuit het eigen magazijn](video/09_flow_bevoorrading.mp4) | [script](09_flow_bevoorrading.md) | 2:13 | logistiek, productie |
+| 10 | [Retours, backorders en voorraad](video/10_retours_backorders_voorraad.mp4) | [script](10_retours_backorders_voorraad.md) | 3:08 | logistiek |
+| 11 | [Opvolgen en fouten oplossen](video/11_opvolgen_en_fouten.mp4) | [script](11_opvolgen_en_fouten.md) | 3:23 | logistiek, Odoo-beheerder |
+
+Elke video heeft een ondertitelbestand ernaast (`video/NN_….srt`), dat ook als
+ondertitelspoor in de MP4 zit. De tijden in de draaiboeken zijn de oorspronkelijke
+richtwaarden; de uiteindelijke duur volgt de stem en de schermacties.
 
 Reeks A zet de koppeling op, reeks B toont wat er daarna met elk document
 gebeurt. Wie de module alleen gebruikt (verkoop, aankoop, magazijn) kan met
@@ -58,12 +66,11 @@ welke route welk Stoqflow-document maakt.
 * **Tempo**: ± 130 woorden per minuut. De tijdcodes zijn richtwaarden; de
   voice-over bepaalt de uiteindelijke duur.
 * **Opname**: schermopname op 1920 × 1080, browser op 100 %, Odoo-menubalk
-  zichtbaar. Muisklikken accentueren (cirkel), inzoomen op het veld of de
-  knop die genoemd wordt. Rustige achtergrondmuziek, uit tijdens de
-  voice-over-pieken.
-* **Stoqflow-kant**: waar het script de Stoqflow-app toont, gebruik een
-  sandbox-account. Nooit echte API-sleutels in beeld: blur het veld
-  **Secret** (en **Key**) in de montage.
+  zichtbaar. Muisklikken worden geaccentueerd (cirkel) en het veld of de
+  knop die genoemd wordt, krijgt een kader.
+* **Stoqflow-kant**: wat er in Stoqflow gebeurt, toont een dia *Wat er in
+  Stoqflow gebeurt*. Nooit echte API-sleutels in beeld; de video's gebruiken
+  een voorbeeldsleutel.
 
 ## Huisstijl
 
@@ -98,9 +105,9 @@ welke route welk Stoqflow-document maakt.
 
 ## Ondertitels
 
-`ondertitels/NN.srt` bevat de voice-over van elk script als ondertitels,
-afgestemd op de gegenereerde computerstem (zie hieronder). Neemt u met een
-echte stem op, maak ze dan opnieuw uit de tijdcodes van het draaiboek en
+`ondertitels/NN.srt` (en `video/NN_….srt`) bevat de voice-over als
+ondertitels, afgestemd op de afgewerkte video. Neemt u een video opnieuw op
+met een echte stem, maak ze dan opnieuw uit de tijdcodes van het draaiboek en
 schuif ze in de montage gelijk met de opname:
 
 ```bash
@@ -122,7 +129,6 @@ van Microsoft (*nl-BE-DenaNeural*, vrouwelijk), via
 |---|---|
 | `voiceover/NN.mp3` | volledige voice-over van video NN, elke scène op haar tijdcode uit het draaiboek, genormaliseerd op −16 LUFS |
 | `voiceover/NN_scenes.csv` | per scène het begin en einde in dat spoor: neem het scherm op tegen deze tijden |
-| `ondertitels/NN.srt` | ondertitels, afgestemd op die gegenereerde stem |
 | `voiceover/stemproef_arnaud.mp3`, `stemproef_dena.mp3` | dezelfde testzin met de mannelijke en de vrouwelijke Vlaamse stem |
 
 Liever de mannelijke stem (Arnaud), of trager of sneller? Na een wijziging in een
@@ -199,13 +205,13 @@ het warmst. De tips hieronder gelden dan.
 
 ## Demodata (dezelfde in alle video's)
 
-Gebruik de demodatabase **Woody's Skate Supply** (module
-`19.0/webship_demo_skateshop`, zie de README in de root van deze repository):
-een lege Odoo 19-database waarin die module geïnstalleerd is. Ze bevat alles
-wat de video's tonen:
+Opgenomen in de demodatabase **Woody's Skate Supply**: een lege Odoo
+20-database (taal Nederlands België) waarin de module
+`20.0/webship_demo_skateshop` geïnstalleerd is (voor Odoo 19:
+`19.0/webship_demo_skateshop`). Ze bevat alles wat de video's tonen:
 
 * **Magazijnen**: `H800` Skate Workshop H800 (eigen magazijn, assemblage) en
-  `SQF` Stoqflow Fulfilment (de locatie `SQF/Stock` is een Stoqflow-locatie).
+  `SQF` Stoqflow Fulfilment (de locatie `SQF/Voorraad` is een Stoqflow-locatie).
 * **Producten**: kleding met SKU (`WSS-TEE`, `WSS-HOOD`, `WSS-BEANIE`,
   `WSS-SOCKS`), componenten met **Dit product niet synchroniseren**, complete
   boards met een bevoorradingsroute H800 → SQF.
@@ -215,13 +221,48 @@ wat de video's tonen:
   complete boards en webshop- en B2B-orders, allemaal met processcode
   *In afwachting*.
 
-Voor video 02 heb je daarnaast een **lege** database nodig (installatie vanaf
-nul) en Stoqflow-sandboxsleutels; video 03 kan in die lege database of in de
-demodatabase (die alles al ingericht heeft: ideaal om te vergelijken). Zet
-vóór de flowvideo's (07 tot en met 11) dezelfde sandboxsleutels in de
-demodatabase, laad de bedrijven, merken en magazijnen, koppel `SQF/Stock` aan
-het Stoqflow-magazijn en synchroniseer de kledingproducten, zodat de flows
-echt doorlopen.
+Video 02 begint in een **lege** Odoo 20-database (Verkoop, Inkoop, Voorraad)
+voor de installatie; de rest speelt in de demodatabase.
+
+## Hoe de video's gemaakt zijn
+
+De video's zijn volledig automatisch opgenomen en gemonteerd, zodat ze bij
+een nieuwe versie van de module of van Odoo opnieuw gemaakt kunnen worden.
+
+* **Stoqflow** — er is geen echte Stoqflow-account gebruikt. Een lokale
+  nabootsing van de Stoqflow-API ([`tools/stoqflow_mock/`](tools/stoqflow_mock/))
+  antwoordt op `https://api.stoqflow.com/` (via een eigen certificaat en
+  `/etc/hosts`), zodat de module haar eigen code doorloopt: producten, klanten,
+  orders, inkooporders, statussen, pakketten, retours, backorders en voorraad.
+  Met `ctl.py` speelt u het magazijn (order picken en verzenden, inkooporder
+  ontvangen, retour aanmaken). Scènes "in Stoqflow" tonen de toestand van die
+  nabootsing als neutrale Data Forge-dia, niet als kopie van de Stoqflow-app.
+* **Opname** — [`tools/opname/`](tools/opname/): Playwright stuurt Chromium
+  aan op 1920 × 1080 (`rec.js`, met zichtbare muisaanwijzer, klikeffect en
+  markering van het besproken veld); per video een script in
+  `tools/opname/videos/vNN.js` dat de scènes van het draaiboek uitvoert.
+  Schema's zijn geanimeerde HTML-dia's (`slides.py`, `slide_defs.py`,
+  `live_slide.py`).
+* **Montage** — `tools/opname/assemble.py`: per scène de opname, de stem van
+  Dena (uit de voice-overkolom van het draaiboek, met de uitspraaklijst van
+  `make_voiceover.py`) en de *tekst in beeld*; rustmomenten in het beeld
+  worden verlengd zodat beeld en stem samen lopen. Daarna de openings- en
+  eindkaart, ondertitels en normalisatie op −16 LUFS.
+
+Opnieuw opnemen (Odoo 20 met `webship` en de demo op poort 8069, de
+nabootsing gestart, Node met Playwright, ffmpeg en `edge-tts`):
+
+```bash
+python3 docs/instructievideos/tools/opname/slide_defs.py
+node docs/instructievideos/tools/opname/record_slides.js
+node docs/instructievideos/tools/opname/videos/v07.js
+python3 docs/instructievideos/tools/opname/assemble.py 07
+```
+
+De scripts gaan uit van de mappen van de opnameomgeving (`/opt/odoo20`,
+`/opt/rec`, `/opt/stoqflow_mock`); `snapshot.sh` en `restore.sh` bewaren en
+herstellen de toestand van database en nabootsing tussen twee video's, want
+de video's bouwen op elkaar voort (02 → 11).
 
 Bronnen: de module-README (`README.md` in de root), de helpteksten in
 **Stoqflow → Instellingen** en `19.0/webship/docs/`.

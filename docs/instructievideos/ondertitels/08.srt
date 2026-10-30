@@ -1,137 +1,148 @@
 1
-00:00:06,000 --> 00:00:11,062
+00:00:05,500 --> 00:00:10,562
 Bestelt u goederen die rechtstreeks in het
 Stoqflow-magazijn toekomen, dan moet
 
 2
-00:00:11,112 --> 00:00:13,262
+00:00:10,612 --> 00:00:12,762
 Stoqflow weten wat er onderweg is.
 
 3
-00:00:13,312 --> 00:00:18,310
+00:00:12,812 --> 00:00:17,810
 Odoo kondigt de levering aan, en neemt na
 ontvangst de getelde aantallen over.
 
 4
-00:00:20,000 --> 00:00:22,512
+00:00:24,100 --> 00:00:26,602
 Maak de inkooporder zoals altijd.
 
 5
-00:00:22,562 --> 00:00:25,229
+00:00:26,652 --> 00:00:29,309
 Belangrijk is het veld Leveren aan:
 
 6
-00:00:25,279 --> 00:00:28,644
+00:00:29,359 --> 00:00:32,713
 kies de ontvangsten van Stoqflow
 Fulfilment.
 
 7
-00:00:28,694 --> 00:00:35,243
+00:00:32,763 --> 00:00:39,287
 Een inkooporder die Odoo zelf maakt vanuit
-een aanvulregel op SQF/Stock, heeft dat al
+een aanvulregel op SQF/Voorraad, heeft dat
 
 8
-00:00:35,293 --> 00:00:36,097
-goed staan.
+00:00:39,337 --> 00:00:40,370
+al goed staan.
 
 9
-00:00:36,147 --> 00:00:37,494
+00:00:40,420 --> 00:00:41,762
 Bevestig de order.
 
 10
-00:00:50,000 --> 00:00:53,021
-Odoo maakt een ontvangst naar SQF/Stock.
+00:01:01,833 --> 00:01:05,094
+Odoo maakt een ontvangst naar
+SQF/Voorraad.
 
 11
-00:00:53,071 --> 00:00:59,009
+00:01:05,144 --> 00:01:11,098
 Omdat ze in de Stoqflow-locatie aankomt,
 wordt ze een inkooporder in Stoqflow.
 
 12
-00:00:59,059 --> 00:01:01,926
+00:01:11,148 --> 00:01:14,023
 Ze wacht nu om doorgestuurd te worden.
 
 13
-00:01:10,000 --> 00:01:14,258
+00:01:15,373 --> 00:01:19,644
 De geplande taak stuurt de ontvangst door;
 hier doen we het manueel.
 
 14
-00:01:14,308 --> 00:01:19,389
+00:01:19,694 --> 00:01:24,790
 Odoo maakt de leverancier aan in Stoqflow
 als die nog niet bestond, of matcht hem
 
 15
-00:01:19,439 --> 00:01:24,140
+00:01:24,840 --> 00:01:29,429
 met een bestaande, en kondigt de
-inkooporder aan met status Besteld, in het
+inkooporder aan in het magazijn dat u op
 
 16
-00:01:24,190 --> 00:01:26,294
-magazijn dat u op de locatie koos.
+00:01:29,479 --> 00:01:30,445
+de locatie koos.
 
 17
-00:01:45,000 --> 00:01:50,944
+00:01:30,495 --> 00:01:35,147
+Ligt de verwachte levering nog in de
+toekomst, dan staat ze in Stoqflow op
+
+18
+00:01:35,197 --> 00:01:38,387
+Gepauzeerd tot die datum; anders meteen op
+Besteld.
+
+19
+00:01:39,737 --> 00:01:45,681
 In Stoqflow ziet het magazijn welke
 goederen er komen, van wie en hoeveel.
 
-18
-00:01:50,994 --> 00:01:54,589
+20
+00:01:45,731 --> 00:01:49,326
 Bij aankomst wordt alles uitgepakt en
 geteld.
 
-19
-00:01:54,639 --> 00:01:56,614
+21
+00:01:49,376 --> 00:01:51,351
 Odoo volgt de status mee:
 
-20
-00:01:56,664 --> 00:01:59,854
+22
+00:01:51,401 --> 00:01:54,591
 onderweg, geleverd, uitpakken, voltooid.
 
-21
-00:02:20,000 --> 00:02:25,538
+23
+00:01:55,941 --> 00:02:01,479
 Zodra Stoqflow de inkooporder voltooit,
 neemt Odoo de ontvangen aantallen over en
 
-22
-00:02:25,588 --> 00:02:27,400
+24
+00:02:01,529 --> 00:02:03,342
 valideert het de ontvangst.
 
-23
-00:02:27,450 --> 00:02:33,057
+25
+00:02:03,392 --> 00:02:08,999
 De voorraad in SQF staat meteen goed, en
 de leveranciersfactuur kunt u controleren
 
-24
-00:02:33,107 --> 00:02:34,782
+26
+00:02:09,049 --> 00:02:10,723
 op wat echt ontvangen is.
 
-25
-00:02:50,000 --> 00:02:54,911
+27
+00:02:12,073 --> 00:02:16,985
 Komt er minder binnen dan besteld, dan
 valideert Odoo de ontvangst met wat er
 
-26
-00:02:54,961 --> 00:02:58,262
+28
+00:02:17,035 --> 00:02:20,335
 echt geteld is, en maakt een backorder
 voor de rest.
 
-27
-00:02:58,312 --> 00:03:02,901
+29
+00:02:20,385 --> 00:02:24,975
 Werd er niets ontvangen, dan laat Odoo de
 ontvangst open en zegt waarom.
 
-28
-00:03:02,951 --> 00:03:07,734
+30
+00:02:25,025 --> 00:02:29,807
 Zo blijft uw voorraad altijd gelijk met
 wat er fysiek in het magazijn ligt.
 
-29
-00:03:25,000 --> 00:03:25,811
+31
+00:02:31,157 --> 00:02:31,968
 Samengevat:
 
-30
-00:03:25,861 --> 00:03:31,838
+32
+00:02:32,018 --> 00:02:37,995
 bestellen in Odoo, Stoqflow ontvangt en
 telt, Odoo boekt de juiste aantallen.
 
