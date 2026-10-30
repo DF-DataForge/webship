@@ -12,7 +12,7 @@ One folder per Odoo version, each holding the addons for that version:
 |--------|------|----------|
 | `18.0/` | 18.0 | `webship` |
 | `19.0/` | 19.0 | `webship`, `webship_demo_skateshop` |
-| `20.0/` | 20.0 | `webship` |
+| `20.0/` | 20.0 | `webship`, `webship_demo_skateshop` |
 
 ## Installation
 
@@ -22,7 +22,7 @@ Depends only on standard Odoo modules: `base`, `web`, `sale`, `product`, `purcha
 
 ## Demo database: Woody's Skate Supply
 
-`19.0/webship_demo_skateshop` turns a **fresh, empty** Odoo 19 database into a demo company that uses Stoqflow as its e-fulfilment partner. Install it from Apps (it pulls in `webship`, eCommerce, Manufacturing and the Belgian chart of accounts). Never install it on a production database: it renames the main company and creates warehouses, partners, products and orders.
+`19.0/webship_demo_skateshop` (and its Odoo 20 port `20.0/webship_demo_skateshop`) turns a **fresh, empty** Odoo database into a demo company that uses Stoqflow as its e-fulfilment partner. Install it from Apps (it pulls in `webship`, eCommerce, Manufacturing and the Belgian chart of accounts). Never install it on a production database: it renames the main company and creates warehouses, partners, products and orders.
 
 What it sets up:
 
@@ -45,7 +45,8 @@ Stoqflow API credentials are not set and the Stoqflow crons are switched off. To
 
 ## Instructievideo's
 
-Scripts, openings- en eindkaarten (Data Forge-huisstijl) en ondertitels voor
-een reeks instructievideo's over installatie, configuratie en de basisflows
-(verkooporder → levering, inkooporder → ontvangst, bevoorrading, retours) staan
-in [`docs/instructievideos/`](docs/instructievideos/README.md).
+Elf instructievideo's (Odoo 20, Nederlands, Data Forge-huisstijl) over
+installatie, configuratie en de basisflows (verkooporder → levering,
+inkooporder → ontvangst, bevoorrading, retours, fouten oplossen), met hun
+scripts, ondertitels en de tools om ze opnieuw op te nemen, staan in
+[`docs/instructievideos/`](docs/instructievideos/README.md).

@@ -69,7 +69,10 @@ def _validate(picking, date_done=None):
     for move in picking.move_ids:
         move.quantity = move.product_uom_qty
     picking.move_ids.picked = True
-    picking.with_context(skip_backorder=True, skip_sms=True).button_validate()
+    # The demo plays the warehouse: bypass the guard that blocks manual
+    # validation of transfers the Stoqflow sync owns.
+    picking.with_context(skip_backorder=True, skip_sms=True,
+                         webship_internal_validate=True).button_validate()
     if date_done:
         picking.date_done = date_done
         picking.move_ids.date = date_done
