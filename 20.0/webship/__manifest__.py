@@ -11,7 +11,7 @@
     'website': "https://www.data-forge.be",
 
     'category': 'Uncategorized',
-    'version': '20.0.1.1',
+    'version': '20.0.1.2',
     'description': """
 Stoqflow Integration Module v1.0
 =================================
@@ -36,6 +36,7 @@ Features:
 
     # Data files loaded in order: menus, views, security rules, cron jobs
     'data': [
+        'security/webship_groups.xml',
         'security/ir.access.csv',
         'views/stoqflow_dashboard_views.xml',
         'views/stoqflow_product_report_views.xml',

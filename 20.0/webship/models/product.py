@@ -5,6 +5,16 @@ from odoo.addons.webship.models.ws import WebShipHandler
 from odoo import models, fields, api
 
 from datetime import datetime
+from markupsafe import Markup
+
+
+# Code shown next to a link to the record in the Stoqflow web app. The code
+# and the id come from users or from Stoqflow, so they are escaped: these
+# fields are not sanitized (that would strip the link).
+STOQFLOW_LINK = Markup(
+    '%s <a href="%s" target="_blank"><img style="height:16px; width:16px" '
+    'src="/webship/static/src/img/stoqflow_16px.png"/></a>')
+
 
 class Productvar(models.Model):
     _inherit = 'product.product'
@@ -107,7 +117,7 @@ class Productvar(models.Model):
                 url = self.env['ir.config_parameter'].sudo().get_str(
                     'webship.base_app_url') + 'products/' + record.df_product_id_webship
 
-                html = record.default_code + ' <a href="' + url + '" target="_blank"><img style="height:16px; width:16px" src="/webship/static/src/img/stoqflow_16px.png"/></a>'
+                html = STOQFLOW_LINK % (record.default_code, url)
                 record.df_url_prod = html
                 record.wsUrlProd = html
             else:

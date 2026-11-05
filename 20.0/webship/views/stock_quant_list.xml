@@ -20,7 +20,8 @@
                     <button name="action_apply_webship_stock"
                             type="object"
                             string="Apply Stoqflow Stock to Odoo"
-                            class="btn-primary"/>
+                            class="btn-primary"
+                            groups="stock.group_stock_manager"/>
                 </header>
 
                 <!-- Product & Location -->

@@ -185,6 +185,7 @@
     <!-- Menu -->
     <menuitem id="webship_root_menu"
               name="Stoqflow"
+              groups="group_webship_user"
               web_icon="webship,static/stoqflowicons/stoqflow-100x100.png"/>
 
     <menuitem id="webship_order_sub_root"
@@ -353,6 +354,7 @@
     <menuitem id="webship_config_menu"
               name="Configuration"
               parent="webship_root_menu"
+              groups="group_webship_manager"
               sequence="8"/>
 
     <menuitem id="webship_config_couriers"

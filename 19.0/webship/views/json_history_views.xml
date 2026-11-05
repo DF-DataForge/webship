@@ -73,5 +73,6 @@
 
     <menuitem id="webship_json_history_menu" name="JSON History"
         parent="webship.webship_root_menu" sequence="20"
-        action="webship_json_history_action"/>
+        action="webship_json_history_action"
+        groups="webship.group_webship_user"/>
 </odoo>

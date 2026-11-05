@@ -5,6 +5,16 @@ from odoo.addons.webship.models.ws import WebShipHandler
 from odoo import models, fields, api
 
 from datetime import datetime
+from markupsafe import Markup
+
+
+# Code shown next to a link to the record in the Stoqflow web app. The code
+# and the id come from users or from Stoqflow, so they are escaped: these
+# fields are not sanitized (that would strip the link).
+STOQFLOW_LINK = Markup(
+    '%s <a href="%s" target="_blank"><img style="height:16px; width:16px" '
+    'src="/webship/static/src/img/stoqflow_16px.png"/></a>')
+
 
 class Partner(models.Model):
     _inherit = 'res.partner'
@@ -70,7 +80,7 @@ class Partner(models.Model):
         for record in self:
             if record.df_client_id_webship != False:
                 url = self.env['ir.config_parameter'].sudo().get_str('webship.base_app_url') + 'clients/' + record.df_client_id_webship
-                record.df_url_client = record.df_client_code_webship +' <a href="' + url + '" target="_blank"><img style="height:16px; width:16px" src="/webship/static/src/img/stoqflow_16px.png"/></a>'
+                record.df_url_client = STOQFLOW_LINK % (record.df_client_code_webship or '', url)
             else:
                 record.df_url_client = ''
 
@@ -82,7 +92,7 @@ class Partner(models.Model):
             if record.df_supplier_id_webship != False:
                 url = self.env['ir.config_parameter'].sudo().get_str(
                     'webship.base_app_url') + 'suppliers/' + record.df_supplier_id_webship
-                record.df_url_supplier = record.df_supplier_code_webship + ' <a href="' + url + '" target="_blank"><img style="height:16px; width:16px" src="/webship/static/src/img/stoqflow_16px.png"/></a>'
+                record.df_url_supplier = STOQFLOW_LINK % (record.df_supplier_code_webship or '', url)
             else:
                 record.df_url_supplier = ''
 

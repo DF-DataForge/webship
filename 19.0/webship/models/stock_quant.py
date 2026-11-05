@@ -105,7 +105,10 @@ class StockQuant(models.Model):
     def action_apply_webship_stock(self):
         """Apply the Webship total stock values to Odoo inventory quantities.
         Can be triggered from a button on selected quant records.
-        Only works on quants in Webship-managed locations."""
+        Only works on quants in Webship-managed locations, and like any
+        inventory adjustment only for Inventory administrators."""
+        if not self.env.user.has_group('stock.group_stock_manager'):
+            raise UserError(_("Only Inventory administrators can apply Stoqflow stock to Odoo."))
         for quant in self:
             # Ensure the quant belongs to a Webship-managed location
             if not quant.location_id.df_is_webship_location:

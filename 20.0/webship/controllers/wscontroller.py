@@ -1,5 +1,6 @@
 # HTTP controllers for generating and downloading Excel (XLSX) reports
 # that compare Odoo data with Webship data.
+from odoo.addons.webship.http_access import check_stoqflow_manager
 from odoo.addons.webship.models.ws import WebShipHandler
 from odoo import http
 from odoo.http import request
@@ -18,6 +19,7 @@ class ConfigReportController(http.Controller):
     @http.route('/custom/xlsx/download_xlsx_config_report', type='http', auth='user', website=True)
     def download_xlsx_config_report(self):
         """Generate and return a basic configuration report as an XLSX download."""
+        check_stoqflow_manager()
         # Create an in-memory buffer to hold the Excel file
         output = io.BytesIO()
         workbook = xlsxwriter.Workbook(output, {'in_memory': True})
@@ -44,6 +46,7 @@ class ConfigReportController(http.Controller):
         """Generate an XLSX report comparing Odoo products with Webship products.
         Matches are made by the Webship product ID stored on each Odoo product.
         Unmatched products from either system appear in separate rows."""
+        check_stoqflow_manager()
         output = io.BytesIO()
         workbook = xlsxwriter.Workbook(output, {'in_memory': True})
         worksheet = workbook.add_worksheet('Product Odoo Webship vergelijk')

@@ -15,6 +15,7 @@ from odoo.http import request
 from odoo.http.stream import content_disposition
 
 from . import ws
+from ..http_access import check_stoqflow_manager
 
 _logger = logging.getLogger(__name__)
 
@@ -24,6 +25,7 @@ class MyExcelDownloadController(http.Controller):
     def download_excel(self, **kwargs):
         """Generate and return a multi-sheet XLSX report as a file download.
         Requires query parameter ?p=partner to indicate the report type."""
+        check_stoqflow_manager()
         # Create an in-memory buffer to hold the Excel file
         output = io.BytesIO()
 

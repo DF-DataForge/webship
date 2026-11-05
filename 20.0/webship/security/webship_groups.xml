@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Stoqflow access levels.
+         User: works with Stoqflow orders, retours, backorders and stock; reads
+         the configuration and the API history. Every Inventory user is one.
+         Administrator: changes the Stoqflow configuration, deletes history and
+         runs the data exports. Every Settings administrator is one. -->
+    <record model="res.groups.privilege" id="res_groups_privilege_webship">
+        <field name="name">Stoqflow</field>
+        <field name="category_id" ref="base.module_category_supply_chain"/>
+    </record>
+    <record id="group_webship_user" model="res.groups">
+        <field name="name">User</field>
+        <field name="sequence">10</field>
+        <field name="privilege_id" ref="res_groups_privilege_webship"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+    <record id="group_webship_manager" model="res.groups">
+        <field name="name">Administrator</field>
+        <field name="sequence">20</field>
+        <field name="privilege_id" ref="res_groups_privilege_webship"/>
+        <field name="implied_ids" eval="[(4, ref('group_webship_user'))]"/>
+        <field name="user_ids" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
+    </record>
+
+    <record id="stock.group_stock_user" model="res.groups">
+        <field name="implied_ids" eval="[(4, ref('group_webship_user'))]"/>
+    </record>
+    <record id="base.group_system" model="res.groups">
+        <field name="implied_ids" eval="[(4, ref('group_webship_manager'))]"/>
+    </record>
+</odoo>
