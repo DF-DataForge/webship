@@ -122,11 +122,11 @@ class TestObjectInWebship(TransactionCase):
                 'product_id': self.product.id, 'product_uom_qty': 1,
             })],
         })
-        # procurement.group is gone since Odoo 19: the picking's sale order
-        # comes from its moves' sale lines.
+        group = self.env['procurement.group'].create({
+            'name': sale.name, 'sale_id': sale.id,
+        })
         picking = self._picking(self.ws_loc, self.ws_loc, self.type_internal,
-                                origin=sale.name)
-        picking.move_ids.sale_line_id = sale.order_line
+                                group_id=group.id, origin=sale.name)
         self.assertEqual(picking.sale_id, sale)
         self.assertEqual(picking.df_object_in_webship, 'Order')
         self.assertTrue(picking.df_show_webship_page)

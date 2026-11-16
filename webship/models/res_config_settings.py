@@ -1069,40 +1069,7 @@ class ResConfigSettings(models.TransientModel):
         wsHandler = ws.WebShipHandler(login, pw, base_url)
         wsHandler.set_env(self.env)
 
-        summary = wsHandler.importStock()
-        if not summary:
-            raise UserError("Fetching the stock from Stoqflow failed. Check the server log.")
-        lines = ["%d products updated at %s." % (
-            summary['updated'], ', '.join(sorted(summary['locations'])) or '-')]
-        if summary['adjusted']:
-            lines.append("Odoo stock adjusted for %d products." % summary['adjusted'])
-        if summary['unmatched_companies']:
-            lines.append(
-                "Not imported: no Stoqflow location linked to Stoqflow company %s. "
-                "Fill in 'Stoqflow company ID' on the location, or keep a single "
-                "Stoqflow location." % ', '.join(sorted(summary['unmatched_companies'])))
-        if summary['unknown_skus']:
-            lines.append("SKUs not found in Odoo: %s" % ', '.join(summary['unknown_skus'][:20])
-                         + (' …' if len(summary['unknown_skus']) > 20 else ''))
-        if summary['multi_quant_skus']:
-            lines.append("Several stock lines (lots), not adjusted: %s"
-                         % ', '.join(summary['multi_quant_skus'][:20]))
-        if summary['missing_reserved']:
-            lines.append("Stoqflow sent no reserved quantity.")
-        if summary['errors']:
-            lines.append("Errors: %s" % '; '.join(summary['errors'][:5]))
-        problems = (summary['unmatched_companies'] or summary['unknown_skus']
-                    or summary['errors'])
-        return {
-            'type': 'ir.actions.client',
-            'tag': 'display_notification',
-            'params': {
-                'title': 'Stock import from Stoqflow',
-                'message': '\n'.join(lines),
-                'type': 'warning' if problems else 'success',
-                'sticky': bool(problems),
-            },
-        }
+        wsHandler.importStock()
 
     def ws_sync_retours_and_backorders(self):
         """Cron job action: fetch retours from Stoqflow."""

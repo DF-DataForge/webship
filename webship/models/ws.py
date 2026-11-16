@@ -2843,6 +2843,52 @@ class WebShipHandler:
 
         return []
 
+    @staticmethod
+    def _barcode_type(code):
+        """Symbology of a packaging barcode, from its length: 13 digits EAN-13,
+        8 EAN-8, 12 UPC-A, 14 ITF-14 (the usual outer-carton code), anything
+        else Code 128."""
+        if code.isdigit():
+            return {13: 'ean13', 8: 'ean8', 12: 'upca', 14: 'itf14'}.get(len(code), 'code128')
+        return 'code128'
+
+    def _product_barcodes(self, product):
+        """The barcodes of ``product`` for Stoqflow: its own barcode (main) and
+        one per packaging that has a barcode (Sales tab > Packagings >
+        Barcodes), named after the packaging, with the number of units it
+        holds as multiplier (Stoqflow: 1 scan = that many units).
+
+        A packaging whose quantity is not a whole number of the product's
+        unit is left out (Stoqflow's multiplier is an integer), as is a
+        barcode already in the list."""
+        barcodes = []
+        if product.barcode:
+            barcodes.append({'type': 'ean13', 'code': product.barcode, 'main': True})
+        seen = {product.barcode}
+        for packaging in product.product_uom_ids.sorted('id'):
+            code = (packaging.barcode or '').strip()
+            if not code or code in seen:
+                continue
+            try:
+                units = packaging.uom_id._compute_quantity(1.0, product.uom_id, round=False)
+            except Exception:  # unit that does not convert to the product's unit
+                units = 0
+            if units < 1 or abs(units - round(units)) > 1e-6:
+                _logger.warning(
+                    "sync_product: packaging %s (%s) of %s skipped: %s %s is not a whole "
+                    "number of units", packaging.uom_id.name, code, product.default_code,
+                    units, product.uom_id.name)
+                continue
+            seen.add(code)
+            barcodes.append({
+                'type': self._barcode_type(code),
+                'code': code,
+                'main': False,
+                'name': packaging.uom_id.name,
+                'multiplier': int(round(units)),
+            })
+        return barcodes
+
     def sync_product(self, product):
         """Create or update a product in Webship from an Odoo product record.
         If the product doesn't exist, checks that the SKU isn't already in use."""
@@ -2939,9 +2985,10 @@ class WebShipHandler:
         if checks:
             productObj['checks'] = checks
 
-        # Barcodes
-        if product.barcode:
-            productObj['barcodes'] = [{'type':'ean13', 'code':product.barcode, 'main':True}]
+        # Barcodes: the product's own barcode plus one per packaging
+        barcodes = self._product_barcodes(product)
+        if barcodes:
+            productObj['barcodes'] = barcodes
 
         if product.df_product_id_webship == False:
             # Before creating, check if this SKU already exists in Webship
@@ -3814,40 +3861,145 @@ class WebShipHandler:
 
         return output
 
-    def _resolve_stock_location(self, company_id, locations):
-        """Return the Stoqflow location that holds the stock of Stoqflow
-        company ``company_id``, or an empty recordset when it can't be told.
+    def fetchProductBatches(self, webship_product_id):
+        """Stock per batch of one Stoqflow product (GET products/{id}?detail=high).
 
-        A location linked to the company id (Stoqflow company ID on the
-        location form) wins. Without such a link the only Stoqflow location is
-        used; when there are several, nothing is guessed: picking the first
-        one wrote stock into an unrelated location (and company)."""
-        if company_id:
-            match = locations.filtered(lambda l: l.df_warehouse_id_webship == company_id)
-            if match:
-                return match[:1]
-        if len(locations) == 1:
-            return locations
-        return locations.browse()
+        Returns None when the call failed or the answer has no product_items
+        although the product is said to have stock. Otherwise a dict:
+          'tracks_batches': whether Stoqflow keeps batches for this product
+                            (its checks.batches setting, or a batch on any
+                            stock item),
+          'batches':        [{'batch', 'quantity', 'expiry_date'}, ...] from
+                            the product_items carrying a batch,
+          'unbatched':      the stock of the items without batch.
+        Backorder entries carry no stock and are skipped."""
+        if not webship_product_id:
+            return None
+        result = self.fetchByKeyDetail('products', quote(str(webship_product_id), safe=''))
+        if result.get('status') != 'success':
+            return None
+        data = result.get('data') or {}
+        checks = data.get('checks') or {}
+        items = data.get('product_items')
+        if items is None:
+            if data.get('has_stock'):
+                return None
+            items = []
+        batches = []
+        unbatched = 0.0
+        for item in items:
+            if item.get('backorder'):
+                continue
+            quantity = float(item.get('quantity') or 0.0)
+            if item.get('batch'):
+                batches.append({
+                    'batch': str(item['batch']),
+                    'quantity': quantity,
+                    'expiry_date': item.get('expiry_date'),
+                })
+            else:
+                unbatched += quantity
+        return {
+            'tracks_batches': bool(checks.get('batches')) or bool(batches),
+            'batches': batches,
+            'unbatched': unbatched,
+        }
+
+    def _import_product_lots(self, product, location, quants, detail, total, now):
+        """Write the Stoqflow figures of lot-tracked ``product`` on its stock
+        lines in ``location``, matched one to one (``detail`` comes from
+        fetchProductBatches, ``total`` from the inventory feed). A line gets
+        a lot check timestamp only when it has exactly one Stoqflow
+        counterpart; that is what allows it to be applied later.
+
+        - Stoqflow keeps batches for the product: a line with a lot gets the
+          stock of the batch of the same name (0 when Stoqflow no longer
+          holds it); a batch Odoo does not know gets a lot and an empty line;
+          the line without lot gets the stock Stoqflow holds without batch
+          when there is any, and stays unmatched otherwise.
+        - Stoqflow keeps no batches for the product: its single figure goes
+          to the product's single stock line; with several lines nothing can
+          be matched and all stay unmatched.
+        A second line for the same lot (packages) stays unmatched too: one
+        figure never goes on two lines. Returns the quants, including the
+        ones created."""
+        StockQuant = self.env['stock.quant']
+        Lot = self.env['stock.lot']
+        parse_dt = self.env['webship.status.update']._parse_stoqflow_datetime
+        company = location.company_id or self.env.company
+        unmatched = {'df_webship_lot_stock': 0.0, 'df_webship_lot_checked': False}
+
+        def create_line(lot):
+            # The new line carries the product figures the import just wrote
+            # on the other quants, so it reads like its siblings.
+            sibling = quants[:1]
+            return StockQuant.create({
+                'product_id': product.id,
+                'location_id': location.id,
+                'lot_id': lot.id if lot else False,
+                'quantity': 0.0,
+                'df_webship_totalstock': sibling.df_webship_totalstock,
+                'df_webship_reserved': sibling.df_webship_reserved,
+                'df_webship_available_stock': sibling.df_webship_available_stock,
+                'df_last_check_webship': sibling.df_last_check_webship,
+            })
+
+        if not detail['tracks_batches']:
+            if len(quants) == 1:
+                quants.write({'df_webship_lot_stock': total, 'df_webship_lot_checked': now})
+            else:
+                _logger.info(
+                    "importStock: %s keeps no batches in Stoqflow but has %s stock "
+                    "lines in Odoo; one figure cannot be matched to one line",
+                    product.display_name, len(quants))
+                quants.write(unmatched)
+            return quants
+
+        per_batch = {}
+        for b in detail['batches']:
+            entry = per_batch.setdefault(
+                b['batch'], {'quantity': 0.0, 'expiry_date': b.get('expiry_date')})
+            entry['quantity'] += b['quantity']
+
+        for batch, info in per_batch.items():
+            lot_quants = quants.filtered(lambda q, batch=batch: q.lot_id.name == batch)
+            if not lot_quants:
+                lot = Lot._df_get_or_create_for_batch(
+                    product, batch, company, expiry=parse_dt(info['expiry_date']) or None)
+                lot_quants = create_line(lot)
+                quants |= lot_quants
+            lot_quants = lot_quants.sorted('id')
+            lot_quants[0].write({
+                'df_webship_lot_stock': info['quantity'], 'df_webship_lot_checked': now})
+            (lot_quants - lot_quants[0]).write(unmatched)
+
+        # Odoo lots Stoqflow no longer holds: their figure is 0
+        quants.filtered(lambda q: q.lot_id and q.lot_id.name not in per_batch).write(
+            {'df_webship_lot_stock': 0.0, 'df_webship_lot_checked': now})
+
+        # Stock without lot in Odoo <-> stock without batch in Stoqflow
+        no_lot = quants.filtered(lambda q: not q.lot_id).sorted('id')
+        if detail['unbatched'] > 0:
+            if not no_lot:
+                no_lot = create_line(None)
+                quants |= no_lot
+            no_lot[0].write({
+                'df_webship_lot_stock': detail['unbatched'], 'df_webship_lot_checked': now})
+            (no_lot - no_lot[0]).write(unmatched)
+        else:
+            no_lot.write(unmatched)
+        return quants
 
     def importStock(self):
         """Import inventory levels from Webship and write them to Odoo stock quants
-        at locations flagged as Webship locations.
-
-        Stoqflow reports one figure per product. When the product has several
-        quants at the location (lots, packages) every quant shows that same
-        product figure, and the stock is never adjusted automatically: how it
-        splits over the lots is unknown.
-
-        Returns a summary dict (also logged), or False when the API call failed."""
+        at locations flagged as Webship locations. For lot-tracked products the
+        stock per batch is fetched too, so lots can be compared one by one."""
         adjust_odoo_stock = self.env['ir.config_parameter'].sudo().get_param(
             'webship.adjust_odoo_stock', 'False') == 'True'
 
         result = self.fetchInventory()
 
         if result.get("status") != "success":
-            _logger.error("importStock: fetching the Stoqflow inventory failed: %s",
-                          result.get('txt') or result)
             return False
 
         inventory_data = result.get("data", {})
@@ -3855,21 +4007,6 @@ class WebShipHandler:
 
         StockQuant = self.env["stock.quant"]
         Product = self.env["product.product"]
-        locations = self.env["stock.location"].search([
-            ("df_is_webship_location", "=", True),
-            ("usage", "=", "internal"),
-        ])
-        summary = {
-            'updated': 0,
-            'created': 0,
-            'adjusted': 0,
-            'locations': set(),
-            'unknown_skus': [],
-            'unmatched_companies': set(),
-            'multi_quant_skus': [],
-            'missing_reserved': False,
-            'errors': [],
-        }
 
         # Kit products (phantom BoM) can never carry a stock.quant: mrp's
         # _check_kits constraint forbids it, and one kit in the Stoqflow
@@ -3906,7 +4043,6 @@ class WebShipHandler:
                     limit=1
                 )
                 if not product:
-                    summary['unknown_skus'].append(sku)
                     continue
 
                 if (product.id in kit_product_ids
@@ -3916,15 +4052,28 @@ class WebShipHandler:
                         "quants cannot be created for kits", sku)
                     continue
 
-                if "reserved" not in item:
-                    summary['missing_reserved'] = True
                 total = item.get("total", 0.0)
                 reserved = item.get("reserved", 0.0)
                 available = item.get("available", total - reserved)
 
-                webship_location = self._resolve_stock_location(company_id, locations)
+                # There is exactly one Webship location per shop, so resolve the
+                # location for this Stoqflow shop (company_id) and write the stock
+                # to that location's quant only. Writing to every Webship quant of
+                # the product (the previous behaviour) let one shop's totals
+                # overwrite another shop's.
+                loc_domain = [
+                    ("df_is_webship_location", "=", True),
+                    ("usage", "=", "internal"),
+                ]
+                webship_location = None
+                if company_id:
+                    webship_location = self.env["stock.location"].search(
+                        loc_domain + [("df_warehouse_id_webship", "=", company_id)], limit=1)
                 if not webship_location:
-                    summary['unmatched_companies'].add(company_id or '(none)')
+                    # No shop match (or no company_id on the item): fall back to a
+                    # single Webship internal location.
+                    webship_location = self.env["stock.location"].search(loc_domain, limit=1)
+                if not webship_location:
                     continue
 
                 # One bad product (a kit the guard missed, a constraint
@@ -3933,56 +4082,76 @@ class WebShipHandler:
                 # savepoint keeps the cursor usable after SQL-level errors.
                 try:
                     with self.env.cr.savepoint():
+                        # One quant per lot / package when the product is
+                        # tracked (Stoqflow batches become Odoo lots), so
+                        # this can be several records for one product.
                         quants = StockQuant.search([
                             ("product_id", "=", product.id),
                             ("location_id", "=", webship_location.id),
                         ])
 
                         if not quants:
-                            # Nothing to compare against: only create a quant
-                            # when Stoqflow actually holds stock. Only storable
-                            # products can carry a stock.quant line.
+                            # Only storable products can carry a stock.quant line.
                             # (Odoo 19 no longer uses type == 'product'; use is_storable.)
-                            if not total or not product.is_storable:
+                            if not product.is_storable:
                                 continue
                             quants = StockQuant.create({
                                 "product_id": product.id,
                                 "location_id": webship_location.id,
                                 "quantity": 0.0,
                             })
-                            summary['created'] += 1
 
+                        # The Stoqflow figures are per product: write them on
+                        # every quant of the product in this location. The
+                        # "Stoqflow Stock" screen (webship.stock) adds the
+                        # quants up per product and shows the figures once.
                         quants.write({
                             "df_webship_totalstock": total,
                             "df_webship_reserved": reserved,
                             "df_webship_available_stock": available,
                             "df_last_check_webship": now,
                         })
-                        summary['updated'] += 1
-                        summary['locations'].add(webship_location.complete_name)
-                        if len(quants) > 1:
-                            summary['multi_quant_skus'].append(sku)
 
-                        if adjust_odoo_stock and len(quants) == 1:
-                            quants.inventory_quantity = total
-                            quants._apply_inventory()
-                            summary['adjusted'] += 1
-                except Exception as e:
+                        if product.tracking != 'none':
+                            # Odoo tracks the product by lot ("Suivre
+                            # l'inventaire: par lots"): fetch the stock per
+                            # batch from Stoqflow and match each Odoo lot to
+                            # the batch with the same number, one to one.
+                            # When the call fails the lot timestamps are
+                            # cleared: the figures of the previous import
+                            # stay visible but are never applied, and the
+                            # product line reports no lot comparison for
+                            # this run.
+                            detail = self.fetchProductBatches(
+                                product.df_product_id_webship
+                                or item.get("_id") or item.get("product_id"))
+                            if detail is None:
+                                _logger.warning(
+                                    "importStock: no per-batch stock for SKU %s; "
+                                    "lots not compared this run", sku)
+                                quants.write({"df_webship_lot_checked": False})
+                            else:
+                                quants = self._import_product_lots(
+                                    product, webship_location, quants, detail, total, now)
+                        else:
+                            # No lots: the single stock line carries the
+                            # product total, so its line difference is valid.
+                            quants.write({
+                                "df_webship_lot_stock": total,
+                                "df_webship_lot_checked": now,
+                            })
+
+                        if adjust_odoo_stock:
+                            # One to one: each lot to its batch figure, the
+                            # single line of an untracked product to the
+                            # total. A line without a figure is skipped (and
+                            # logged); setting every quant to `total` used to
+                            # multiply the stock by the number of lots.
+                            quants._df_apply_webship_stock(strict=False)
+                except Exception:
                     _logger.exception(
                         "importStock: failed to apply stock for SKU %s; "
                         "continuing with the next item", sku)
-                    summary['errors'].append('%s: %s' % (sku, e))
                     continue
 
-        _logger.info(
-            "importStock: %d products updated (%d new quants, %d adjusted) at %s; "
-            "unknown SKUs: %s; unmatched Stoqflow companies: %s; "
-            "products with several quants (not adjusted): %s; "
-            "reserved missing in payload: %s; errors: %s",
-            summary['updated'], summary['created'], summary['adjusted'],
-            ', '.join(sorted(summary['locations'])) or '-',
-            ', '.join(summary['unknown_skus']) or '-',
-            ', '.join(sorted(summary['unmatched_companies'])) or '-',
-            ', '.join(summary['multi_quant_skus']) or '-',
-            summary['missing_reserved'], '; '.join(summary['errors']) or '-')
-        return summary
+        return True
