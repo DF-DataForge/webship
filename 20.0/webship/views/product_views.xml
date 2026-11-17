@@ -205,11 +205,6 @@
                 </header>
             </xpath>
 
-            <!-- Allow inline editing -->
-            <xpath expr="//list" position="attributes">
-                <attribute name="editable">bottom</attribute>
-            </xpath>
-
             <!-- Add extra fields -->
             <xpath expr="//list" position="inside">
                 <field name="df_url_prod" widget="html" optional="hide"/>

@@ -38,3 +38,5 @@ from . import test_status_ws_to_odoo
 from . import test_manual_validation_guard
 from . import test_manual_no_id_blank
 from . import test_object_in_webship
+from . import test_webship_stock
+from . import test_packaging_barcodes

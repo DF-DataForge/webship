@@ -2,7 +2,8 @@
 <odoo>
 
     <!-- ========================================================= -->
-    <!-- Stoqflow Stock Quant Tree View                             -->
+    <!-- Stoqflow Stock: one line per stock.quant, so one lot number -->
+    <!-- and one expiry per line, each with its own Stoqflow figure  -->
     <!-- ========================================================= -->
     <record id="df_webship_stock_quant_tree_view" model="ir.ui.view">
         <field name="name">df.webship.stock.quant.tree</field>
@@ -10,10 +11,134 @@
         <field name="priority">50</field>
         <field name="arch" type="xml">
 
+            <!-- Clicking a line opens the product (action / type attributes) -->
             <list string="Stoqflow Stock"
                   create="false"
                   edit="false"
-                  default_order="product_id">
+                  default_order="product_id, in_date, id"
+                  action="action_df_open_product"
+                  type="object">
+
+                <!-- Header button (multi-select): sets each selected line
+                     to its own Stoqflow figure, one to one -->
+                <header>
+                    <button name="action_apply_webship_stock"
+                            type="object"
+                            string="Apply Stoqflow Stock to Odoo"
+                            class="btn-primary"/>
+                </header>
+
+                <!-- Product, location and the lot of this line -->
+                <field name="product_id"/>
+                <field name="location_id" optional="show"/>
+                <field name="lot_id" groups="stock.group_production_lot"/>
+                <field name="df_webship_expiration_date" optional="show"/>
+                <field name="package_id" optional="hide" groups="stock.group_tracking_lot"/>
+                <field name="owner_id" optional="hide" groups="stock.group_tracking_owner"/>
+                <field name="in_date" optional="hide"/>
+
+                <!-- Odoo stock of this lot / package -->
+                <field name="quantity"/>
+                <field name="reserved_quantity"/>
+                <field name="available_quantity"/>
+
+                <!-- Stoqflow stock of this batch (API filled) and the
+                     difference with Odoo for this lot -->
+                <field name="df_webship_lot_stock" optional="show"/>
+                <!-- Red when the line was matched to a Stoqflow figure on the
+                     last import and differs; orange when it holds stock but
+                     could not be matched one to one (no lot, lot received
+                     since, per-batch call failed) -->
+                <field name="df_webship_lot_diff"
+                       optional="show"
+                       decoration-danger="df_webship_lot_diff != 0 and df_webship_lot_checked"
+                       decoration-warning="not df_webship_lot_checked and quantity != 0"/>
+                <field name="df_webship_lot_checked" optional="hide"/>
+
+                <!-- Stoqflow stock of the whole product (API filled) -->
+                <field name="df_webship_totalstock" optional="hide"/>
+                <field name="df_webship_reserved" optional="hide"/>
+                <field name="df_webship_available_stock" optional="hide"/>
+
+                <!-- Stoqflow sync info -->
+                <field name="df_last_check_webship" optional="show"/>
+
+                <field name="company_id" optional="hide"/>
+
+            </list>
+
+        </field>
+    </record>
+
+    <record id="df_webship_stock_quant_search_view" model="ir.ui.view">
+        <field name="name">df.webship.stock.quant.search</field>
+        <field name="model">stock.quant</field>
+        <field name="arch" type="xml">
+            <search string="Stoqflow Stock">
+
+                <!-- Text search -->
+                <field name="product_id"/>
+                <field name="location_id"/>
+                <field name="lot_id" groups="stock.group_production_lot"/>
+
+                <!-- Lines whose Odoo and Stoqflow stock differ, and lines
+                     the last import could not match to a Stoqflow figure -->
+                <filter string="Lots Differ" name="df_webship_lot_diff_filter"
+                        domain="[('df_webship_lot_checked', '!=', False), ('df_webship_lot_diff', '!=', 0)]"/>
+                <filter string="Not Matched" name="df_webship_not_matched_filter"
+                        domain="[('df_webship_lot_checked', '=', False), ('quantity', '!=', 0)]"/>
+
+                <separator/>
+
+                <!-- Grouping -->
+                <group>
+                    <filter string="Product" name="group_by_product"
+                            context="{'group_by': 'product_id'}"/>
+                    <filter string="Location" name="group_by_location"
+                            context="{'group_by': 'location_id'}"/>
+                    <filter string="Lot" name="group_by_lot"
+                            context="{'group_by': 'lot_id'}"/>
+                </group>
+
+            </search>
+        </field>
+    </record>
+
+    <!-- ========================================================= -->
+    <!-- Stoqflow Stock Action: the stock lines of the Stoqflow     -->
+    <!-- locations                                                  -->
+    <!-- ========================================================= -->
+    <record id="webship_stock_action" model="ir.actions.act_window">
+        <field name="name">Stoqflow Stock</field>
+        <field name="res_model">stock.quant</field>
+        <field name="view_mode">list</field>
+        <field name="view_id" ref="df_webship_stock_quant_tree_view"/>
+        <field name="search_view_id" ref="df_webship_stock_quant_search_view"/>
+        <field name="domain">
+            [
+                ('location_id.df_is_webship_location', '=', True),
+                ('location_id.usage', '=', 'internal')
+            ]
+        </field>
+    </record>
+
+    <!-- ========================================================= -->
+    <!-- Stock per Product: the same lines added up per product and -->
+    <!-- Stoqflow location (webship.stock), with the product-level  -->
+    <!-- Stoqflow figures and the number of lots out of sync         -->
+    <!-- ========================================================= -->
+    <record id="df_webship_stock_tree_view" model="ir.ui.view">
+        <field name="name">df.webship.stock.tree</field>
+        <field name="model">webship.stock</field>
+        <field name="arch" type="xml">
+
+            <!-- Clicking a line opens the product (action / type attributes) -->
+            <list string="Stock per Product"
+                  create="false"
+                  edit="false"
+                  delete="false"
+                  action="action_open_product"
+                  type="object">
 
                 <!-- Header button (multi-select) -->
                 <header>
@@ -23,11 +148,14 @@
                             class="btn-primary"/>
                 </header>
 
-                <!-- Product & Location -->
+                <!-- Product & Location (one line per Stoqflow location) -->
                 <field name="product_id"/>
-                <field name="location_id" optional="hide"/>
+                <field name="location_id" optional="show"/>
+                <field name="quant_count" optional="show"/>
+                <field name="lot_names" optional="hide"/>
+                <field name="expiration_date" optional="hide"/>
 
-                <!-- Odoo stock -->
+                <!-- Odoo stock (all lots / packages added up) -->
                 <field name="quantity"/>
                 <field name="reserved_quantity"/>
                 <field name="available_quantity"/>
@@ -47,33 +175,42 @@
                 <field name="df_webship_diff_available"
                        optional="show"
                        decoration-danger="df_webship_diff_available != 0"/>
+                <!-- Lots whose Odoo and Stoqflow stock differ (the product
+                     total can agree while the lots do not) -->
+                <field name="lot_diff_count"
+                       optional="show"
+                       decoration-danger="lot_diff_count > 0"/>
 
                 <!-- Stoqflow sync info -->
                 <field name="df_last_check_webship" optional="show"/>
 
                 <field name="company_id" optional="hide"/>
 
+                <!-- Open the stock lines (lots / packages) behind the line -->
+                <button name="action_view_quants"
+                        type="object"
+                        string="Details"
+                        icon="fa-list"/>
+
             </list>
 
         </field>
     </record>
 
-    <!-- ========================================================= -->
-    <!-- Stoqflow Stock Search View                                 -->
-    <!-- ========================================================= -->
-    <record id="df_webship_stock_quant_search_view" model="ir.ui.view">
-        <field name="name">df.webship.stock.quant.search</field>
-        <field name="model">stock.quant</field>
+    <record id="df_webship_stock_search_view" model="ir.ui.view">
+        <field name="name">df.webship.stock.search</field>
+        <field name="model">webship.stock</field>
         <field name="arch" type="xml">
-            <search string="Stoqflow Stock">
+            <search string="Stock per Product">
 
                 <!-- Text search -->
                 <field name="product_id"/>
                 <field name="location_id"/>
+                <field name="lot_names"/>
 
                 <!-- Any difference between Odoo and Stoqflow -->
                 <filter string="Stock Differs" name="df_webship_any_diff"
-                        domain="['|', '|', ('df_webship_diff_total', '!=', 0), ('df_webship_diff_reserved', '!=', 0), ('df_webship_diff_available', '!=', 0)]"
+                        domain="['|', '|', '|', ('df_webship_diff_total', '!=', 0), ('df_webship_diff_reserved', '!=', 0), ('df_webship_diff_available', '!=', 0), ('lot_diff_count', '>', 0)]"
                         help="Products where Odoo and Stoqflow stock is out of sync"/>
 
                 <separator/>
@@ -85,6 +222,8 @@
                         domain="[('df_webship_diff_reserved', '!=', 0)]"/>
                 <filter string="Available Differs" name="df_webship_diff_available_filter"
                         domain="[('df_webship_diff_available', '!=', 0)]"/>
+                <filter string="Lots Differ" name="df_webship_lot_diff_filter"
+                        domain="[('lot_diff_count', '>', 0)]"/>
 
                 <separator/>
 
@@ -100,25 +239,18 @@
         </field>
     </record>
 
-    <!-- ========================================================= -->
-    <!-- Stoqflow Stock Action                                      -->
-    <!-- ========================================================= -->
-    <record id="webship_stock_action" model="ir.actions.act_window">
-        <field name="name">Stoqflow Stock</field>
-        <field name="res_model">stock.quant</field>
-        <field name="view_mode">list,form</field>
-        <field name="view_id" ref="df_webship_stock_quant_tree_view"/>
-        <field name="search_view_id" ref="df_webship_stock_quant_search_view"/>
-        <field name="domain">
-            [
-                ('location_id.df_is_webship_location', '=', True),
-                ('location_id.usage', '=', 'internal')
-            ]
-        </field>
+    <record id="webship_stock_product_action" model="ir.actions.act_window">
+        <field name="name">Stock per Product</field>
+        <field name="res_model">webship.stock</field>
+        <field name="view_mode">list</field>
+        <field name="view_id" ref="df_webship_stock_tree_view"/>
+        <field name="search_view_id" ref="df_webship_stock_search_view"/>
+        <!-- The view already keeps to internal Stoqflow locations -->
+        <field name="domain">[]</field>
     </record>
 
     <!-- ========================================================= -->
-    <!-- Stoqflow Stock Menu                                        -->
+    <!-- Stoqflow Stock Menus                                       -->
     <!-- ========================================================= -->
     <menuitem
         id="webship_stock_menu"
@@ -126,5 +258,12 @@
         parent="webship_root_menu"
         action="webship_stock_action"
         sequence="2"/>
+
+    <menuitem
+        id="webship_stock_product_menu"
+        name="Stock per Product"
+        parent="webship_root_menu"
+        action="webship_stock_product_action"
+        sequence="3"/>
 
 </odoo>

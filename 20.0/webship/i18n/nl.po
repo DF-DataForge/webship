@@ -22,6 +22,16 @@ msgid "# Orders"
 msgstr "Aantal orders"
 
 #. module: webship
+#. odoo-python
+#: code:addons/webship/models/stock_quant.py:0
+msgid ""
+"%(done)s stock line(s) set to their Stoqflow figure. %(skipped)s line(s) "
+"left alone:\n%(reasons)s"
+msgstr ""
+"%(done)s voorraadlijn(en) op het Stoqflow-cijfer gezet. %(skipped)s "
+"lijn(en) ongewijzigd gelaten:\n%(reasons)s"
+
+#. module: webship
 #: model_terms:ir.ui.view,arch_db:webship.webship_select_client_form
 msgid ""
 ".\n"
@@ -344,6 +354,7 @@ msgstr "Toepassen"
 
 #. module: webship
 #: model_terms:ir.ui.view,arch_db:webship.df_webship_stock_quant_tree_view
+#: model_terms:ir.ui.view,arch_db:webship.df_webship_stock_tree_view
 msgid "Apply Stoqflow Stock to Odoo"
 msgstr "Stoqflow-voorraad toepassen op Odoo"
 
@@ -400,17 +411,23 @@ msgstr ""
 "Verwijdert backorders automatisch uit Stoqflow nadat ze opgehaald zijn."
 
 #. module: webship
-#: model:ir.model.fields,field_description:webship.field_stock_quant__df_webship_diff_available
+#: model:ir.model.fields,field_description:webship.field_webship_stock__df_webship_diff_available
 msgid "Available Difference"
 msgstr "Verschil beschikbaar"
 
 #. module: webship
-#: model_terms:ir.ui.view,arch_db:webship.df_webship_stock_quant_search_view
+#: model_terms:ir.ui.view,arch_db:webship.df_webship_stock_search_view
 msgid "Available Differs"
 msgstr "Beschikbaar wijkt af"
 
 #. module: webship
+#: model:ir.model.fields,field_description:webship.field_webship_stock__available_quantity
+msgid "Available Quantity"
+msgstr "Beschikbare hoeveelheid"
+
+#. module: webship
 #: model:ir.model.fields,help:webship.field_stock_quant__df_webship_available_stock
+#: model:ir.model.fields,help:webship.field_webship_stock__df_webship_available_stock
 msgid "Available stock in Stoqflow locations (filled by Stoqflow API)"
 msgstr ""
 "Beschikbare voorraad op Stoqflow-locaties (gevuld door de Stoqflow-API)"
@@ -762,6 +779,11 @@ msgid ""
 msgstr ""
 "Bedrijven, merken en magazijnen moeten uit de Stoqflow-API geladen worden "
 "vooraleer orders verwerkt kunnen worden."
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_webship_stock__company_id
+msgid "Company"
+msgstr "Bedrijf"
 
 #. module: webship
 #: model:ir.model.fields.selection,name:webship.selection__stock_picking__df_status_webship__completed
@@ -1167,6 +1189,11 @@ msgid "Description"
 msgstr "Beschrijving"
 
 #. module: webship
+#: model_terms:ir.ui.view,arch_db:webship.df_webship_stock_tree_view
+msgid "Details"
+msgstr "Details"
+
+#. module: webship
 #: model:ir.model.fields,help:webship.field_res_config_settings__webship_contact_match_sequence
 msgid ""
 "Determines the order in which Stoqflow looks up an existing client when syncing a contact.\n"
@@ -1450,6 +1477,18 @@ msgstr "Uitgesloten"
 #: model_terms:ir.ui.view,arch_db:webship.stoqflow_product_report_search_view
 msgid "Excluded from Sync"
 msgstr "Uitgesloten van synchronisatie"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_stock_quant__df_webship_expiration_date
+#: model:ir.model.fields,field_description:webship.field_webship_stock__expiration_date
+msgid "Expiration Date"
+msgstr "Vervaldatum"
+
+#. module: webship
+#: model:ir.model.fields,help:webship.field_stock_quant__df_webship_expiration_date
+msgid "Expiration date of the lot of this stock line (product_expiry module)."
+msgstr ""
+"Vervaldatum van de partij van deze voorraadlijn (module product_expiry)."
 
 #. module: webship
 #: model:ir.model.fields,field_description:webship.field_product_product__df_check_expiry_dates
@@ -1801,8 +1840,14 @@ msgstr "Laatste statuscontrole inkooporders"
 
 #. module: webship
 #: model:ir.model.fields,field_description:webship.field_stock_quant__df_last_check_webship
+#: model:ir.model.fields,field_description:webship.field_webship_stock__df_last_check_webship
 msgid "Last Stoqflow Check"
 msgstr "Laatste Stoqflow-controle"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_stock_quant__df_webship_lot_checked
+msgid "Last Stoqflow Lot Check"
+msgstr "Laatste Stoqflow-partijcontrole"
 
 #. module: webship
 #: model_terms:ir.ui.view,arch_db:webship.stoqflow_partner_report_tree_view
@@ -1838,10 +1883,21 @@ msgstr "Laatste wijzigingsdatum Stoqflow"
 
 #. module: webship
 #: model:ir.model.fields,help:webship.field_stock_quant__df_last_check_webship
+#: model:ir.model.fields,help:webship.field_webship_stock__df_last_check_webship
 msgid "Last datetime when stock was checked or synced with Stoqflow"
 msgstr ""
 "Laatste datum/tijd waarop de voorraad met Stoqflow gecontroleerd of "
 "gesynchroniseerd werd"
+
+#. module: webship
+#: model:ir.model.fields,help:webship.field_stock_quant__df_webship_lot_checked
+msgid ""
+"Last datetime when the Stoqflow stock of this line (lot) was fetched. Empty "
+"when the lots were not compared on the last import."
+msgstr ""
+"Datum en tijd waarop de Stoqflow-voorraad van deze lijn (partij) het laatst "
+"werd opgehaald. Leeg wanneer de partijen bij de laatste import niet werden "
+"vergeleken."
 
 #. module: webship
 #: model_terms:ir.ui.view,arch_db:webship.res_config_settings_view_form
@@ -1920,7 +1976,9 @@ msgid "Load couriers from Stoqflow"
 msgstr "Vervoerders laden uit Stoqflow"
 
 #. module: webship
+#: model:ir.model.fields,field_description:webship.field_webship_stock__location_id
 #: model_terms:ir.ui.view,arch_db:webship.df_webship_stock_quant_search_view
+#: model_terms:ir.ui.view,arch_db:webship.df_webship_stock_search_view
 msgid "Location"
 msgstr "Locatie"
 
@@ -1958,6 +2016,44 @@ msgstr "Login"
 #: model_terms:ir.ui.view,arch_db:webship.picking_view_inherit_webship
 msgid "Lookup ID"
 msgstr "Lookup-id"
+
+#. module: webship
+#: model_terms:ir.ui.view,arch_db:webship.df_webship_stock_quant_search_view
+msgid "Lot"
+msgstr "Partij"
+
+#. module: webship
+#. odoo-python
+#: code:addons/webship/models/stock_quant.py:0
+msgid ""
+"Lot %s of %s has no Stoqflow figure to apply: the last import could not "
+"match it one to one (no stock per batch fetched from Stoqflow, or one "
+"Stoqflow figure for several Odoo lines)."
+msgstr ""
+"Partij %s van %s heeft geen Stoqflow-cijfer om toe te passen: de laatste "
+"import kon ze niet één-op-één koppelen (geen voorraad per partij opgehaald "
+"uit Stoqflow, of één Stoqflow-cijfer voor meerdere Odoo-lijnen)."
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_stock_quant__df_webship_lot_diff
+msgid "Lot Difference"
+msgstr "Verschil partij"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_webship_stock__lot_names
+msgid "Lot Numbers"
+msgstr "Partijnummers"
+
+#. module: webship
+#: model_terms:ir.ui.view,arch_db:webship.df_webship_stock_quant_search_view
+#: model_terms:ir.ui.view,arch_db:webship.df_webship_stock_search_view
+msgid "Lots Differ"
+msgstr "Partijen wijken af"
+
+#. module: webship
+#: model:ir.model.fields,field_description:webship.field_webship_stock__lot_diff_count
+msgid "Lots Out of Sync"
+msgstr "Partijen niet gesynchroniseerd"
 
 #. module: webship
 #: model_terms:ir.ui.view,arch_db:webship.res_config_settings_view_form
@@ -2185,6 +2281,11 @@ msgid "Not Applicable"
 msgstr "Niet van toepassing"
 
 #. module: webship
+#: model_terms:ir.ui.view,arch_db:webship.df_webship_stock_quant_search_view
+msgid "Not Matched"
+msgstr "Niet gekoppeld"
+
+#. module: webship
 #: model:ir.model.fields,field_description:webship.field_webship_retour_and_backorder__notes
 #: model_terms:ir.ui.view,arch_db:webship.webship_retour_and_backorder_form_view
 msgid "Notes"
@@ -2194,6 +2295,20 @@ msgstr "Notities"
 #: model_terms:ir.ui.view,arch_db:webship.res_config_settings_view_form
 msgid "Notification Recipients"
 msgstr "Ontvangers van notificaties"
+
+#. module: webship
+#: model:ir.model.fields,help:webship.field_webship_stock__lot_diff_count
+msgid ""
+"Number of lots whose Odoo quantity differs from the Stoqflow stock of the "
+"same batch."
+msgstr "Aantal partijen waarvan de Odoo-hoeveelheid afwijkt van de Stoqflow-voorraad van dezelfde partij."
+
+#. module: webship
+#: model:ir.model.fields,help:webship.field_webship_stock__quant_count
+msgid ""
+"Number of stock lines (lots, packages) behind this product in this "
+"location."
+msgstr "Aantal voorraadlijnen (partijen, verpakkingen) achter dit product op deze locatie."
 
 #. module: webship
 #: model:ir.model.fields,help:webship.field_res_config_settings__webship_sync_retry_count
@@ -2244,7 +2359,7 @@ msgid "Odoo Status"
 msgstr "Odoo-status"
 
 #. module: webship
-#: model:ir.model.fields,help:webship.field_stock_quant__df_webship_diff_available
+#: model:ir.model.fields,help:webship.field_webship_stock__df_webship_diff_available
 msgid ""
 "Odoo available quantity minus Stoqflow available stock. Non-zero means the "
 "two systems are out of sync."
@@ -2253,7 +2368,14 @@ msgstr ""
 " waarde verschillend van nul betekent dat beide systemen niet in sync zijn."
 
 #. module: webship
-#: model:ir.model.fields,help:webship.field_stock_quant__df_webship_diff_total
+#: model:ir.model.fields,help:webship.field_webship_stock__quantity
+msgid ""
+"Odoo on-hand quantity: all lots and packages of the product in this "
+"location added up."
+msgstr "Odoo-voorraad: alle partijen en verpakkingen van het product op deze locatie opgeteld."
+
+#. module: webship
+#: model:ir.model.fields,help:webship.field_webship_stock__df_webship_diff_total
 msgid ""
 "Odoo quantity minus Stoqflow total stock. Non-zero means the two systems are"
 " out of sync."
@@ -2262,7 +2384,14 @@ msgstr ""
 "verschillend van nul betekent dat beide systemen niet in sync zijn."
 
 #. module: webship
-#: model:ir.model.fields,help:webship.field_stock_quant__df_webship_diff_reserved
+#: model:ir.model.fields,help:webship.field_stock_quant__df_webship_lot_diff
+msgid ""
+"Odoo quantity of this lot minus the Stoqflow stock of the same batch. "
+"Non-zero means the two systems disagree on this lot."
+msgstr "Odoo-hoeveelheid van deze partij min de Stoqflow-voorraad van dezelfde partij. Een waarde verschillend van nul betekent dat beide systemen het niet eens zijn over deze partij."
+
+#. module: webship
+#: model:ir.model.fields,help:webship.field_webship_stock__df_webship_diff_reserved
 msgid ""
 "Odoo reserved quantity minus Stoqflow reserved stock. Non-zero means the two"
 " systems are out of sync."
@@ -2634,11 +2763,24 @@ msgstr "Wachtende orders verwerken"
 #: model:ir.model.fields,field_description:webship.field_webship_pick_analysis_line__odoo_product_id
 #: model:ir.model.fields,field_description:webship.field_webship_retour_and_backorder_line__product_display
 #: model:ir.model.fields,field_description:webship.field_webship_retour_and_backorder_line__product_id
+#: model:ir.model.fields,field_description:webship.field_webship_stock__product_id
 #: model_terms:ir.ui.view,arch_db:webship.df_webship_stock_quant_search_view
+#: model_terms:ir.ui.view,arch_db:webship.df_webship_stock_search_view
 #: model_terms:ir.ui.view,arch_db:webship.stoqflow_product_report_search_view
 #: model_terms:ir.ui.view,arch_db:webship.webship_retour_and_backorder_form_view
 msgid "Product"
 msgstr "Product"
+
+#. module: webship
+#. odoo-python
+#: code:addons/webship/models/stock_quant.py:0
+msgid ""
+"Product %s has several stock lines without lot in %s. Stoqflow gives one "
+"figure for the product, so it cannot be applied to one line."
+msgstr ""
+"Product %s heeft meerdere voorraadlijnen zonder partij in %s. Stoqflow "
+"geeft één cijfer voor het product, dus het kan niet op één lijn worden "
+"toegepast."
 
 #. module: webship
 #: model_terms:ir.ui.view,arch_db:webship.stoqflow_product_report_tree_view
@@ -2694,7 +2836,7 @@ msgid "Products in Stoqflow"
 msgstr "Producten in Stoqflow"
 
 #. module: webship
-#: model_terms:ir.ui.view,arch_db:webship.df_webship_stock_quant_search_view
+#: model_terms:ir.ui.view,arch_db:webship.df_webship_stock_search_view
 msgid "Products where Odoo and Stoqflow stock is out of sync"
 msgstr "Producten waarvan de voorraad in Odoo en Stoqflow niet overeenkomt"
 
@@ -2807,6 +2949,7 @@ msgstr "Gepickt aantal"
 #: model:ir.model.fields,field_description:webship.field_webship_parcel_content__df_quantity
 #: model:ir.model.fields,field_description:webship.field_webship_parcel_resource__df_quantity
 #: model:ir.model.fields,field_description:webship.field_webship_retour_and_backorder_line__quantity
+#: model:ir.model.fields,field_description:webship.field_webship_stock__quantity
 msgid "Quantity"
 msgstr "Hoeveelheid"
 
@@ -2877,17 +3020,23 @@ msgid "Request options"
 msgstr "Request-opties"
 
 #. module: webship
-#: model:ir.model.fields,field_description:webship.field_stock_quant__df_webship_diff_reserved
+#: model:ir.model.fields,field_description:webship.field_webship_stock__df_webship_diff_reserved
 msgid "Reserved Difference"
 msgstr "Verschil gereserveerd"
 
 #. module: webship
-#: model_terms:ir.ui.view,arch_db:webship.df_webship_stock_quant_search_view
+#: model_terms:ir.ui.view,arch_db:webship.df_webship_stock_search_view
 msgid "Reserved Differs"
 msgstr "Gereserveerd wijkt af"
 
 #. module: webship
+#: model:ir.model.fields,field_description:webship.field_webship_stock__reserved_quantity
+msgid "Reserved Quantity"
+msgstr "Gereserveerde hoeveelheid"
+
+#. module: webship
 #: model:ir.model.fields,help:webship.field_stock_quant__df_webship_reserved
+#: model:ir.model.fields,help:webship.field_webship_stock__df_webship_reserved
 msgid "Reserved stock in Stoqflow locations (filled by Stoqflow API)"
 msgstr ""
 "Gereserveerde voorraad op Stoqflow-locaties (gevuld door de Stoqflow-API)"
@@ -3286,7 +3435,7 @@ msgid "Stock"
 msgstr "Voorraad"
 
 #. module: webship
-#: model_terms:ir.ui.view,arch_db:webship.df_webship_stock_quant_search_view
+#: model_terms:ir.ui.view,arch_db:webship.df_webship_stock_search_view
 msgid "Stock Differs"
 msgstr "Voorraad wijkt af"
 
@@ -3297,9 +3446,21 @@ msgid "Stock Levels"
 msgstr "Voorraadniveaus"
 
 #. module: webship
+#: model:ir.model.fields,field_description:webship.field_webship_stock__quant_count
+msgid "Stock Lines"
+msgstr "Voorraadlijnen"
+
+#. module: webship
 #: model_terms:ir.ui.view,arch_db:webship.res_config_settings_view_form
 msgid "Stock Management"
 msgstr "Voorraadbeheer"
+
+#. module: webship
+#: model:ir.model.fields,help:webship.field_stock_quant__df_webship_lot_stock
+msgid ""
+"Stock Stoqflow reports for this lot (batch) in this location. For a product "
+"without lots this is the Stoqflow total stock."
+msgstr "Voorraad die Stoqflow rapporteert voor deze partij op deze locatie. Voor een product zonder partijen is dit de totale Stoqflow-voorraad."
 
 #. module: webship
 #: model:ir.model.fields,field_description:webship.field_res_config_settings__webship_cron_import_stock_interval_number
@@ -3310,6 +3471,14 @@ msgstr "Interval voorraadimport"
 #: model:ir.model.fields,field_description:webship.field_res_config_settings__webship_cron_import_stock_interval_type
 msgid "Stock import unit"
 msgstr "Eenheid voorraadimport"
+
+#. module: webship
+#: model:ir.actions.act_window,name:webship.webship_stock_product_action
+#: model:ir.ui.menu,name:webship.webship_stock_product_menu
+#: model_terms:ir.ui.view,arch_db:webship.df_webship_stock_search_view
+#: model_terms:ir.ui.view,arch_db:webship.df_webship_stock_tree_view
+msgid "Stock per Product"
+msgstr "Voorraad per product"
 
 #. module: webship
 #: model:ir.model.fields,field_description:webship.field_product_product__df_stock_type
@@ -3339,6 +3508,7 @@ msgstr "Stoqflow app-URL"
 
 #. module: webship
 #: model:ir.model.fields,field_description:webship.field_stock_quant__df_webship_available_stock
+#: model:ir.model.fields,field_description:webship.field_webship_stock__df_webship_available_stock
 msgid "Stoqflow Available Stock"
 msgstr "Beschikbare voorraad Stoqflow"
 
@@ -3447,6 +3617,11 @@ msgid "Stoqflow Lookup ID"
 msgstr "Stoqflow lookup-ID"
 
 #. module: webship
+#: model:ir.model.fields,field_description:webship.field_stock_quant__df_webship_lot_stock
+msgid "Stoqflow Lot Stock"
+msgstr "Stoqflow-voorraad van de partij"
+
+#. module: webship
 #: model:ir.model.fields,field_description:webship.field_webship_backorder__ws_order_id
 msgid "Stoqflow Order ID"
 msgstr "Stoqflow order-ID"
@@ -3538,6 +3713,7 @@ msgstr "Stoqflow-producten"
 
 #. module: webship
 #: model:ir.model.fields,field_description:webship.field_stock_quant__df_webship_reserved
+#: model:ir.model.fields,field_description:webship.field_webship_stock__df_webship_reserved
 msgid "Stoqflow Reserved Stock"
 msgstr "Gereserveerde voorraad Stoqflow"
 
@@ -3579,10 +3755,17 @@ msgstr "Stoqflow-wachtrij statusupdates"
 
 #. module: webship
 #: model:ir.actions.act_window,name:webship.webship_stock_action
+#: model:ir.model,name:webship.model_webship_stock
 #: model_terms:ir.ui.view,arch_db:webship.df_webship_stock_quant_search_view
 #: model_terms:ir.ui.view,arch_db:webship.df_webship_stock_quant_tree_view
 msgid "Stoqflow Stock"
 msgstr "Stoqflow-voorraad"
+
+#. module: webship
+#. odoo-python
+#: code:addons/webship/models/webship_stock.py:0
+msgid "Stoqflow Stock Details"
+msgstr "Detail Stoqflow-voorraad"
 
 #. module: webship
 #: model:ir.model.fields,field_description:webship.field_webship_retour_and_backorder__df_stoqflow_supplier_code
@@ -3603,6 +3786,7 @@ msgstr "Stoqflow-synchronisatie"
 
 #. module: webship
 #: model:ir.model.fields,field_description:webship.field_stock_quant__df_webship_totalstock
+#: model:ir.model.fields,field_description:webship.field_webship_stock__df_webship_totalstock
 msgid "Stoqflow Total Stock"
 msgstr "Totale voorraad Stoqflow"
 
@@ -3672,6 +3856,12 @@ msgstr "Stoqflow-eigenschappen"
 #: model:ir.model.fields,field_description:webship.field_webship_status_update__df_status_webship
 msgid "Stoqflow status"
 msgstr "Stoqflow-status"
+
+#. module: webship
+#. odoo-python
+#: code:addons/webship/models/stock_quant.py:0
+msgid "Stoqflow stock applied"
+msgstr "Stoqflow-voorraad toegepast"
 
 #. module: webship
 #: model:ir.model.fields,field_description:webship.field_stock_picking__df_sync_retry_count
@@ -3981,6 +4171,14 @@ msgstr ""
 "Stoqflow-API geladen."
 
 #. module: webship
+#: model:ir.model.fields,help:webship.field_webship_stock__expiration_date
+msgid ""
+"The earliest expiration date among the lots of this product in this "
+"location."
+msgstr ""
+"De vroegste vervaldatum van de partijen van dit product op deze locatie."
+
+#. module: webship
 #: model:ir.model.fields,help:webship.field_webship_select_client__match_field
 msgid "The field used to find these matches (e-mail or VAT)."
 msgstr "Het veld dat gebruikt werd om deze matches te vinden (e-mail of btw)."
@@ -4009,6 +4207,13 @@ msgstr ""
 "worden in het magazijn verwacht."
 
 #. module: webship
+#: model:ir.model.fields,help:webship.field_webship_stock__lot_names
+msgid ""
+"The lot numbers of the stock lines behind this product in this location."
+msgstr ""
+"De partijnummers van de voorraadlijnen achter dit product op deze locatie."
+
+#. module: webship
 #: model:ir.model.fields,help:webship.field_res_config_settings__webship_default_shop
 msgid ""
 "The shop assigned to orders sent to Stoqflow. Shops belong to a brand and "
@@ -4018,6 +4223,18 @@ msgstr ""
 "De shop die toegekend wordt aan orders die naar Stoqflow verstuurd worden. "
 "Shops horen bij een merk en worden via de knop 'Bedrijven / merken / "
 "magazijnen laden' uit de Stoqflow-API geladen."
+
+#. module: webship
+#. odoo-python
+#: code:addons/webship/models/stock_quant.py:0
+msgid ""
+"The stock line of %s without lot has no Stoqflow counterpart: Stoqflow "
+"holds no stock without batch for this product. Assign the lot or adjust the "
+"line by hand."
+msgstr ""
+"De voorraadlijn van %s zonder partij heeft geen tegenhanger in Stoqflow: "
+"Stoqflow houdt voor dit product geen voorraad zonder partij aan. Ken de "
+"partij toe of pas de lijn handmatig aan."
 
 #. module: webship
 #: model_terms:ir.ui.view,arch_db:webship.res_config_settings_view_form
@@ -4102,12 +4319,12 @@ msgid "Total Cost"
 msgstr "Totale kostprijs"
 
 #. module: webship
-#: model:ir.model.fields,field_description:webship.field_stock_quant__df_webship_diff_total
+#: model:ir.model.fields,field_description:webship.field_webship_stock__df_webship_diff_total
 msgid "Total Difference"
 msgstr "Totaal verschil"
 
 #. module: webship
-#: model_terms:ir.ui.view,arch_db:webship.df_webship_stock_quant_search_view
+#: model_terms:ir.ui.view,arch_db:webship.df_webship_stock_search_view
 msgid "Total Differs"
 msgstr "Totaal wijkt af"
 
@@ -4129,6 +4346,7 @@ msgstr "Totale verkoop"
 
 #. module: webship
 #: model:ir.model.fields,help:webship.field_stock_quant__df_webship_totalstock
+#: model:ir.model.fields,help:webship.field_webship_stock__df_webship_totalstock
 msgid "Total stock in Stoqflow locations (filled by Stoqflow API)"
 msgstr "Totale voorraad op Stoqflow-locaties (gevuld door de Stoqflow-API)"
 
@@ -4338,6 +4556,7 @@ msgstr "Webship JSON-historiek"
 #. module: webship
 #. odoo-python
 #: code:addons/webship/models/stock_quant.py:0
+#: code:addons/webship/models/webship_stock.py:0
 msgid "Webship stock has not been fetched yet for product %s."
 msgstr "De Webship-voorraad is nog niet opgehaald voor product %s."
 

@@ -21,3 +21,4 @@ access_webship_retour_confirm_return,webship.retour.confirm.return,webship.retou
 access_webship_status_update,webship.status.update,webship.status.update,base.group_user,crud,
 access_webship_trace_export,webship.trace.export,webship.trace.export,base.group_user,crud,
 access_webship_test_set_error,webship.test.set.error,webship.test.set.error,base.group_user,crud,
+access_webship_stock,webship.stock,webship.stock,stock.group_stock_user,r,

@@ -16,6 +16,8 @@ from . import ws_warehouse
 from . import stock_location
 from . import wsLogging
 from . import stock_quant
+from . import stock_lot
+from . import webship_stock
 from . import stoqflow_order_report
 from . import json_history
 from . import status_update

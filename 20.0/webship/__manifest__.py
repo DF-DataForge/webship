@@ -11,7 +11,7 @@
     'website': "https://www.data-forge.be",
 
     'category': 'Uncategorized',
-    'version': '20.0.1.1',
+    'version': '20.0.1.3',
     'description': """
 Stoqflow Integration Module v1.0
 =================================
