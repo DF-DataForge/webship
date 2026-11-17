@@ -164,6 +164,36 @@ class TestProductSync(TransactionCase):
         })
         self.assertIs(self._posted_product_payload(consumable)['has_stock'], False)
 
+    # --- Barcode on update (PUT) ---------------------------------------------
+
+    def test_update_sends_barcode(self):
+        product = self.env['product.product'].create({
+            'name': 'Barcoded', 'default_code': 'BAR', 'barcode': '5410000000017',
+            'df_product_id_webship': 'WSBAR',
+        })
+        with mock.patch.object(self.handler, 'showDebugInfo'), \
+                mock.patch.object(self.handler, 'performPut',
+                                  return_value={'status': 'success',
+                                                'data': {'message': 'product updated'}}) as put:
+            errors = self.handler.sync_product(product)
+        self.assertEqual(errors, [])
+        payload = put.call_args[0][1]
+        self.assertEqual(payload['barcodes'],
+                         [{'type': 'ean13', 'code': '5410000000017', 'main': True}])
+
+    def test_put_api_error_with_http_200_is_reported(self):
+        # Stoqflow can answer a rejected update (e.g. a barcode that already
+        # belongs to another product) with HTTP 200 and an error list. That
+        # used to be shown as 'success' while the barcode never changed.
+        response = mock.Mock(status_code=200, text='[{"index":0,"code":11000}]')
+        response.json.return_value = [{'index': 0, 'code': 11000}]
+        with mock.patch.object(self.handler, 'showDebugInfo'), \
+                mock.patch.object(self.handler, 'sleep'), \
+                mock.patch.object(self.handler.session, 'put', return_value=response):
+            result = self.handler.performPut('products', {'name': 'x'}, 'WSID')
+        self.assertEqual(result['status'], 'error')
+        self.assertIn('Duplicate', result['errorText'])
+
     def test_template_flag_mirrors_variant(self):
         # Setting the flag on the template (single variant) writes through to
         # the variant, so the template form checkbox actually excludes it.

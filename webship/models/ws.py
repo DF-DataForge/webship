@@ -1259,15 +1259,21 @@ class WebShipHandler:
         if response.status_code != 200:
             return {'status': 'error', 'errorCode':response.status_code, 'errorText':self._parse_error_response(response), 'url': url}
         else:
-            responseData = response.json()
-            # Detect API-level errors returned with HTTP 200,
-            # e.g. [{"index": 0, "code": 11000}] (duplicate key)
-            if isinstance(responseData, list) and responseData and isinstance(responseData[0], dict) and 'code' in responseData[0]:
-                parts = [self._format_api_error(e) for e in responseData if e]
-                parts = [p for p in parts if p]
-                error_text = '; '.join(parts) if parts else 'Unknown API error'
-                return {'status': 'error', 'errorCode': responseData[0].get('code'), 'errorText': error_text, 'url': url}
-            return {'status':'success', 'data':responseData}
+            return self._wrap_json_response(response.json(), url)
+
+    def _wrap_json_response(self, responseData, url):
+        """Turn a HTTP 200 JSON body into a success/error result.
+
+        Stoqflow can report API-level errors with HTTP 200, e.g.
+        [{"index": 0, "code": 11000}] (duplicate key, such as a barcode that
+        already belongs to another product). Treat those as errors instead of
+        reporting a silent 'success'."""
+        if isinstance(responseData, list) and responseData and isinstance(responseData[0], dict) and 'code' in responseData[0]:
+            parts = [self._format_api_error(e) for e in responseData if e]
+            parts = [p for p in parts if p]
+            error_text = '; '.join(parts) if parts else 'Unknown API error'
+            return {'status': 'error', 'errorCode': responseData[0].get('code'), 'errorText': error_text, 'url': url}
+        return {'status':'success', 'data':responseData}
 
     def performPut(self, url, sObject, sId):
         """PUT (update) a JSON payload for a specific resource by ID."""
@@ -1285,8 +1291,7 @@ class WebShipHandler:
         if response.status_code != 200:
             return {'status': 'error', 'errorCode':response.status_code, 'errorText':self._parse_error_response(response), 'url': url}
         else:
-            responseData = response.json()
-            return {'status':'success', 'data':responseData}
+            return self._wrap_json_response(response.json(), url)
 
     def performGet(self, url, sParams):
         """GET a resource with query parameters appended."""
